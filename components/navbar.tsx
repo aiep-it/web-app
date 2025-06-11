@@ -26,6 +26,15 @@ import {
   Logo,
 } from "@/components/icons";
 
+// Clerk imports
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/nextjs";
+
 export const Navbar = () => {
   const searchInput = (
     <Input
@@ -103,6 +112,20 @@ export const Navbar = () => {
           >
             Sponsor
           </Button>
+        </NavbarItem>
+        {/* Clerk Auth Buttons */}
+        <NavbarItem>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <Button variant="flat" className="mx-1">Đăng nhập</Button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <Button variant="flat" className="mx-1">Đăng ký</Button>
+            </SignUpButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
         </NavbarItem>
       </NavbarContent>
 
