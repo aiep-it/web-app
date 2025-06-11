@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Metadata, Viewport } from "next";
 import { Link } from "@heroui/link";
 import clsx from "clsx";
@@ -8,6 +9,7 @@ import { Providers } from "./providers";
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
 import { Navbar } from "@/components/navbar";
+
 
 export const metadata: Metadata = {
   title: {
@@ -33,6 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
+    <ClerkProvider>
     <html suppressHydrationWarning lang="en">
       <head />
       <body
@@ -60,7 +63,8 @@ export default function RootLayout({
             </footer>
           </div>
         </Providers>
-      </body>
+    </body>
     </html>
+    </ClerkProvider>
   );
 }
