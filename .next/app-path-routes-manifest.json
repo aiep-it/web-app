@@ -1,9 +1,9 @@
 {
   "/_not-found/page": "/_not-found",
-  "/sign-in/[[...sign-in]]/page": "/sign-in/[[...sign-in]]",
+  "/profile/page": "/profile",
   "/dashboard/page": "/dashboard",
   "/page": "/",
-  "/profile/page": "/profile",
   "/test/page": "/test",
-  "/sign-up/[[...sign-up]]/page": "/sign-up/[[...sign-up]]"
+  "/sign-up/[[...sign-up]]/page": "/sign-up/[[...sign-up]]",
+  "/sign-in/[[...sign-in]]/page": "/sign-in/[[...sign-in]]"
 }
