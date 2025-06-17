@@ -51,7 +51,7 @@ const PersonalManagementSection: React.FC<PersonalManagementSectionProps> = ({ l
         </div>
       )}
 
-      {/* Hiển thị thông báo nếu không có roadmap nào đang học */}
+      {/* Hiển thị thông báo nếu không có roadmap nào đang học hoặc bookmark*/}
       {learningRoadmaps.length === 0 && (
         <div className="text-white text-center py-4 text-lg">
           Bạn chưa bắt đầu học lộ trình nào. Hãy chọn một lộ trình để bắt đầu!

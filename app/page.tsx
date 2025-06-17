@@ -102,15 +102,16 @@ export default async function HomePage() {
   const allRoadmaps = await fetchRoadmaps(clerkToken);
   const categories = await fetchCategories();
 
-  // CHỈ SẮP XẾP CÁC CATEGORY, KHÔNG LỌC THEO TYPE Ở ĐÂY NỮA
+ 
   const sortedCategories = categories.sort((a, b) => a.order - b.order);
 
-  const learningRoadmaps = allRoadmaps.filter(rm => rm.progressPercentage > 0 && !rm.is_deleted);
-
+ const learningRoadmaps = allRoadmaps.filter(
+  rm => (rm.progressPercentage > 0 || rm.isBookmarked) && !rm.is_deleted
+);
 
   return (
     <main className="min-h-screen bg-gray-900 text-white p-6 md:p-8">
-      <TokenDisplay />
+      {/* <TokenDisplay /> */}
 
       <ProfileSection />
       <PersonalManagementSection learningRoadmaps={learningRoadmaps} />
