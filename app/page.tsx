@@ -104,7 +104,7 @@ export default async function HomePage() {
 
  
   const sortedCategories = categories.sort((a, b) => a.order - b.order);
-
+// fix logic ở đây
  const learningRoadmaps = allRoadmaps.filter(
   rm => (rm.progressPercentage > 0 || rm.isBookmarked) && !rm.is_deleted
 );
