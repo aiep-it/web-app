@@ -8,7 +8,7 @@ export default function UpdateRole() {
   const handleUpdateRole = async () => {
     if (!user) return;
     try {
-      const response = await fetch('http://localhost:3000/api/users/update-metadata', {
+      const response = await fetch('http://localhost:5000/api/users/update-metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, role: 'admin' }),
