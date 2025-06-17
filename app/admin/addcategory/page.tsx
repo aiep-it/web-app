@@ -37,7 +37,7 @@ const AddCategoryPage: React.FC = () => {
             setIsRoleLoading(true); // Bắt đầu tải vai trò
             try {
                 const token = await getToken();
-                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000/api';
+                const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:5000/api';
                 const res = await fetch(`${backendUrl}/users/me`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -114,7 +114,7 @@ const AddCategoryPage: React.FC = () => {
 
         try {
             const token = await getToken();
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000/api';
+            const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:5000/api';
             const res = await fetch(`${backendUrl}/categories`, {
                 method: 'POST',
                 headers: {

@@ -1,30 +1,42 @@
 // web-app/components/UpdateRole.tsx
-'use client';
-import { useUser } from '@clerk/nextjs';
+"use client";
+import { UpdateRoleRequest } from "@/services/types/user";
+import { updateRole } from "@/services/user";
+import { useUser } from "@clerk/nextjs";
+import { addToast } from "@heroui/react";
 
 export default function UpdateRole() {
   const { user } = useUser();
- console.log('Current user:', user);
+
   const handleUpdateRole = async () => {
-    if (!user) return;
-    try {
-      const response = await fetch('http://localhost:5000/api/users/update-metadata', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, role: 'admin' }),
+    if (!user) {
+      addToast({
+        title: "Please Sign in",
+        color: "danger",
       });
-      if (response.ok) {
-        alert('Role updated');
-      } else {
-        throw new Error('Failed to update role');
-      }
-    } catch (err) {
-      console.error('Error:', err);
+      return;
+    }
+
+    const payload: UpdateRoleRequest = { userId: user.id, role: "admin" };
+    const res = await updateRole(payload);
+    if (res) {
+      addToast({
+        title: "Role updated to admin",
+        color: "success",
+      });
+    } else {
+      addToast({
+        title: "Failed to update role",
+        color: "danger",
+      });
     }
   };
 
   return (
-    <button onClick={handleUpdateRole} className="bg-green-500 text-white p-2 rounded">
+    <button
+      onClick={handleUpdateRole}
+      className="bg-green-500 text-white p-2 rounded"
+    >
       Set Admin Role
     </button>
   );
