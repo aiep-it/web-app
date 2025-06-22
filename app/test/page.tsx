@@ -1,6 +1,6 @@
 'use client';
-import UpdateProfile from '@/components/UpdateProfile';
-import UpdateRole from '@/components/UpdateRole';
+import UpdateProfile from '@/components/profileComponents/UpdateProfile';
+import UpdateRole from '@/components/profileComponents/UpdateRole';
 
 export default function TestPage() {
   return (

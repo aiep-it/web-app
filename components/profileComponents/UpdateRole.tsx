@@ -7,20 +7,27 @@ import { addToast } from "@heroui/react";
 
 export default function UpdateRole() {
   const { user } = useUser();
+
   const handleUpdateRole = async () => {
     if (!user) {
       addToast({
-        title: "Please Signin",
+        title: "Please Sign in",
         color: "danger",
       });
       return;
     }
+
     const payload: UpdateRoleRequest = { userId: user.id, role: "admin" };
     const res = await updateRole(payload);
     if (res) {
       addToast({
-        title: "Ok",
-        color: 'success',
+        title: "Role updated to admin",
+        color: "success",
+      });
+    } else {
+      addToast({
+        title: "Failed to update role",
+        color: "danger",
       });
     }
   };
