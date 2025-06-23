@@ -48,6 +48,7 @@ export default function RootLayout({
       >
         {/* <Providers> bây giờ sẽ chứa ClerkProvider bên trong nó */}
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
+          
             <div className="relative flex bg-gray-900 flex-col ">
               <Navbar />
               <main className="container mx-auto bg-gray-900 max-w-7xl pt-16 px-6 flex-grow">

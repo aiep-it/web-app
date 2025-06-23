@@ -1,16 +1,16 @@
-"use client"; // Đảm bảo dòng này ở đầu file để khai báo đây là Client Component
+"use client"; 
 
 import React from "react";
-import { Accordion, AccordionItem } from "@heroui/accordion"; // Hoặc @heroui/react nếu Accordion là một phần của gói tổng hợp
+import { Accordion, AccordionItem } from "@heroui/accordion";
 import { Badge } from "@heroui/badge";
 import { Button } from "@heroui/button";
 import { Card } from "@heroui/card";
 import { Tabs, Tab } from "@heroui/tabs";
-import { Chip } from "@heroui/chip"; // Hoặc @heroui/react nếu Chip là một phần của gói tổng hợp
-import { Icon } from "@iconify/react"; // Đảm bảo đã cài đặt @iconify/react
-// import { RoadmapNode } from "./components/roadmap-node"; // Dòng này đang được comment, nếu bạn có component này, hãy đảm bảo đường dẫn đúng
+import { Chip } from "@heroui/chip"; 
+import { Icon } from "@iconify/react";
+// import { RoadmapNode } from "./components/roadmap-node"; 
 
-export default function RoadmapPage() { // Đổi tên component từ 'Home' thành 'RoadmapPage' cho rõ ràng
+export default function RoadmapPage() { 
   const [selectedKeys, setSelectedKeys] = React.useState<Set<string>>(new Set(["1"]));
   const [selectedRoadmap, setSelectedRoadmap] = React.useState("frontend");
 
