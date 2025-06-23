@@ -7,12 +7,16 @@ const isPublicRoute = createRouteMatcher([
   '/sign-up(.*)',
 ]);
 
+const isProtectedRouter = createRouteMatcher([
+  '/admin(.*)',
+]);
+
 export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
+  if (isProtectedRouter(req)) {
     const session = await auth();
-    if (!session.userId) {
-      return Response.redirect('/sign-in');
-    }
+    // if (!session.userId) {
+    //   return Response.redirect('/sign-in');
+    // }
   }
 });
 export const config = {

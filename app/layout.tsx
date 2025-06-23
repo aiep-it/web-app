@@ -12,7 +12,6 @@ import { fontSans } from "@/config/fonts";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 
-
 export const metadata: Metadata = {
   title: {
     default: siteConfig.name,
@@ -43,19 +42,16 @@ export default function RootLayout({
       <body
         className={clsx(
           "min-h-screen text-foreground bg-background font-sans antialiased",
-          fontSans.variable,
+          fontSans.variable
         )}
       >
         {/* <Providers> bây giờ sẽ chứa ClerkProvider bên trong nó */}
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
-          
-            <div className="relative flex bg-gray-900 flex-col ">
-              <Navbar />
-              <main className="container mx-auto bg-gray-900 max-w-7xl pt-16 px-6 flex-grow">
-                {children}
-              </main>
-              <Footer/>
-            </div>
+          <div className="relative flex flex-col ">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
         </Providers>
       </body>
     </html>
