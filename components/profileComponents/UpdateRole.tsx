@@ -2,12 +2,13 @@
 "use client";
 import { UpdateRoleRequest } from "@/services/types/user";
 import { updateRole } from "@/services/user";
+import { handleExpection } from "@/utils/expections";
 import { useUser } from "@clerk/nextjs";
 import { addToast } from "@heroui/react";
 
 export default function UpdateRole() {
   const { user } = useUser();
-
+  
   const handleUpdateRole = async () => {
     if (!user) {
       addToast({

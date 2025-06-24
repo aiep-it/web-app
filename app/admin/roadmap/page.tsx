@@ -9,34 +9,32 @@ import { Button } from "@heroui/button";
 import { toast } from "react-hot-toast";
 import BaseCard from "@/components/card/BaseCard";
 
-const CategoryListPage = () => {
+const RoadmapListPage = () => {
   const { getToken } = useAuth();
   const { userRole, isSignedIn, isRoleLoading } = useUserRole();
   const router = useRouter();
 
-  type Category = {
+  type Roadmap = {
     id: string;
     name: string;
     description: string;
-    type?: string;
-    order?: number;
   };
 
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
 
-  const fetchCategories = async () => {
+  const fetchRoadmaps = async () => {
     try {
       const token = await getToken();
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api";
-      const res = await fetch(`${backendUrl}/categories`, {
+      const res = await fetch(`${backendUrl}/roadmaps`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       const data = await res.json();
-      setCategories(data);
+      setRoadmaps(data);
     } catch (err) {
-      toast.error("Không thể tải danh mục");
+      toast.error("Không thể tải roadmap");
     }
   };
 
@@ -44,7 +42,7 @@ const CategoryListPage = () => {
     try {
       const token = await getToken();
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api";
-      const res = await fetch(`${backendUrl}/categories/${id}`, {
+      const res = await fetch(`${backendUrl}/roadmaps/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -53,41 +51,41 @@ const CategoryListPage = () => {
 
       if (!res.ok) throw new Error("Xoá thất bại");
 
-      toast.success("Đã xoá category");
-      setCategories(categories.filter((cat) => cat.id !== id));
+      toast.success("Đã xoá roadmap");
+      setRoadmaps(roadmaps.filter((r) => r.id !== id));
     } catch (err) {
-      toast.error("Lỗi khi xoá category");
+      toast.error("Lỗi khi xoá roadmap");
     }
   };
 
   useEffect(() => {
-    if (isSignedIn) fetchCategories();
+    if (isSignedIn) fetchRoadmaps();
   }, [isSignedIn]);
 
   if (isRoleLoading) return <p className="text-center mt-20 text-gray-400">Đang tải quyền người dùng...</p>;
-  // if (!isSignedIn) return <p className="text-center mt-20 text-red-400">Bạn chưa đăng nhập.</p>;
-  // if (userRole !== "admin" && userRole !== "staff") return <p className="text-center mt-20 text-yellow-400">Bạn không có quyền truy cập.</p>;
+  if (!isSignedIn) return <p className="text-center mt-20 text-red-400">Bạn chưa đăng nhập.</p>;
+  if (userRole !== "admin" && userRole !== "staff") return <p className="text-center mt-20 text-yellow-400">Bạn không có quyền truy cập.</p>;
 
   return (
     <div className="min-h-screen dark:bg-gray-800 text-foreground p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Categories List</h1>
-        <Link href="/admin/categories/addcategories">
+        <h1 className="text-3xl font-bold">Roadmap List</h1>
+        <Link href="/admin/roadmap/addroadmap">
           <Button className="bg-gradient-to-r from-indigo-900 via-purple-900 to-gray-900 text-white">
-            + Thêm Category
+            + Add New Roadmap
           </Button>
         </Link>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-        {categories.map((cat) => (
+        {roadmaps.map((r) => (
           <BaseCard
-            key={cat.id}
-            id={cat.id}
-            name={cat.name}
-            description={cat.description}
+            key={r.id}
+            id={r.id}
+            name={r.name}
+            description={r.description}
             onDelete={handleDelete}
-            editUrl={`categories/${cat.id}/edit`}
+            editUrl={`roadmaps/${r.id}/edit`}
           />
         ))}
       </div>
@@ -95,4 +93,4 @@ const CategoryListPage = () => {
   );
 };
 
-export default CategoryListPage;
+export default RoadmapListPage;

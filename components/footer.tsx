@@ -1,4 +1,4 @@
-// filepath: c:\Capstone\web-app\components\Footer.tsx
+//web-app\components\Footer.tsx
 import { Link } from "@heroui/link";
 
 export function Footer() {
