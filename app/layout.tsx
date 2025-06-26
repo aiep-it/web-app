@@ -9,10 +9,36 @@ import { fontSans } from "@/config/fonts";
 import clsx from "clsx";
 import { usePathname } from "next/navigation";
 
+<<<<<<< HEAD
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
 
+=======
+export const metadata: Metadata = {
+  title: {
+    default: siteConfig.name,
+    template: `%s - ${siteConfig.name}`,
+  },
+  description: siteConfig.description,
+  icons: {
+    icon: "/favicon.ico",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
+  ],
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+>>>>>>> 9fe4e0c35a50f14a7dfb7c3d5c0cc6c7dca90b55
   return (
     <html suppressHydrationWarning lang="en">
       <head />
@@ -23,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
+{/* <<<<<<< HEAD */}
           {isAdmin ? (
             // 👉 Nếu là admin, không bọc container
             children
@@ -35,6 +62,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Footer />
             </div>
           )}
+{/* // =======
+//           <div className="relative flex flex-col ">
+//             <Navbar />
+//             <main className="flex-1">{children}</main>
+//             <Footer />
+//           </div>
+// >>>>>>> 9fe4e0c35a50f14a7dfb7c3d5c0cc6c7dca90b55 */}
         </Providers>
       </body>
     </html>
