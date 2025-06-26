@@ -1,118 +1,96 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@clerk/nextjs";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@heroui/button";
 import { toast } from "react-hot-toast";
+import BaseCard from "@/components/card/BaseCard";
 
-type Category = {
-  id: string;
-  name: string;
-  type: string;
-  description: string;
-  order: number;
-  created_at: string;
-};
-
-const CategoryListPage: React.FC = () => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+const CategoryListPage = () => {
   const { getToken } = useAuth();
-  const { userRole, isRoleLoading, isSignedIn } = useUserRole();
+  const { userRole, isSignedIn, isRoleLoading } = useUserRole();
+  const router = useRouter();
+
+  type Category = {
+    id: string;
+    name: string;
+    description: string;
+    type?: string;
+    order?: number;
+  };
+
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const fetchCategories = async () => {
-    setLoading(true);
     try {
       const token = await getToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api"}/categories`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api";
+      const res = await fetch(`${backendUrl}/categories`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await res.json();
       setCategories(data);
     } catch (err) {
       toast.error("Không thể tải danh mục");
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    const confirm = window.confirm("Bạn có chắc chắn muốn xóa danh mục này?");
-    if (!confirm) return;
-
     try {
       const token = await getToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api"}/categories/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api";
+      const res = await fetch(`${backendUrl}/categories/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      if (!res.ok) throw new Error("Xóa không thành công");
+      if (!res.ok) throw new Error("Xoá thất bại");
 
-      toast.success("Đã xóa danh mục!");
-      fetchCategories();
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi khi xóa");
+      toast.success("Đã xoá category");
+      setCategories(categories.filter((cat) => cat.id !== id));
+    } catch (err) {
+      toast.error("Lỗi khi xoá category");
     }
   };
 
   useEffect(() => {
-    if (isSignedIn && (userRole === "admin" || userRole === "staff")) {
-      fetchCategories();
-    }
-  }, [userRole, isSignedIn]);
+    if (isSignedIn) fetchCategories();
+  }, [isSignedIn]);
 
-  if (isRoleLoading) return <p>Đang tải vai trò người dùng...</p>;
-  if (!isSignedIn) return <p>Vui lòng đăng nhập</p>;
-  if (userRole !== "admin" && userRole !== "staff") return <p>Bạn không có quyền</p>;
+  if (isRoleLoading) return <p className="text-center mt-20 text-gray-400">Đang tải quyền người dùng...</p>;
+  // if (!isSignedIn) return <p className="text-center mt-20 text-red-400">Bạn chưa đăng nhập.</p>;
+  // if (userRole !== "admin" && userRole !== "staff") return <p className="text-center mt-20 text-yellow-400">Bạn không có quyền truy cập.</p>;
 
   return (
-    <div className="p-6 text-white min-h-screen bg-gray-900">
-      <h1 className="text-3xl font-bold mb-6 text-primary-400">Danh sách Category</h1>
-      {loading ? (
-        <p>Đang tải...</p>
-      ) : (
-        <div className="space-y-4">
-          {categories.map((cat) => (
-            <div key={cat.id} className="bg-gray-800 p-4 rounded-lg shadow flex justify-between items-center">
-              <div>
-                <h2 className="text-lg font-semibold">{cat.name}</h2>
-                <p className="text-sm text-gray-400">Loại: {cat.type}</p>
-                <p className="text-sm text-gray-400">Mô tả: {cat.description}</p>
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  variant="ghost"
-                  className="border text-blue-400"
-                  onClick={() => router.push(`/admin/categories/${cat.id}/edit`)}
-                >
-                  Sửa
-                </Button>
-                <Button
-                  color="danger"
-                  variant="solid"
-                  onClick={() => handleDelete(cat.id)}
-                >
-                  Xóa
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="min-h-screen dark:bg-black text-foreground p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Categories List</h1>
+        <Link href="/admin/categories/addcategories">
+          <Button className="bg-gradient-to-r from-indigo-900 via-purple-900 to-gray-900 text-white">
+            + Thêm Category
+          </Button>
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        {categories.map((cat) => (
+          <BaseCard
+            key={cat.id}
+            id={cat.id}
+            name={cat.name}
+            description={cat.description}
+            onDelete={handleDelete}
+            editUrl={`categories/${cat.id}/edit`}
+          />
+        ))}
+      </div>
     </div>
   );
 };
