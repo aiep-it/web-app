@@ -69,7 +69,7 @@ const CategoryListPage = () => {
   // if (userRole !== "admin" && userRole !== "staff") return <p className="text-center mt-20 text-yellow-400">Bạn không có quyền truy cập.</p>;
 
   return (
-    <div className="min-h-screen dark:bg-gray-800 text-foreground p-6">
+    <div className="min-h-screen dark:bg-black text-foreground p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Categories List</h1>
         <Link href="/admin/categories/addcategories">

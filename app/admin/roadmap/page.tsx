@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -95,18 +95,18 @@ const RoadmapListPage = () => {
 };
 
 export default RoadmapListPage;
-=======
-import { Tab, Tabs } from "@heroui/react";
-import React from "react";
-import RoadMapClient from "./RoadMapClient";
+// // =======
+// import { Tab, Tabs } from "@heroui/react";
+// import React from "react";
+// import RoadMapClient from "./RoadMapClient";
 
-const RoadMapPage = () => {
-  return (
-    <div className={"p-8"}>
-      <RoadMapClient />
-    </div>
-  );
-};
+// const RoadMapPage = () => {
+//   return (
+//     <div className={"p-8"}>
+//       <RoadMapClient />
+//     </div>
+//   );
+// };
 
-export default RoadMapPage;
->>>>>>> 9fe4e0c35a50f14a7dfb7c3d5c0cc6c7dca90b55
+// export default RoadMapPage;
+
