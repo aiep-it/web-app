@@ -47,7 +47,7 @@ const AddRoadmapPage = () => {
 
   return (
     <div className="min-h-screen p-6 dark:bg-gray-900 text-white">
-      <h1 className="text-3xl font-bold mb-6">Tạo Roadmap Mới</h1>
+      <h1 className="text-3xl font-bold mb-6">Add new Roadmap</h1>
       <BaseForm
         fields={[
           {
