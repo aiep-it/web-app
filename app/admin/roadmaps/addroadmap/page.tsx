@@ -1,41 +1,30 @@
+// 📁 app/admin/roadmaps/addroadmap/page.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "react-hot-toast";
-
-import BaseForm from '../../../../components/form/BaseForm';
+import { createRoadmap } from "@/services/roadmap";
+import BaseForm from "@/components/form/BaseForm";
 
 const AddRoadmapPage = () => {
   const { getToken } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
   const handleAdd = async () => {
+    if (!name.trim()) {
+      toast.error("Tên là bắt buộc.");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      if (!name.trim()) {
-        toast.error("Tên là bắt buộc.");
-        return;
-      }
-      setIsSubmitting(true);
-      const token = await getToken();
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api";
-
-      const res = await fetch(`${backendUrl}/roadmaps`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name, description: description.trim() || null }),
-      });
-
-      if (!res.ok) throw new Error("Tạo roadmap thất bại");
-
+      const token = (await getToken()) || "";
+      await createRoadmap({ name, description: description.trim() || "" }, token);
       toast.success("Tạo roadmap thành công!");
       router.push("/admin/roadmaps");
     } catch (err) {

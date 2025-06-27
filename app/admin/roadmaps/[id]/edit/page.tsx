@@ -9,6 +9,7 @@ import { Tabs, Tab } from "@heroui/tabs";
 import { Chip } from "@heroui/chip"; 
 import { Icon } from "@iconify/react";
 // import { RoadmapNode } from "./components/roadmap-node"; 
+import { Link } from '@heroui/react';
 
 export default function RoadmapPage() { 
   const [selectedKeys, setSelectedKeys] = React.useState<Set<string>>(new Set(["1"]));
@@ -301,9 +302,12 @@ export default function RoadmapPage() {
               <p className="text-foreground-500 mt-1">Track your progress across multiple learning paths</p>
             </div>
             <div className="flex gap-2">
-              <Button color="primary" startContent={<Icon icon="lucide:plus" />}>
+            
+              <Link href="/admin/nodes">
+                      <Button color="primary" startContent={<Icon icon="lucide:plus" />} >
                 Add Node
               </Button>
+                      </Link>
               <Button variant="flat" startContent={<Icon icon="lucide:plus-circle" />}>
                 New Roadmap
               </Button>

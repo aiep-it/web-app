@@ -1,15 +1,15 @@
+// 📁 app/admin/categories/addcategories/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "react-hot-toast";
 import BaseForm from "@/components/form/BaseForm";
+import { createCategory } from "@/services/category";
 
-const AddCategoryPage: React.FC = () => {
+const AddCategoryPage = () => {
   const router = useRouter();
-  const { userRole, isRoleLoading, isSignedIn } = useUserRole();
   const { getToken } = useAuth();
 
   const [name, setName] = useState("");
@@ -18,30 +18,15 @@ const AddCategoryPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
+    if (!name || !type) {
+      toast.error("Vui lòng nhập đầy đủ Tên và Loại");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      if (!name || !type) {
-        toast.error("Vui lòng nhập đầy đủ Tên và Loại");
-        return;
-      }
-
-      setIsSubmitting(true);
       const token = await getToken();
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api";
-
-      const res = await fetch(`${backendUrl}/categories`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, type, description }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Lỗi khi tạo danh mục");
-      }
-
+      await createCategory({ name, type, description }, token || "");
       toast.success("Tạo danh mục thành công!");
       router.push("/admin/categories");
     } catch (error: any) {
@@ -55,7 +40,6 @@ const AddCategoryPage: React.FC = () => {
     <div className="min-h-screen bg-gray-900 text-white p-6 md:p-8 flex justify-center items-start">
       <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-lg mt-10">
         <h1 className="text-3xl font-bold mb-6 text-center text-primary-400">Add New Category</h1>
-
         <BaseForm
           fields={[
             {
