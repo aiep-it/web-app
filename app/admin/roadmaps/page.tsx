@@ -34,7 +34,7 @@ const RoadmapListPage = () => {
   const fetchRoadmaps = async () => {
     try {
       const token = await getToken();
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api";
+      const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
       const res = await fetch(`${backendUrl}/roadmaps`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -49,7 +49,7 @@ const RoadmapListPage = () => {
 
   const fetchCategories = async () => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api";
+      const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
       const res = await fetch(`${backendUrl}/categories`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
@@ -64,7 +64,7 @@ const RoadmapListPage = () => {
   const handleDelete = async (id: string) => {
     try {
       const token = await getToken();
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api";
+      const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
       const res = await fetch(`${backendUrl}/roadmaps/${id}`, {
         method: "DELETE",
         headers: {
@@ -96,7 +96,7 @@ const RoadmapListPage = () => {
     <div className="min-h-screen dark:bg-black-10 text-foreground p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Roadmap List</h1>
-        <Link href="/admin/roadmap/addroadmap">
+        <Link href="/admin/roadmaps/new">
           <Button className="bg-gradient-to-r from-indigo-900 via-purple-900 to-gray-900 text-white">
             + Add New Roadmap
           </Button>

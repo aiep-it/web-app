@@ -30,7 +30,7 @@ const ProfileSection: React.FC = () => {
 
       setLoading(true);
       setError(null);
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000/api';
+      const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
 
       try {
         const token = await getToken(); // Lấy token Clerk

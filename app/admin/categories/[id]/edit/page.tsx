@@ -23,7 +23,7 @@ const EditCategoryPage: React.FC = () => {
     const fetchCategory = async () => {
       try {
         const token = await getToken();
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api"}/categories/${id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001"}/categories/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -50,7 +50,7 @@ const EditCategoryPage: React.FC = () => {
     try {
       setSubmitting(true);
       const token = await getToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api"}/categories/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001"}/categories/${id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

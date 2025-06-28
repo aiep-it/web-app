@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.22.0",
+    "@directus/sdk": "^20.0.0",
     "@heroui/button": "2.2.19",
     "@heroui/code": "2.2.14",
     "@heroui/drawer": "^2.2.18",

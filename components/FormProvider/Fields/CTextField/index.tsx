@@ -11,26 +11,27 @@ const CTextField = forwardRef<HTMLInputElement, Props>(
   ({ name, ...other }: Props, ref) => {
     const { control } = useFormContext();
 
-    console.log("control", control);
     return (
       <Controller
         name={name}
         control={control}
-        render={({ field, fieldState: { error } }) => {
-          console.log("field", field, error);
+        render={({
+          field: { onChange, ...restField },
+          fieldState: { error },
+        }) => {
           return (
             <Input
-              {...field}
+              {...restField}
               fullWidth
+              onChange={onChange}
               value={
-                typeof field.value === "number" && field.value === 0
+                typeof restField.value === "number" && restField.value === 0
                   ? ""
-                  : field.value
+                  : restField.value
               }
-              isInvalid={!!error}
-              helperText={error?.message}
-              inputRef={ref}
               errorMessage={error?.message}
+              isInvalid={Boolean(error?.message)}
+              inputRef={ref}
               {...other}
             />
           );

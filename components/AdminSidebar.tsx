@@ -1,7 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { Icon } from "@iconify/react";
-import { ThemeSwitch } from '@/components/theme-switch';
 import { Logo } from '@/components/icons';
 
 const menuItems = [
@@ -12,7 +11,7 @@ const menuItems = [
   ]},
   { group: "Content", items: [
     { name: "Manage Category", icon: "lucide:book-plus", href: "/admin/categories" },
-    { name: "Manage Roadmap", icon: "lucide:book-plus", href: "/admin/roadmap" },
+    { name: "Manage Roadmap", icon: "lucide:book-plus", href: "/admin/roadmaps" },
     { name: "Live Courses", icon: "lucide:video", href: "/admin/live-courses" },
   ]},
   { group: "Customization", items: [

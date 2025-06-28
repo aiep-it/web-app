@@ -23,7 +23,7 @@ const AddRoadmapPage = () => {
       }
       setIsSubmitting(true);
       const token = await getToken();
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api";
+      const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
 
       const res = await fetch(`${backendUrl}/roadmaps`, {
         method: "POST",

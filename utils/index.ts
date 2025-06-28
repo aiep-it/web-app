@@ -6,8 +6,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const getApiUrl = () => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-  const version = process.env.API_VERSION;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  // const version = process.env.API_VERSION;
 
-  return baseUrl && version ? `${baseUrl}/${version}` : '/'
+  return baseUrl;
 };

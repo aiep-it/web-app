@@ -32,7 +32,7 @@ interface Category {
 }
 
 async function fetchRoadmaps(clerkToken: string | null): Promise<Roadmap[]> {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000/api';
+  const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ async function fetchRoadmaps(clerkToken: string | null): Promise<Roadmap[]> {
 }
 
 async function fetchCategories(): Promise<Category[]> {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000/api';
+  const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
   try {
     const res = await fetch(`${backendUrl}/categories`, {
       method: 'GET',
