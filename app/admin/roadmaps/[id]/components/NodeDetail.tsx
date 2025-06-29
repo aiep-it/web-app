@@ -1,3 +1,5 @@
+import { getNodeById } from "@/services/node";
+import { NodeData } from "@/services/types/node";
 import { NodeContent } from "@/types/Node";
 import {
   Avatar,
@@ -11,18 +13,37 @@ import {
   PressEvent,
   Tooltip,
 } from "@heroui/react";
+import { Icon } from "@iconify/react";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 interface NodeDetailProps {
-  nodeContent: NodeContent;
+  nodeId?: string;
   onClose?: (e: PressEvent) => void;
+  viewOnly?: boolean;
 }
 
 const NodeDetail: React.FC<NodeDetailProps> = ({
-  nodeContent,
+  nodeId,
   onClose,
+  viewOnly = false,
 }: NodeDetailProps) => {
-  console.log("mnde", nodeContent);
+  const [node, setNode] = React.useState<NodeData | null>(null);
+
+  const fetchNodeContent = async (id: string) => {
+    const res = await getNodeById(id);
+    if (res) {
+      setNode(res);
+    }
+  };
+  React.useEffect(() => {
+    if (nodeId) {
+      fetchNodeContent(nodeId);
+    }
+  }, [nodeId]);
+  // console.log("nodeContent", nodeContent);
+
+  const router = useRouter();
   return (
     <>
       <DrawerHeader className="absolute top-0 inset-x-0 z-50 flex flex-row gap-2 px-2 py-2 border-b border-default-200/50 justify-between bg-content1/50 backdrop-saturate-150 backdrop-blur-lg">
@@ -72,26 +93,24 @@ const NodeDetail: React.FC<NodeDetailProps> = ({
             Copy Link
           </Button>
           <Button
-            className="font-medium text-small text-default-500"
+            className="font-medium text-small"
+            color="secondary"
             endContent={
-              <svg
-                fill="none"
-                height="16"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                width="16"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M7 17 17 7M7 7h10v10" />
-              </svg>
+              <Icon
+                icon="lucide:pencil-line"
+                width={16}
+                height={16}
+              />
             }
             size="sm"
-            variant="flat"
+            // variant='bordered'
+            onPress={() => {
+              if (node?.id && nodeId) {
+                router.push(`/admin/node/${node.id}/edit`);
+              }
+            }}
           >
-            Event Page
+            Edit Node
           </Button>
         </div>
         <div className="flex gap-1 items-center">
@@ -142,30 +161,39 @@ const NodeDetail: React.FC<NodeDetailProps> = ({
         </div>
       </DrawerHeader>
       <DrawerBody className="pt-16">
-        <div className="flex w-full justify-center items-center pt-4">
-          <Image
-            isBlurred
-            isZoomed
-            alt="Event image"
-            className="aspect-square w-full hover:scale-110"
-            height={300}
-            src="https://dxri5rqql2ood.cloudfront.net/cms/assets/23ee8798-bf2a-4a5f-a63b-7d5f50084a41"
-          />
-        </div>
-        <div className="flex flex-col gap-2 py-4">
-          <h1 className="text-2xl font-bold leading-7">{nodeContent.name}</h1>
-          <p className="text-sm text-default-500">{nodeContent.desription}</p>
-          <div className="mt-4 flex flex-col gap-3">
-            <div className="flex flex-col mt-4 gap-3 items-start">
-              <span className="text-medium font-medium">Content</span>
-              <div className="text-medium text-default-500 flex flex-col gap-2">
-                <p>{nodeContent?.desription}</p>
+        {nodeId && node ? (
+          <>
+            <div className="flex w-full justify-center items-center pt-4">
+              <Image
+                isBlurred
+                isZoomed
+                alt="Event image"
+                className="aspect-square w-full hover:scale-110"
+                height={300}
+                src="https://dxri5rqql2ood.cloudfront.net/cms/assets/23ee8798-bf2a-4a5f-a63b-7d5f50084a41"
+              />
+            </div>
+            <div className="flex flex-col gap-2 py-4">
+              <h1 className="text-2xl font-bold leading-7">{node?.title}</h1>
+              <p className="text-sm text-default-500">{node.description}</p>
+              <div className="mt-4 flex flex-col gap-3">
+                <div className="flex flex-col mt-4 gap-3 items-start">
+                  <span className="text-medium font-medium">Content</span>
+                  <div className="text-medium text-default-500 flex flex-col gap-2">
+                    <p>{node.description}</p>
+                  </div>
+                </div>
               </div>
             </div>
- 
-        
+          </>
+        ) : (
+          <div className="flex h-32 items-center justify-center rounded-md border-2 border-dashed border-default-200 bg-default-50">
+            <p className="text-default-500">
+              Your Node is not found, need to save node and view or update
+              content later
+            </p>
           </div>
-        </div>
+        )}
       </DrawerBody>
       <DrawerFooter>
         <Button color="danger" variant="light" onPress={onClose}>

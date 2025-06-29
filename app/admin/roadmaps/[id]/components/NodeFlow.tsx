@@ -381,9 +381,7 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
           <DrawerContent>
             {(onClose) => (
               <NodeDetail
-                nodeContent={
-                  { ...nodeSelected?.data } as unknown as NodeContent
-                }
+                nodeId={nodeSelected?.id}
                 onClose={onClose}
               />
             )}

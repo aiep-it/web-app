@@ -25,7 +25,11 @@ const BaseCard: React.FC<BaseCardProps> = ({
 
   return (
     <Card
-      className="bg-gradient-to-br from-indigo-900 via-purple-900 to-gray-900 text-white rounded-xl p-5 shadow-lg flex flex-col justify-between h-full hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+      as={"div"}
+      className="rounded-xl p-5 shadow-lg flex flex-col justify-between h-full hover:shadow-xl transition-shadow duration-300 cursor-pointer
+      bg-gradient-to-r from-primary-100 to-secondary-100
+      dark:from-primary-100 dark:to-secondary-100 dark:text-white
+      text-gray-900"
       isPressable
       onPress={() => {
         router.push(`/admin/roadmaps/${id}`); // Navigate to the roadmap details page
@@ -38,16 +42,19 @@ const BaseCard: React.FC<BaseCardProps> = ({
       <div className="flex justify-end gap-2 pt-4">
         <Button
           size="sm"
-          onPress={() => router.push(editUrl)}
-          className="bg-white text-indigo-700 hover:bg-gray-100"
+          onPress={() => {
+            router.push(editUrl);
+          }}
+          color="primary"
+          variant="bordered"
         >
           Edit
         </Button>
         <Button
           size="sm"
           variant="ghost"
+          color="danger"
           onPress={() => onDelete(id)}
-          className="border border-white hover:bg-white/10"
         >
           Del
         </Button>

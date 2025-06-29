@@ -58,6 +58,8 @@ const NodeFlowViewOnly = forwardRef<NodeFlowRef, IProps>((props, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [nodeSelected, setNodeSelected] = useState<Node>();
 
+
+
   useEffect(() => {
     if (theme === "dark") setColorMode("dark");
     else if (theme === "light") setColorMode("light");
@@ -112,16 +114,13 @@ const NodeFlowViewOnly = forwardRef<NodeFlowRef, IProps>((props, ref) => {
         selectionOnDrag={false}
         nodesDraggable={false}
       >
-        {/* <Background />
-        <Controls /> */}
-        {/* <MiniMap /> */}
       </ReactFlow>
 
       <CDrawer isOpen={isOpen} onOpenChange={onOpenChange}>
         <DrawerContent>
           {(onClose) => (
             <NodeDetail
-              nodeContent={{ ...nodeSelected?.data } as unknown as NodeContent}
+              nodeId={nodeSelected?.id}
               onClose={onClose}
             />
           )}

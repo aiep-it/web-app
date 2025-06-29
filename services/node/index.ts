@@ -1,4 +1,4 @@
-import { NodeData, NodePayload } from "../types/node";
+import { NodeData, NodePayload, NodeUpdatePayload } from "../types/node";
 import { ENDPOINTS } from "@/constant/api";
 import axiosInstance from "@/lib/axios";
 
@@ -11,6 +11,32 @@ export async function createNode(payload: NodePayload): Promise<NodeData | null>
         return null;
     } catch (error) {   
         console.error("Error creating node:", error);
+        return null;
+    }
+}
+
+export async function getNodeById(id: string): Promise<NodeData | null> {
+    try {
+        const response = await axiosInstance.get<NodeData>(ENDPOINTS.NODE.GET_BY_ID(id));
+        if (response.status === 200) {
+            return response.data;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching node by ID:", error);
+        return null;
+    }
+}
+
+export async function updateNode(id: string, payload: NodeUpdatePayload): Promise<NodeData | null> {
+    try {
+        const response = await axiosInstance.put<NodeData>(ENDPOINTS.NODE.UPDATE(id), payload);
+        if (response.status === 200) {
+            return response.data;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error updating node:", error);
         return null;
     }
 }
