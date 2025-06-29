@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 23
 
 
       - name: Install dependencies
@@ -50,4 +50,5 @@ jobs:
             cd /home/ubuntu/aiep-it/web-app
             unzip -o build.zip
             pm2 restart next-app || pm2 start npm --name next-app -- run start
+            rm build.zip
      
