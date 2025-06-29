@@ -20,7 +20,7 @@ jobs:
 
 
       - name: Install dependencies
-        run: npm i
+        run: npm i --no-save --no-package-lock
 
       - name: Build project
         run: npm run build
