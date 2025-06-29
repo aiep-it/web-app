@@ -32,7 +32,9 @@ export default defineConfig([
     ]),
     {
       files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
-      rules: {},
+      rules: {
+        "no-console": "error",
+      },
       languageOptions: {
         globals: {
             ...Object.fromEntries(Object.entries(globals.browser).map(([key]) => [key, "off"])),
