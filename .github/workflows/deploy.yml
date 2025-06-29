@@ -45,10 +45,9 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo su
-            mkdir -p /root/aiep-it/web-app
-            mv /tmp/build.zip /root/aiep-it/web-app/
-            cd /root/aiep-it/web-app
+            mkdir -p /home/ubuntu/aiep-it/web-app
+            mv /tmp/build.zip /home/ubuntu/aiep-it/web-app/
+            cd /home/ubuntu/aiep-it/web-app
             unzip -o build.zip
             pm2 restart next-app || pm2 start npm --name next-app -- run start
      
