@@ -29,7 +29,7 @@ jobs:
         run: npm run build
 
       - name: Zip build output
-        run: zip -r build.zip .next
+        run: zip -r build.zip .next .env
 
       - name: Upload to EC2 via SCP
         uses: appleboy/scp-action@v0.1.4
@@ -39,7 +39,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "build.zip"
           target: "/tmp/"
-
+     
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
