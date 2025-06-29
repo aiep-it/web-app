@@ -1,11 +1,11 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import { fixupConfigRules, fixupPluginRules } from "@eslint/compat";
-import react from "eslint-plugin-react";
+// import react from "eslint-plugin-react";
 import unusedImports from "eslint-plugin-unused-imports";
 import _import from "eslint-plugin-import";
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
 import jsxA11Y from "eslint-plugin-jsx-a11y";
-import prettier from "eslint-plugin-prettier";
+// import prettier from "eslint-plugin-prettier";
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
 import path from "node:path";
@@ -21,46 +21,19 @@ const compat = new FlatCompat({
     allConfig: js.configs.all
 });
 
-export default defineConfig([globalIgnores([
-    ".now/*",
-    "**/*.css",
-    "**/.changeset",
-    "**/dist",
-    "esm/*",
-    "public/*",
-    "tests/*",
-    "scripts/*",
-    "**/*.config.js",
-    "**/.DS_Store",
-    "**/node_modules",
-    "**/coverage",
-    "**/.next",
-    "**/build",
-    "!**/.commitlintrc.cjs",
-    "!**/.lintstagedrc.cjs",
-    "!**/jest.config.js",
-    "!**/plopfile.js",
-    "!**/react-shim.js",
-    "!**/tsup.config.ts",
-]), {
-    extends: fixupConfigRules(compat.extends(
-        "plugin:react/recommended",
-        "plugin:prettier/recommended",
-        "plugin:react-hooks/recommended",
-        "plugin:jsx-a11y/recommended",
-        "plugin:@next/next/recommended",
-    )),
 
-    plugins: {
-        react: fixupPluginRules(react),
-        "unused-imports": unusedImports,
-        import: fixupPluginRules(_import),
-        "@typescript-eslint": typescriptEslint,
-        "jsx-a11y": fixupPluginRules(jsxA11Y),
-        prettier: fixupPluginRules(prettier),
-    },
-
-    languageOptions: {
+export default defineConfig([
+    globalIgnores([
+      "**/node_modules",
+      "**/.next",
+      "**/dist",
+      "**/build",
+      "**/coverage",
+    ]),
+    {
+      files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+      rules: {},
+      languageOptions: {
         globals: {
             ...Object.fromEntries(Object.entries(globals.browser).map(([key]) => [key, "off"])),
             ...globals.node,
@@ -76,95 +49,153 @@ export default defineConfig([globalIgnores([
             },
         },
     },
-
-    settings: {
-        react: {
-            version: "detect",
-        },
     },
+  ]);
 
-    files: ["**/*.ts", "**/*.tsx"],
+// export default defineConfig([globalIgnores([
+//     ".now/*",
+//     "**/*.css",
+//     "**/.changeset",
+//     "**/dist",
+//     "esm/*",
+//     "public/*",
+//     "tests/*",
+//     "scripts/*",
+//     "**/*.config.js",
+//     "**/.DS_Store",
+//     "**/node_modules",
+//     "**/coverage",
+//     "**/.next",
+//     "**/build",
+//     "!**/.commitlintrc.cjs",
+//     "!**/.lintstagedrc.cjs",
+//     "!**/jest.config.js",
+//     "!**/plopfile.js",
+//     "!**/react-shim.js",
+//     "!**/tsup.config.ts",
+// ]), {
+//     extends: fixupConfigRules(compat.extends(
+//         "plugin:react/recommended",
+//         "plugin:prettier/recommended",
+//         "plugin:react-hooks/recommended",
+//         "plugin:jsx-a11y/recommended",
+//         "plugin:@next/next/recommended",
+//     )),
 
-    // rules: {
-    //     "no-console": "warn",
-    //     "react/prop-types": "off",
-    //     "react/jsx-uses-react": "off",
-    //     "react/react-in-jsx-scope": "off",
-    //     "react-hooks/exhaustive-deps": "off",
-    //     "jsx-a11y/click-events-have-key-events": "warn",
-    //     "jsx-a11y/interactive-supports-focus": "warn",
-    //     "prettier/prettier": "warn",
-    //     "no-unused-vars": "off",
-    //     "unused-imports/no-unused-vars": "off",
-    //     "unused-imports/no-unused-imports": "warn",
+//     plugins: {
+//         react: fixupPluginRules(react),
+//         "unused-imports": unusedImports,
+//         import: fixupPluginRules(_import),
+//         "@typescript-eslint": typescriptEslint,
+//         "jsx-a11y": fixupPluginRules(jsxA11Y),
+//         prettier: fixupPluginRules(prettier),
+//     },
 
-    //     "@typescript-eslint/no-unused-vars": ["warn", {
-    //         args: "after-used",
-    //         ignoreRestSiblings: false,
-    //         argsIgnorePattern: "^_.*?$",
-    //     }],
+//     languageOptions: {
+//         globals: {
+//             ...Object.fromEntries(Object.entries(globals.browser).map(([key]) => [key, "off"])),
+//             ...globals.node,
+//         },
 
-    //     "import/order": ["warn", {
-    //         groups: [
-    //             "type",
-    //             "builtin",
-    //             "object",
-    //             "external",
-    //             "internal",
-    //             "parent",
-    //             "sibling",
-    //             "index",
-    //         ],
+//         parser: tsParser,
+//         ecmaVersion: 12,
+//         sourceType: "module",
 
-    //         pathGroups: [{
-    //             pattern: "~/**",
-    //             group: "external",
-    //             position: "after",
-    //         }],
+//         parserOptions: {
+//             ecmaFeatures: {
+//                 jsx: true,
+//             },
+//         },
+//     },
 
-    //         "newlines-between": "always",
-    //     }],
+//     settings: {
+//         react: {
+//             version: "detect",
+//         },
+//     },
 
-    //     "react/self-closing-comp": "warn",
+//     files: ["**/*.ts", "**/*.tsx"],
 
-    //     "react/jsx-sort-props": ["warn", {
-    //         callbacksLast: true,
-    //         shorthandFirst: true,
-    //         noSortAlphabetically: false,
-    //         reservedFirst: true,
-    //     }],
+//     // rules: {
+//     //     "no-console": "warn",
+//     //     "react/prop-types": "off",
+//     //     "react/jsx-uses-react": "off",
+//     //     "react/react-in-jsx-scope": "off",
+//     //     "react-hooks/exhaustive-deps": "off",
+//     //     "jsx-a11y/click-events-have-key-events": "warn",
+//     //     "jsx-a11y/interactive-supports-focus": "warn",
+//     //     "prettier/prettier": "warn",
+//     //     "no-unused-vars": "off",
+//     //     "unused-imports/no-unused-vars": "off",
+//     //     "unused-imports/no-unused-imports": "warn",
 
-    //     "padding-line-between-statements": ["warn", {
-    //         blankLine: "always",
-    //         prev: "*",
-    //         next: "return",
-    //     }, {
-    //         blankLine: "always",
-    //         prev: ["const", "let", "var"],
-    //         next: "*",
-    //     }, {
-    //         blankLine: "any",
-    //         prev: ["const", "let", "var"],
-    //         next: ["const", "let", "var"],
-    //     }],
-    // },
+//     //     "@typescript-eslint/no-unused-vars": ["warn", {
+//     //         args: "after-used",
+//     //         ignoreRestSiblings: false,
+//     //         argsIgnorePattern: "^_.*?$",
+//     //     }],
 
-    //simple rule
+//     //     "import/order": ["warn", {
+//     //         groups: [
+//     //             "type",
+//     //             "builtin",
+//     //             "object",
+//     //             "external",
+//     //             "internal",
+//     //             "parent",
+//     //             "sibling",
+//     //             "index",
+//     //         ],
 
-    rules: {
-        '@nx/enforce-module-boundaries': [
-          'error',
-          {
-            enforceBuildableLibDependency: true,
-            allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?js$'],
-            depConstraints: [
-              {
-                sourceTag: '*',
-                onlyDependOnLibsWithTags: ['*'],
-              },
-            ],
-          },
-        ],
-        '@typescript-eslint/ban-ts-comment': 'off'
-      },
-}]);
+//     //         pathGroups: [{
+//     //             pattern: "~/**",
+//     //             group: "external",
+//     //             position: "after",
+//     //         }],
+
+//     //         "newlines-between": "always",
+//     //     }],
+
+//     //     "react/self-closing-comp": "warn",
+
+//     //     "react/jsx-sort-props": ["warn", {
+//     //         callbacksLast: true,
+//     //         shorthandFirst: true,
+//     //         noSortAlphabetically: false,
+//     //         reservedFirst: true,
+//     //     }],
+
+//     //     "padding-line-between-statements": ["warn", {
+//     //         blankLine: "always",
+//     //         prev: "*",
+//     //         next: "return",
+//     //     }, {
+//     //         blankLine: "always",
+//     //         prev: ["const", "let", "var"],
+//     //         next: "*",
+//     //     }, {
+//     //         blankLine: "any",
+//     //         prev: ["const", "let", "var"],
+//     //         next: ["const", "let", "var"],
+//     //     }],
+//     // },
+
+//     //simple rule
+
+//     rules: {
+//         '@nx/enforce-module-boundaries': [
+//           'error',
+//           {
+//             enforceBuildableLibDependency: true,
+//             allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?js$'],
+//             depConstraints: [
+//               {
+//                 sourceTag: '*',
+//                 onlyDependOnLibsWithTags: ['*'],
+//               },
+//             ],
+//           },
+//         ],
+//         '@typescript-eslint/ban-ts-comment': 'off'
+//       },
+// }]);
