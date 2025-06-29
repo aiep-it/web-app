@@ -20,7 +20,7 @@ jobs:
 
 
       - name: Install dependencies
-        run: npm ci
+        run: npm i
 
       - name: Build project
         run: npm run build
@@ -49,6 +49,6 @@ jobs:
             mv /tmp/build.zip /home/ubuntu/aiep-it/web-app/
             cd /home/ubuntu/aiep-it/web-app
             unzip -o build.zip
-            pm2 restart next-app || pm2 start npm --name next-app -- run start
+            pm2 restart fe || pm2 start "npm run start" --name "fe"
             rm build.zip
      
