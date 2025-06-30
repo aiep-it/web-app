@@ -99,6 +99,20 @@ const VocabularyListPage = () => {
     }
   };
 
+  const getEmptyVocabData = (): VocabData => ({
+    id: "",
+    nodeId: "",
+    word: "",
+    meaning: "",
+    example: "",
+    imageUrl: "",
+    audioUrl: "",
+    is_know: false,
+    is_deleted: false,
+    created_at: "",
+    updated_at: "",
+  });
+
   useEffect(() => setHydrated(true), []);
 
   useEffect(() => {
@@ -328,7 +342,9 @@ const VocabularyListPage = () => {
         <h1 className="text-3xl font-bold">Vocabulary List</h1>
         <Button
           className="bg-gradient-to-r from-indigo-900 via-purple-900 to-gray-900 text-white"
-          onClick={() => setActiveModal({ type: "add" })}
+          onClick={() =>
+            setActiveModal({ type: "add", vocab: getEmptyVocabData() })
+          }
         >
           + Add New Vocabulary
         </Button>
