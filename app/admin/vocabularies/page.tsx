@@ -17,6 +17,7 @@ import CModal from "@/components/CModal";
 import CTable from "@/components/CTable";
 import BaseForm from "@/components/form/BaseForm";
 import {
+  VocabCMS,
   VocabColumn,
   VocabData,
   VocabListResponse,
@@ -31,11 +32,15 @@ import {
   updateVocab,
 } from "@/services/vocab";
 import CImageUpload from "@/components/CImageUpload";
+import { createItemCMS, getItem } from "@/services/cms";
+import { COLLECTIONS } from "@/config/cms";
 
 const vocabColumns = [
   { uid: "word", name: "Word", sortable: true },
   { uid: "meaning", name: "Meaning", sortable: false },
   { uid: "example", name: "Example", sortable: false },
+  { uid: "imageUrl", name: "Image URL", sortable: false },
+  { uid: "audioUrl", name: "Audio URL", sortable: false },
   { uid: "actions", name: "Actions", sortable: false },
 ];
 
@@ -99,6 +104,25 @@ const VocabularyListPage = () => {
     }
   };
 
+  const fetchVocabCMS = async (id: string) => {
+    const res = await getItem(COLLECTIONS.Vocab, {
+      filter: { vocabId: { _eq: id } },
+    });
+
+    if (!res || !Array.isArray(res) || res.length === 0) return null;
+
+    return res[0] as VocabCMS;
+  };
+
+  const createVocabCMSItem = async (payload: VocabCMS) => {
+    const res = await createItemCMS(COLLECTIONS.Vocab, payload);
+
+    console.log(res);
+    if (!res || !Array.isArray(res) || res.length === 0) return null;
+
+    return res[0] as VocabCMS;
+  };
+
   const getEmptyVocabData = (): VocabData => ({
     id: "",
     nodeId: "",
@@ -132,14 +156,32 @@ const VocabularyListPage = () => {
             <DropdownMenu>
               <DropdownItem
                 key="view"
-                onClick={() => setActiveModal({ type: "view", vocab: item })}
+                onClick={async () => {
+                  const res = await fetchVocabCMS(item.id);
+
+                  setActiveModal({
+                    type: "view",
+                    vocab: {
+                      ...item,
+                      imageUrl: `${process.env.NEXT_PUBLIC_CMS_BASE_URL}/assets/${res?.imageId}`,
+                    },
+                  });
+                }}
               >
                 View
               </DropdownItem>
               <DropdownItem
                 key="edit"
-                onClick={() => {
-                  setActiveModal({ type: "edit", vocab: item });
+                onClick={async () => {
+                  const res = await fetchVocabCMS(item.id);
+
+                  setActiveModal({
+                    type: "edit",
+                    vocab: {
+                      ...item,
+                      imageUrl: `${process.env.NEXT_PUBLIC_CMS_BASE_URL}/assets/${res?.imageId}`,
+                    },
+                  });
                   setFormState({
                     audioUrl: item.audioUrl,
                     example: item.example,
@@ -164,7 +206,9 @@ const VocabularyListPage = () => {
       );
     }
 
-    return item[key as keyof VocabData];
+    const value = item[key as keyof VocabData];
+
+    return value === "" || value === undefined || value === null ? "--" : value;
   };
   const fields = [
     {
@@ -409,7 +453,10 @@ const VocabularyListPage = () => {
       >
         <div className="flex gap-6 mt-4">
           <div className="flex flex-col gap-4 w-1/2">
-            <CImageUpload onSelect={(file) => setImageFile(file)} />
+            <CImageUpload
+              initialUrl={activeModal.vocab?.imageUrl}
+              onSelect={(file) => setImageFile(file)}
+            />
             <CAudioUpload onSelect={(file) => setAudioFile(file)} />
           </div>
           <div className="w-1/2">

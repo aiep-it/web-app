@@ -53,3 +53,10 @@ export interface VocabListResponse {
   last: boolean;
   empty: boolean;
 }
+
+export interface VocabCMS {
+  id?: string;
+  vocabId?: string;
+  imageId?: string;
+  audioId?: string;
+}
