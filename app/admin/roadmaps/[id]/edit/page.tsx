@@ -76,7 +76,7 @@ const AdminNodePage = () => {
           </div>
         </CardHeader>
         <CardBody>
-          <NodeFlow ref={nodeFlowRef} />
+          <NodeFlow ref={nodeFlowRef}/>
         </CardBody>
       </Card>
     </div>

@@ -2,9 +2,11 @@
 
 import { cms } from "@/config/cms";
 import {
-    createItem,
+  createItem,
   QueryItem,
+  readItem,
   readItems,
+  uploadFiles,
 } from "@directus/sdk";
 
 /**
@@ -13,7 +15,7 @@ import {
  * @param query - Optional query parameters
  * @returns An array of items or null if error
  */
-export const getItem = async <T = any>(
+export const getItems = async <T = any>(
   collection: string,
   query?: QueryItem<any, T>,
   options?: { enabled?: boolean }
@@ -21,7 +23,9 @@ export const getItem = async <T = any>(
   if (options?.enabled === false) return null;
 
   try {
-    const items = await cms.request<T[]>(readItems<T, any, any>(collection, query));
+    const items = await cms.request<T[]>(
+      readItems<T, any, any>(collection, query)
+    );
     return items;
   } catch (error) {
     console.error(`Error fetching items from collection ${collection}:`, error);
@@ -29,12 +33,27 @@ export const getItem = async <T = any>(
   }
 };
 
+export const createItemCMS = async (
+  collection: string,
+  payload: any
+): Promise<any> => {
+  try {
+    return cms.request(createItem(collection, payload));
+  } catch (error) {
+    console.error(`Error creating item in collection ${collection}:`, error);
+    return null;
+  }
+};
 
-export const createItemCMS = async (collection: string, payload: any): Promise<any> => {
-    try{
-        return cms.request(createItem(collection, payload));
-    } catch (error) {   
-        console.error(`Error creating item in collection ${collection}:`, error);
-        return null;
-    }
-}
+export const uploadFile = async (file: File, folder?: string) => {
+  // upload sigle file and return Id
+  const formData = new FormData();
+  formData.append("file", file);
+  if (folder) {
+    formData.append("folder", folder);
+  }
+  const res = await cms.request(uploadFiles(formData));
+
+  console.log("uploadFile res", res);
+  return res.id;
+};

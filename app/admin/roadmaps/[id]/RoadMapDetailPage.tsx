@@ -1,14 +1,21 @@
 "use client";
-import React, { use, useEffect, useRef } from "react";
-import NodeFlow, { NodeFlowRef } from "./components/NodeFlow";
+import React, { useEffect } from "react";
 import "@xyflow/react/dist/style.css";
-import { Button, Card, CardBody, CardHeader, Chip, Tooltip } from "@heroui/react";
-import { Icon } from "@iconify/react";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Chip,
+  Spinner,
+} from "@heroui/react";
 import { Node } from "@xyflow/react";
-import ButtonConfirm from "@/components/ButtonConfirm";
 import { getRoadmapById } from "@/services/roadmap";
 import NodeFlowViewOnlyWrapper from "./components/ViewOnly";
 import { Roadmap } from "@/services/types/roadmap";
+import { getItems } from "@/services/cms";
+import { COLLECTIONS } from "@/config/cms";
+import { NodeViewCMS } from "@/services/types/node";
 
 // Mock
 const defaultEdges = [
@@ -121,12 +128,36 @@ interface RoadMapDetailPageProps {
 
 const RoadMapDetailPage: React.FC<RoadMapDetailPageProps> = ({ id }) => {
   const [roadmap, setRoadmap] = React.useState<Roadmap | null>();
+  const [nodeViewContent, setNodeViewContent] =
+    React.useState<NodeViewCMS | null>(null);
+  const [loading, setLoading] = React.useState<boolean>(false);
+
+  const fetchNodes = async (roadmapId: string) => {
+    const res = await getItems<NodeViewCMS>(COLLECTIONS.NodeView, {
+      filter: {
+        roadmapId: {
+          _eq: roadmapId,
+        },
+      },
+    });
+    if (res && res.length) {
+      const dataNodeView = res[0] as NodeViewCMS;
+
+      console.log("dataNodeView", dataNodeView);
+      setNodeViewContent(dataNodeView);
+    }
+  };
 
   useEffect(() => {
     const fetchRoadmap = async () => {
+      setLoading(true);
       const res = await getRoadmapById(id);
 
-      setRoadmap(res);
+      if (res && res.id) {
+        setRoadmap(res);
+        await fetchNodes(res.id);
+      }
+      setLoading(false);
     };
 
     fetchRoadmap();
@@ -136,7 +167,7 @@ const RoadMapDetailPage: React.FC<RoadMapDetailPageProps> = ({ id }) => {
     <div className="flex justify-center items-center h-full mt-auto">
       <Card className="w-full h-full">
         <CardHeader className=" flex justify-between">
-        <div className="p-3">
+          <div className="p-3">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 w-full">
               <div>
                 <h1 className="text-2xl font-bold text-foreground">
@@ -158,11 +189,24 @@ const RoadMapDetailPage: React.FC<RoadMapDetailPageProps> = ({ id }) => {
           </div>
         </CardHeader>
         <CardBody>
-          <NodeFlowViewOnlyWrapper
-            nodeData={defaultNodes}
-            edgeData={defaultEdges}
-            viewPort={defaultViewport}
-          />
+          {!loading ? (
+            nodeViewContent ? (
+              <NodeFlowViewOnlyWrapper
+                nodeData={nodeViewContent?.nodes || []}
+                edgeData={nodeViewContent?.edges || []}
+                viewPort={nodeViewContent?.viewport}
+              />
+            ) : (
+              <div className="flex h-32 items-center justify-center rounded-md border-2 border-dashed border-default-200 bg-default-50">
+                <p className="text-default-500">No Exist Nodes</p>
+              </div>
+            )
+          ) : (
+            <Spinner
+              label="Loading roadmap..."
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            />
+          )}
         </CardBody>
       </Card>
     </div>

@@ -1,3 +1,4 @@
+'use client'
 import RoadMapDetailPage from "./RoadMapDetailPage";
 
 export default function Page({ params }: { params: { id: string } }) {

@@ -17,7 +17,9 @@ export const ENDPOINTS = {
     CREATE: "/roadmaps",
   },
   NODE: {
-    CREATE: "/node",
+    GET_BY_ID: (id: string) => `/node/${id}`,
+    CREATE: '/node',
+    UPDATE: (id: string) => `/node/${id}`,
   },
   VOCAB: {
     SEARCH: "/vocabs/search",

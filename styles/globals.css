@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.ck-wrapper {
+  all: initial; /* 👈 tách toàn bộ style khỏi Tailwind */
+  font-family: inherit;
+}
+
+.ck-wrapper * {
+  all: unset;
+  all: revert-layer;
+}
+
+.ck-wrapper .ck-editor,
+.ck-wrapper .ck-editor__main,
+.ck-wrapper .ck-editor__editable_inline {
+  height: 100%;
+  max-height: 100%;
+  min-height: 100%;
+  overflow: auto;
+  background-color: white;
+  color: black;
+  font-size: 1rem;
+  font-family: sans-serif;
+}
+
+
+.ck-wrapper,
+.ck-wrapper .ck-editor,
+.ck-wrapper .ck-editor__main,
+.ck-wrapper .ck-editor__editable_inline {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}

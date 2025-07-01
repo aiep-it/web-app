@@ -27,7 +27,7 @@ const CTextField = forwardRef<HTMLInputElement, Props>(
               value={
                 typeof restField.value === "number" && restField.value === 0
                   ? ""
-                  : restField.value
+                  : restField.value ?? ""
               }
               errorMessage={error?.message}
               isInvalid={Boolean(error?.message)}

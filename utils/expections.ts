@@ -23,3 +23,7 @@ export const handleExpection = ({ status, message = "" }: ExceptionAgrs) => {
       break;
   }
 };
+
+export const getFullPathFile = (id: string) => {
+  return `${process.env.NEXT_PUBLIC_CMS_BASE_URL}/assets/${id}`;
+}

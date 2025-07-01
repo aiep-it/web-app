@@ -21,34 +21,6 @@ import { NodePayload } from "@/services/types/node";
 import {  createItemCMS } from "@/services/cms";
 import { COLLECTIONS } from "@/config/cms";
 
-// Mock
-const defaultNodes: Node[] = [
-  {
-    id: "1",
-    position: { x: 200, y: 200 },
-    data: { label: "Sample Group" },
-    width: 380,
-    height: 200,
-    type: "labeledGroupNode",
-  },
-  {
-    id: "2",
-    position: { x: 50, y: 100 },
-    data: { label: "Node" },
-    type: "input",
-    parentId: "1",
-    extent: "parent",
-  },
-  {
-    id: "3",
-    position: { x: 200, y: 50 },
-    data: { label: "Node" },
-    type: "input",
-    parentId: "1",
-    extent: "parent",
-  },
-];
-
 interface NewNodesPageProps {
   id: string;
 }
@@ -79,7 +51,6 @@ const NewNodesPage: React.FC<NewNodesPageProps> = ({ id }) => {
 
       processToSave(nodes, edges)
         .then(async ({ nodes, edges }) => {
-            console.log("Processed Nodes:", nodes);
           if(nodes.length && edges.length) {
             const cmsPayload = {
                 roadmapId: id,
@@ -124,7 +95,7 @@ const NewNodesPage: React.FC<NewNodesPageProps> = ({ id }) => {
 
       if (res) {
         idsMap.set(node.id, res.id);
-      }
+      } 
     }
 
     const updatedNodes = nodes.map((node) => ({

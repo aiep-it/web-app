@@ -12,6 +12,7 @@ export const cms = createDirectus(CMS_URL)
   );
 
 export const COLLECTIONS = {
-  NodeView: "NodeView",
-  Vocab: "Vocab",
-};
+    NodeView: 'NodeView',
+    Lookup: 'LookUp',
+    Vocab: "Vocab",
+}
