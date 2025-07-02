@@ -14,18 +14,29 @@ const CImageUpload: React.FC<CUpdateImageInputProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewType, setPreviewType] = useState<"image" | "video" | null>(null);
 
   useEffect(() => {
     if (initialUrl) {
       setPreviewUrl(initialUrl);
+      // Auto-detect type by extension for initialUrl if needed
+      const isVideo = initialUrl.match(/\.(mp4|webm|ogg)$/i);
+      setPreviewType(isVideo ? "video" : "image");
     }
   }, [initialUrl]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
 
-    if (file && file.type.startsWith("image/")) {
-      setPreviewUrl(URL.createObjectURL(file));
+      if (file.type.startsWith("image/")) {
+        setPreviewType("image");
+      } else if (file.type.startsWith("video/")) {
+        setPreviewType("video");
+      }
+
       onSelect?.(file);
     }
   };
@@ -34,7 +45,7 @@ const CImageUpload: React.FC<CUpdateImageInputProps> = ({
     <div className="flex flex-col items-center gap-2">
       <input
         ref={fileInputRef}
-        accept="image/*"
+        accept="image/*,video/*"
         className="hidden"
         type="file"
         onChange={handleFileChange}
@@ -51,15 +62,23 @@ const CImageUpload: React.FC<CUpdateImageInputProps> = ({
         }}
       >
         {previewUrl ? (
-          <img
-            alt="Preview"
-            className="object-cover w-full h-full"
-            src={previewUrl}
-          />
+          previewType === "image" ? (
+            <img
+              alt="Preview"
+              className="object-cover w-full h-full"
+              src={previewUrl}
+            />
+          ) : (
+            <video
+              className="object-cover w-full h-full"
+              src={previewUrl}
+              controls
+            />
+          )
         ) : (
           <div className="flex flex-col items-center text-gray-400">
             <Icon className="w-12 h-12" icon="mdi:image-outline" />
-            <span className="text-sm mt-1">Select an image</span>
+            <span className="text-sm mt-1">Select an image or video</span>
           </div>
         )}
       </div>

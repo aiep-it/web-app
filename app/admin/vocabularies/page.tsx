@@ -1,5 +1,6 @@
 "use client";
 import {
+  addToast,
   Button,
   Dropdown,
   DropdownItem,
@@ -10,14 +11,11 @@ import {
 import { Key, Selection } from "@react-types/shared";
 import React from "react";
 import { useEffect, useState } from "react";
-import { toast } from "react-hot-toast";
 
 import CAudioUpload from "@/components/CAudioUpload";
-import CModal from "@/components/CModal";
 import CTable from "@/components/CTable";
 import BaseForm from "@/components/form/BaseForm";
 import {
-  VocabCMS,
   VocabColumn,
   VocabData,
   VocabListResponse,
@@ -32,15 +30,14 @@ import {
   updateVocab,
 } from "@/services/vocab";
 import CImageUpload from "@/components/CImageUpload";
-import { createItemCMS, getItem } from "@/services/cms";
-import { COLLECTIONS } from "@/config/cms";
+import { uploadFile } from "@/services/cms";
+import { getFullPathFile } from "@/utils/expections";
+import { CModal } from "@/components/CModal";
 
 const vocabColumns = [
   { uid: "word", name: "Word", sortable: true },
   { uid: "meaning", name: "Meaning", sortable: false },
   { uid: "example", name: "Example", sortable: false },
-  { uid: "imageUrl", name: "Image URL", sortable: false },
-  { uid: "audioUrl", name: "Audio URL", sortable: false },
   { uid: "actions", name: "Actions", sortable: false },
 ];
 
@@ -81,9 +78,10 @@ const VocabularyListPage = () => {
     ],
   });
   const [activeModal, setActiveModal] = useState<{
-    type: "edit" | "delete" | "view" | "add" | null;
+    type: 'create' | 'edit' | 'delete' | 'view';
     vocab?: VocabData;
-  }>({ type: null });
+    isOpen: boolean;
+  }>({ type: 'view', isOpen: false });
   const [formState, setFormState] = useState<VocabPayload>({
     word: "",
     meaning: "",
@@ -102,25 +100,6 @@ const VocabularyListPage = () => {
     } else {
       setVocabsList(undefined);
     }
-  };
-
-  const fetchVocabCMS = async (id: string) => {
-    const res = await getItem(COLLECTIONS.Vocab, {
-      filter: { vocabId: { _eq: id } },
-    });
-
-    if (!res || !Array.isArray(res) || res.length === 0) return null;
-
-    return res[0] as VocabCMS;
-  };
-
-  const createVocabCMSItem = async (payload: VocabCMS) => {
-    const res = await createItemCMS(COLLECTIONS.Vocab, payload);
-
-    console.log(res);
-    if (!res || !Array.isArray(res) || res.length === 0) return null;
-
-    return res[0] as VocabCMS;
   };
 
   const getEmptyVocabData = (): VocabData => ({
@@ -157,14 +136,10 @@ const VocabularyListPage = () => {
               <DropdownItem
                 key="view"
                 onClick={async () => {
-                  const res = await fetchVocabCMS(item.id);
-
                   setActiveModal({
                     type: "view",
-                    vocab: {
-                      ...item,
-                      imageUrl: `${process.env.NEXT_PUBLIC_CMS_BASE_URL}/assets/${res?.imageId}`,
-                    },
+                    vocab: item,
+                    isOpen: true
                   });
                 }}
               >
@@ -173,14 +148,10 @@ const VocabularyListPage = () => {
               <DropdownItem
                 key="edit"
                 onClick={async () => {
-                  const res = await fetchVocabCMS(item.id);
-
                   setActiveModal({
                     type: "edit",
-                    vocab: {
-                      ...item,
-                      imageUrl: `${process.env.NEXT_PUBLIC_CMS_BASE_URL}/assets/${res?.imageId}`,
-                    },
+                    vocab: item,
+                    isOpen: true
                   });
                   setFormState({
                     audioUrl: item.audioUrl,
@@ -196,7 +167,7 @@ const VocabularyListPage = () => {
               </DropdownItem>
               <DropdownItem
                 key="delete"
-                onClick={() => setActiveModal({ type: "delete", vocab: item })}
+                onClick={() => setActiveModal({ type: "delete", vocab: item, isOpen: true })}
               >
                 Delete
               </DropdownItem>
@@ -248,112 +219,7 @@ const VocabularyListPage = () => {
       required: true,
     },
   ];
-  const handleSubmitForm = async () => {
-    setIsSubmitting(true);
-    try {
-      let imageUrl = "";
-      let audioUrl = "";
 
-      if (imageFile) {
-        // process CMS save image
-      }
-
-      if (audioFile) {
-        // process CMS save audio
-      }
-      const vocabPayload: VocabPayload = {
-        ...formState,
-        imageUrl,
-        audioUrl,
-      };
-      const res = await createVocab(vocabPayload);
-
-      if (res) {
-        toast.success(`${res.word} added successfully!`);
-        setFormState({
-          word: "",
-          meaning: "",
-          example: "",
-          nodeId: "",
-          is_know: false,
-        });
-      }
-      setActiveModal({ type: null });
-      fetchListVocabs();
-    } catch (e) {
-      toast.error(`Add vocabulary failed!`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  const handleEditVocab = async () => {
-    setIsSubmitting(true);
-    try {
-      let imageUrl = "";
-      let audioUrl = "";
-
-      if (imageFile) {
-        // process CMS save image
-      }
-
-      if (audioFile) {
-        // process CMS save audio
-      }
-      const vocabPayload: VocabPayload = {
-        ...formState,
-        imageUrl,
-        audioUrl,
-      };
-
-      const id = activeModal.vocab?.id;
-
-      if (!id) {
-        toast.error("Vocabulary ID is missing!");
-        setIsSubmitting(false);
-
-        return;
-      }
-
-      const res = await updateVocab(id, vocabPayload);
-
-      if (res) {
-        toast.success(`${res.word} added successfully!`);
-        setFormState({
-          word: "",
-          meaning: "",
-          example: "",
-          nodeId: "",
-          is_know: false,
-        });
-      }
-      setActiveModal({ type: null });
-      fetchListVocabs();
-    } catch (e) {
-      toast.error(`Add vocabulary failed!`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  const handleDeleteVocab = async () => {
-    try {
-      const id = activeModal.vocab?.id;
-
-      if (!id) {
-        toast.error("Vocabulary ID is missing!");
-
-        return;
-      }
-      const res = await deleteVocab(id);
-
-      if (res) {
-        toast.success(`Deleted successfully!`);
-        fetchListVocabs();
-        setActiveModal({ type: null });
-      }
-    } catch (e) {
-      toast.error(`Add vocabulary failed!`);
-    }
-  };
   const bottomContent = React.useMemo(() => {
     return (
       <div className="py-2 px-2 flex justify-between items-center">
@@ -378,6 +244,103 @@ const VocabularyListPage = () => {
     );
   }, [selectedKeys, vocabsList?.page]);
 
+  const handleSubmit = async () => {
+    let res:VocabData;
+    let imageUrl = "";
+    let audioUrl = "";
+    setIsSubmitting(true);
+    try{
+      if(activeModal.type === "delete") {
+        if (!activeModal.vocab?.id) {
+            addToast({
+              title: "Error",
+              description: `Vocabulary ID is missing!`,
+              color: "danger",
+            });
+            return;
+          }
+        const isDelete = await deleteVocab(activeModal.vocab?.id);
+        if(isDelete) {
+          addToast({
+              title: "Notification",
+              description: `Deleted "${activeModal.vocab.word}" success!`,
+              color: "success",
+            });
+          fetchListVocabs();
+        }
+        return;
+      }
+      if (imageFile) {
+        const res = await uploadFile(imageFile);
+        imageUrl = getFullPathFile(res);
+      }
+
+      if (audioFile) {
+        const res = await uploadFile(audioFile);
+        audioUrl = getFullPathFile(res);
+      }
+      const vocabPayload: VocabPayload = {
+        ...formState,
+        imageUrl,
+        audioUrl,
+      };
+      switch(activeModal.type){
+        case "create":
+          res = await createVocab(vocabPayload);
+          if (res) {
+            addToast({
+              title: "Notification",
+              description: `Created "${vocabPayload.word}" success!`,
+              color: "success",
+            });
+            fetchListVocabs();
+          }
+       
+          break;
+        case "edit":
+          if (!activeModal.vocab?.id) {
+            addToast({
+              title: "Error",
+              description: `Vocabulary ID is missing!`,
+              color: "danger",
+            });
+            break;
+          }
+          res = await updateVocab(activeModal.vocab.id, vocabPayload);
+          if (res) {
+            addToast({
+              title: "Notification",
+              description: `Updated "${vocabPayload.word}" success!`,
+              color: "success",
+            });
+            fetchListVocabs();
+          }
+          break;
+      }
+    }catch(e){
+      addToast({
+        title: "Error",
+        description: `Something wrong! Could you please try again!`,
+        color: "danger",
+      });
+    }
+    finally{
+      setIsSubmitting(false);
+      handleClose();
+    }
+  }
+  const handleClose = () => {
+    setActiveModal({ type: 'view', vocab: getEmptyVocabData(), isOpen: false });
+    setFormState({
+      word: "",
+      meaning: "",
+      example: "",
+      nodeId: "",
+      audioUrl: "",
+      imageUrl: "",
+      is_know: false,
+    });
+  };
   if (!hydrated) return null;
 
   return (
@@ -387,7 +350,7 @@ const VocabularyListPage = () => {
         <Button
           className="bg-gradient-to-r from-indigo-900 via-purple-900 to-gray-900 text-white"
           onClick={() =>
-            setActiveModal({ type: "add", vocab: getEmptyVocabData() })
+            setActiveModal({ type: "create", isOpen: true })
           }
         >
           + Add New Vocabulary
@@ -403,55 +366,15 @@ const VocabularyListPage = () => {
         onSelectionChange={setSelectedKeys}
       />
       <CModal
-        footer
-        isOpen={activeModal.type === "add"}
-        size="3xl"
-        title="Create Vocabulary"
-        onClose={() => setActiveModal({ type: null })}
+        isOpen={activeModal.isOpen}
+        onClose={handleClose}
+        onSubmit={handleSubmit}
+        type={activeModal.type}
+        isSubmitting={isSubmitting}
+        moduleTitle="Vocabulary"
       >
-        <div className="flex gap-6 mt-4">
-          <div className="flex flex-col gap-4 w-1/2">
-            <CImageUpload onSelect={(file) => setImageFile(file)} />
-            <CAudioUpload onSelect={(file) => setAudioFile(file)} />
-          </div>
-          <div className="w-1/2">
-            <BaseForm
-              fields={fields}
-              isSubmitting={isSubmitting}
-              submitLabel="Save"
-              onSubmit={handleSubmitForm}
-            />
-          </div>
-        </div>
-      </CModal>
-      <CModal
-        footer={
-          <div className="flex flex-row gap-2">
-            <Button onClick={() => setActiveModal({ type: null })}>No</Button>
-            <Button color="danger" onClick={handleDeleteVocab}>
-              Yes
-            </Button>
-          </div>
-        }
-        isOpen={activeModal.type === "delete"}
-        size="3xl"
-        title="Delete Vocabulary"
-        onClose={() => setActiveModal({ type: null })}
-      >
-        <div className="flex gap-6 mt-4">
-          <p>
-            Do you want delete <strong>{activeModal.vocab?.word}</strong>?
-          </p>
-        </div>
-      </CModal>
-      <CModal
-        footer
-        isOpen={activeModal.type === "edit"}
-        size="3xl"
-        title="Edit Vocabulary"
-        onClose={() => setActiveModal({ type: null })}
-      >
-        <div className="flex gap-6 mt-4">
+        {activeModal.type !== 'delete' ? (
+          <div className="flex gap-6 mt-4">
           <div className="flex flex-col gap-4 w-1/2">
             <CImageUpload
               initialUrl={activeModal.vocab?.imageUrl}
@@ -462,12 +385,14 @@ const VocabularyListPage = () => {
           <div className="w-1/2">
             <BaseForm
               fields={fields}
-              isSubmitting={isSubmitting}
-              submitLabel="Save"
-              onSubmit={handleEditVocab}
+              onSubmit={() => {}}
+              isFooter={false}
             />
           </div>
         </div>
+        ) : (
+          <p>Are you sure you want to delete "<strong><i>{activeModal.vocab?.word}</i></strong>"</p>
+        )}
       </CModal>
     </div>
   );

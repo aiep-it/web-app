@@ -36,7 +36,7 @@ export const CTable = <T extends { id: string | number }>({
       aria-label="Vocabulary table"
       bottomContentPlacement="outside"
       classNames={{
-        wrapper: "max-h-[382px]",
+        wrapper: "max-h-[100%]",
       }}
       selectionBehavior="toggle"
       selectionMode="multiple"

@@ -15,11 +15,12 @@ interface BaseFormProps {
     required?: boolean;
   }[];
   onSubmit: () => void;
-  isSubmitting: boolean;
-  submitLabel: string;
+  isSubmitting?: boolean;
+  submitLabel?: string;
+  isFooter?: boolean;
 }
 
-const BaseForm: React.FC<BaseFormProps> = ({ fields, onSubmit, isSubmitting, submitLabel }) => {
+const BaseForm: React.FC<BaseFormProps> = ({ fields, onSubmit, isSubmitting, submitLabel, isFooter }) => {
   return (
     <form
       onSubmit={(e) => {
@@ -67,13 +68,13 @@ const BaseForm: React.FC<BaseFormProps> = ({ fields, onSubmit, isSubmitting, sub
       ))}
 
       <div className="flex justify-end pt-4">
-        <Button
+        {isFooter && <Button
           type="submit"
           disabled={isSubmitting}
           className="bg-gradient-to-r from-indigo-900 via-purple-900 to-gray-900 text-white"
         >
           {isSubmitting ? "Đang xử lý..." : submitLabel}
-        </Button>
+        </Button>}
       </div>
     </form>
   );
