@@ -22,12 +22,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Environment setup
+        run: echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
+
       - name: Build project
         run: npm run build
 
       - name: Zip build output
-        run: zip -r build.zip .next public node_modules package.json next.config.js
-
+        run: zip -r build.zip .next .env
 
       - name: Upload to EC2 via SCP
         uses: appleboy/scp-action@v0.1.4
@@ -37,7 +39,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "build.zip"
           target: "/tmp/"
-
+     
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -45,10 +47,18 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 23 || nvm install 23
+
             mkdir -p /home/ubuntu/aiep-it/web-app
             mv /tmp/build.zip /home/ubuntu/aiep-it/web-app/
+
             cd /home/ubuntu/aiep-it/web-app
             unzip -o build.zip
+            npm install
+
+            export PATH="$PATH:$HOME/.npm-global/bin"
             pm2 restart fe || pm2 start "npm run start" --name "fe"
             rm build.zip
      
