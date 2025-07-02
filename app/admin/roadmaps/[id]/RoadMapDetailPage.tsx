@@ -151,7 +151,8 @@ const RoadMapDetailPage: React.FC<RoadMapDetailPageProps> = ({ id }) => {
   useEffect(() => {
     const fetchRoadmap = async () => {
       setLoading(true);
-      const res = await getRoadmapById(id);
+      const token = ""; // TODO: Replace with actual token retrieval logic
+      const res = await getRoadmapById(id, token);
 
       if (res && res.id) {
         setRoadmap(res);

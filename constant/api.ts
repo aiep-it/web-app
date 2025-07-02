@@ -12,9 +12,10 @@ export const ENDPOINTS = {
         DELETE: (id: string) => `/categories/${id}`,
     },
     ROAD_MAP: {
-        GET_ALL: '',
+        GET_ALL:'/roadmaps',
         GET_BY_ID: (id: string) => `/roadmaps/${id}`,
         CREATE: '/roadmaps',
+        BOOKMARK: (id: string) => `/roadmaps/${id}/bookmark`,
     },
     NODE: {
         GET_BY_ID: (id: string) => `/node/${id}`,

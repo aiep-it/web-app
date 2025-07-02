@@ -1,3 +1,4 @@
+// app/admin/categories/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -8,33 +9,22 @@ import Link from "next/link";
 import { Button } from "@heroui/button";
 import { toast } from "react-hot-toast";
 import BaseCard from "@/components/card/BaseCard";
+import { getAllCategories, deleteCategoryById } from "@/services/category";
+import type { Category } from "@/services/types/category";
 
 const CategoryListPage = () => {
   const { getToken } = useAuth();
   const { userRole, isSignedIn, isRoleLoading } = useUserRole();
   const router = useRouter();
 
-  type Category = {
-    id: string;
-    name: string;
-    description: string;
-    type?: string;
-    order?: number;
-  };
-
   const [categories, setCategories] = useState<Category[]>([]);
 
   const fetchCategories = async () => {
     try {
       const token = await getToken();
-      const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
-      const res = await fetch(`${backendUrl}/categories`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
+      const data = await getAllCategories();
       setCategories(data);
+      // router.push("/admin/categories");
     } catch (err) {
       toast.error("Không thể tải danh mục");
     }
@@ -43,16 +33,11 @@ const CategoryListPage = () => {
   const handleDelete = async (id: string) => {
     try {
       const token = await getToken();
-      const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
-      const res = await fetch(`${backendUrl}/categories/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) throw new Error("Xoá thất bại");
-
+      if (!token) {
+        toast.error("Không tìm thấy token xác thực");
+        return;
+      }
+      await deleteCategoryById(id, token);
       toast.success("Đã xoá category");
       setCategories(categories.filter((cat) => cat.id !== id));
     } catch (err) {
@@ -64,9 +49,8 @@ const CategoryListPage = () => {
     if (isSignedIn) fetchCategories();
   }, [isSignedIn]);
 
-  if (isRoleLoading) return <p className="text-center mt-20 text-gray-400">Đang tải quyền người dùng...</p>;
-  // if (!isSignedIn) return <p className="text-center mt-20 text-red-400">Bạn chưa đăng nhập.</p>;
-  // if (userRole !== "admin" && userRole !== "staff") return <p className="text-center mt-20 text-yellow-400">Bạn không có quyền truy cập.</p>;
+  if (isRoleLoading)
+    return <p className="text-center mt-20 text-gray-400">Đang tải quyền người dùng...</p>;
 
   return (
     <div className="min-h-screen dark:bg-black text-foreground p-6">
@@ -85,7 +69,7 @@ const CategoryListPage = () => {
             key={cat.id}
             id={cat.id}
             name={cat.name}
-            description={cat.description}
+            description={cat.description || ""}
             onDelete={handleDelete}
             editUrl={`categories/${cat.id}/edit`}
           />

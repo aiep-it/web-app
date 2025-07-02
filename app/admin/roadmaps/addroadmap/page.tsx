@@ -1,45 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "react-hot-toast";
 
-import BaseForm from '../../../../components/form/BaseForm';
+import BaseForm from "@/components/form/BaseForm";
+import { roadmapSchema } from "../schema";
+
+import { createRoadmap } from "@/services/roadmap";
+import { getAllCategories } from "@/services/category";
+
+import { RoadmapPayload } from "@/services/types/roadmap";
+import { Category } from "@/services/types/category";
 
 const AddRoadmapPage = () => {
   const { getToken } = useAuth();
   const router = useRouter();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getAllCategories();
+        setCategories(data);
+      } catch {
+        toast.error("Không thể tải danh mục");
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleAdd = async () => {
+    const payload: RoadmapPayload = {
+      name: name.trim(),
+      description: description.trim() || undefined,
+      categoryId,
+    };
+
     try {
-      if (!name.trim()) {
-        toast.error("Tên là bắt buộc.");
-        return;
-      }
+      await roadmapSchema.validate(payload);
       setIsSubmitting(true);
-      const token = await getToken();
-      const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
 
-      const res = await fetch(`${backendUrl}/roadmaps`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name, description: description.trim() || null }),
-      });
-
-      if (!res.ok) throw new Error("Tạo roadmap thất bại");
+      const token = (await getToken()) || "";
+      await createRoadmap(payload, token);
 
       toast.success("Tạo roadmap thành công!");
       router.push("/admin/roadmaps");
-    } catch (err) {
-      toast.error("Lỗi khi tạo roadmap.");
+    } catch (err: any) {
+      toast.error(err.message || "Lỗi khi tạo roadmap.");
     } finally {
       setIsSubmitting(false);
     }
@@ -48,6 +63,7 @@ const AddRoadmapPage = () => {
   return (
     <div className="min-h-screen p-6 dark:bg-gray-900 text-white">
       <h1 className="text-3xl font-bold mb-6">Add new Roadmap</h1>
+
       <BaseForm
         fields={[
           {
@@ -64,6 +80,18 @@ const AddRoadmapPage = () => {
             type: "textarea",
             value: description,
             onChange: setDescription,
+          },
+          {
+            id: "categoryId",
+            label: "Danh mục",
+            type: "select",
+            value: categoryId,
+            onChange: setCategoryId,
+            required: true,
+            options: categories.map((cat) => ({
+              label: cat.name,
+              value: cat.id,
+            })),
           },
         ]}
         onSubmit={handleAdd}

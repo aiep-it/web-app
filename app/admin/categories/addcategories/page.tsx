@@ -6,10 +6,13 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "react-hot-toast";
 import BaseForm from "@/components/form/BaseForm";
+import { createCategory } from "@/services/category";
+import { CreateCategoryPayload } from "@/services/types/category";
+import { categorySchema } from "../schema";
 
 const AddCategoryPage: React.FC = () => {
   const router = useRouter();
-  const { userRole, isRoleLoading, isSignedIn } = useUserRole();
+  const { isSignedIn, isRoleLoading } = useUserRole();
   const { getToken } = useAuth();
 
   const [name, setName] = useState("");
@@ -18,30 +21,19 @@ const AddCategoryPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
+    const payload: CreateCategoryPayload = { name, type, description };
+
     try {
-      if (!name || !type) {
-        toast.error("Vui lòng nhập đầy đủ Tên và Loại");
-        return;
-      }
+      await categorySchema.validate(payload); // Dùng validate để bắt lỗi chi tiết
+    } catch (validationError: any) {
+      toast.error(validationError.message);
+      return;
+    }
 
+    try {
       setIsSubmitting(true);
-      const token = await getToken();
-      const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
-
-      const res = await fetch(`${backendUrl}/categories`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, type, description }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Lỗi khi tạo danh mục");
-      }
-
+      const token = await getToken() || "";
+      await createCategory(payload, token);
       toast.success("Tạo danh mục thành công!");
       router.push("/admin/categories");
     } catch (error: any) {

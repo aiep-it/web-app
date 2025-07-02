@@ -1,115 +1,121 @@
-// web-app\components\RoadmapComponents\RoadmapSection.tsx
 "use client";
 
-import React, { useEffect } from 'react'; // Vẫn cần useEffect để debug/quan sát
+import React, { useCallback, useEffect, useState } from "react";
 import { Card } from "@heroui/card";
 import { Icon } from "@iconify/react";
-import { useAuth } from '@clerk/nextjs';
-import Link from 'next/link';
-import { Badge } from "@heroui/badge";
-import { useRouter } from 'next/navigation';
-
-interface Roadmap {
-  id: string;
-  name: string;
-  categoryId: string;
-  type: string;
-  isNew?: boolean;
-  progressPercentage: number;
-  is_deleted?: boolean;
-  isBookmarked: boolean; 
-}
+import { useAuth } from "@clerk/nextjs";
+import Link from "next/link";
+import { toast } from "react-hot-toast";
+import { Roadmap } from "@/services/types/roadmap";
+import { toggleBookmark } from "@/services/bookmark";
+import { useRouter } from "next/navigation";
 
 interface RoadmapSectionProps {
   title: string;
   roadmaps: Roadmap[];
-  clerkToken: string | null; // Nhận token từ page.tsx
+  setRoadmaps: React.Dispatch<React.SetStateAction<Roadmap[]>>;
+  clerkToken: string | null;
 }
 
-const RoadmapSection: React.FC<RoadmapSectionProps> = ({ title, roadmaps, clerkToken }) => {
-
+const RoadmapSection: React.FC<RoadmapSectionProps> = ({
+  title,
+  roadmaps,
+  setRoadmaps,
+  clerkToken,
+}) => {
   const { isSignedIn, userId, isLoaded } = useAuth();
   const router = useRouter();
+  const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({}); // roadmapId -> isLoading
 
-  
-  useEffect(() => {
-    console.log(`RoadmapSection - isLoaded: ${isLoaded}, isSignedIn: ${isSignedIn}, userId: ${userId}, clerkToken (from props): ${clerkToken ? 'present' : 'null'}`);
-  }, [isLoaded, isSignedIn, userId, clerkToken]);
+  const handleToggleBookmark = useCallback(
+    async (roadmapId: string, currentBookmark: boolean) => {
+      if (!isLoaded) return toast.error("Clerk đang tải...");
+      if (!isSignedIn || !userId || !clerkToken)
+        return toast.error("Vui lòng đăng nhập để lưu lộ trình.");
 
+      // Optimistic UI
+      setRoadmaps((prev) =>
+        prev.map((rm) =>
+          rm.id === roadmapId ? { ...rm, isBookmarked: !currentBookmark } : rm
+        )
+      );
 
-  const handleToggleBookmark = async (roadmapId: string, currentBookmarkStatus: boolean) => {
-    if (!isLoaded) {
-      alert("Clerk đang tải... Vui lòng thử lại sau giây lát.");
-      return;
-    }
-    if (!isSignedIn || !userId || !clerkToken) {
-      alert("Vui lòng đăng nhập để lưu lộ trình.");
-      return;
-    }
+      setLoadingMap((prev) => ({ ...prev, [roadmapId]: true }));
 
-    const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
-
-    try {
-      const res = await fetch(`${backendUrl}/roadmaps/${roadmapId}/bookmark`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${clerkToken}`,
-        },
-        body: JSON.stringify({ bookmark: !currentBookmarkStatus }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to toggle bookmark');
+      try {
+        await toggleBookmark(roadmapId, !currentBookmark, clerkToken);
+        toast.success(`${!currentBookmark ? "Đã lưu" : "Đã bỏ lưu"} lộ trình.`);
+      } catch (err) {
+        // Rollback UI
+        setRoadmaps((prev) =>
+          prev.map((rm) =>
+            rm.id === roadmapId ? { ...rm, isBookmarked: currentBookmark } : rm
+          )
+        );
+        toast.error("Lỗi cập nhật bookmark.");
+      } finally {
+        setLoadingMap((prev) => ({ ...prev, [roadmapId]: false }));
       }
-
-      router.refresh(); // Làm mới dữ liệu Server Component
-      alert(`Lộ trình đã ${!currentBookmarkStatus ? 'lưu' : 'bỏ lưu'}.`);
-
-    } catch (error: any) {
-      console.error('Error toggling bookmark:', error);
-      alert(`Không thể cập nhật trạng thái lưu lộ trình: ${error.message || ''}`);
-    }
-  };
+    },
+    [clerkToken, isSignedIn, isLoaded, setRoadmaps, userId]
+  );
 
   return (
-    <div className="mb-8 p-4 bg-gray-900 rounded-lg shadow-md">
+    <div className="mb-8 p-4 rounded-xl shadow-xl transition-colors">
       <h2 className="text-2xl font-bold mb-4 text-white">{title}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {roadmaps.map((roadmap) => {
-          const isBookmarked = roadmap.isBookmarked;
-
+          const isLoading = loadingMap[roadmap.id];
           return (
-            <Card key={roadmap.id} className="p-4 bg-gray-800 text-white relative rounded-md hover:bg-gray-700 transition-colors">
-              <Link href={`/roadmaps/${roadmap.id}`} className="absolute inset-0 z-0"></Link>
-              <div className="relative z-10 flex justify-between items-center mb-2">
-                <span className="text-lg font-medium pr-8 truncate">{roadmap.name}</span>
-                {roadmap.isNew && (
-                  <Badge color="secondary" className="absolute top-0 right-0 bg-purple-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                    New
-                  </Badge>
-                )}
-                <Icon
-                  icon={isBookmarked ? "lucide:bookmark" : "lucide:bookmark-plus"}
-                  className={`text-xl cursor-pointer ${isBookmarked ? 'text-primary-500' : 'text-gray-400'} hover:text-primary-400 transition-colors`}
+            <Card
+              key={roadmap.id}
+              className="p-4 relative rounded-lg shadow-md bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white transition-transform transform hover:scale-[1.02] hover:shadow-xl border border-gray-200 dark:border-gray-700 group"
+            >
+              <Link href={`/roadmaps/${roadmap.id}`} className="absolute inset-0 z-0" />
+              <div className="relative z-10 flex justify-between items-start mb-3">
+                <span className="text-xl font-semibold pr-8 truncate">
+                  {roadmap.name}
+                </span>
+
+                <button
+                  disabled={isLoading}
                   onClick={(e) => {
-                    e.stopPropagation();
                     e.preventDefault();
-                    handleToggleBookmark(roadmap.id, isBookmarked);
+                    e.stopPropagation();
+                    handleToggleBookmark(roadmap.id, roadmap.isBookmarked);
                   }}
-                />
+                  className="transition-transform duration-200 ease-in-out active:scale-90"
+                >
+                  <Icon
+                    icon={
+                      roadmap.isBookmarked
+                        ? "lucide:bookmark"
+                        : "lucide:bookmark-plus"
+                    }
+                    className={`text-2xl transition-colors ${
+                      roadmap.isBookmarked
+                        ? "text-primary-500 group-hover:text-primary-600"
+                        : "text-gray-400 group-hover:text-primary-500"
+                    } ${isLoading ? "opacity-50" : ""}`}
+                  />
+                </button>
               </div>
+
               {roadmap.progressPercentage > 0 && (
-                 <div className="w-full bg-gray-700 rounded-full h-2.5 mt-2">
-                   {/* <div className="bg-primary-500 h-2.5 rounded-full" style={{ width: `${roadmap.progressPercentage}%` }}></div> */}
-                   <div className="bg-primary-500 h-2.5 rounded-full" style={{ width: `${roadmap.progressPercentage}%` }}></div>
-                 </div>
-              )}
-              {roadmap.progressPercentage > 0 && (
-                <p className="text-sm text-right mt-1 text-foreground-400">
-                  {roadmap.progressPercentage.toFixed(0)}% Complete
-                </p>
+                <>
+                  <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2.5 mt-3">
+                    <div
+                      className="bg-primary-500 h-2.5 rounded-full shadow-sm transition-all"
+                      style={{ width: `${roadmap.progressPercentage}%` }}
+                    />
+                  </div>
+                  <p className="text-sm text-right mt-2 text-gray-600 dark:text-gray-400">
+                    <span className="font-medium text-gray-800 dark:text-white">
+                      {roadmap.progressPercentage.toFixed(0)}%
+                    </span>{" "}
+                    Complete
+                  </p>
+                </>
               )}
             </Card>
           );

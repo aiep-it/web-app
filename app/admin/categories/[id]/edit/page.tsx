@@ -2,39 +2,34 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@clerk/nextjs";
+import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "react-hot-toast";
-import BaseForm from "../../../../../components/form/BaseForm";
+import BaseForm from "@/components/form/BaseForm";
+import { getCategoryById, updateCategoryById } from "@/services/category";
+import { CreateCategoryPayload } from "@/services/types/category";
 
 const EditCategoryPage: React.FC = () => {
   const { id } = useParams();
   const router = useRouter();
-  const { userRole, isRoleLoading, isSignedIn } = useUserRole();
+  const { isSignedIn, userRole, isRoleLoading } = useUserRole();
   const { getToken } = useAuth();
 
   const [name, setName] = useState("");
   const [type, setType] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchCategory = async () => {
+    const fetchData = async () => {
       try {
-        const token = await getToken();
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001"}/categories/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const category = await getCategoryById(id as string);
+        if (!category) throw new Error("Không tìm thấy danh mục");
 
-        if (!res.ok) throw new Error("Không tìm thấy danh mục.");
-
-        const data = await res.json();
-        setName(data.name || "");
-        setType(data.type || "");
-        setDescription(data.description || "");
+        setName(category.name || "");
+        setType(category.type || "");
+        setDescription(category.description || "");
       } catch (error: any) {
         toast.error(error.message || "Lỗi khi tải danh mục.");
         router.push("/admin/categories");
@@ -43,40 +38,39 @@ const EditCategoryPage: React.FC = () => {
       }
     };
 
-    if (id) fetchCategory();
-  }, [id, getToken, router]);
+    if (id) fetchData();
+  }, [id, router]);
 
   const handleUpdate = async () => {
+    if (!name || !type) {
+      toast.error("Vui lòng nhập đầy đủ Tên và Loại");
+      return;
+    }
+
     try {
-      setSubmitting(true);
-      const token = await getToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001"}/categories/${id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, type, description }),
-      });
+      setIsSubmitting(true);
+      const token = await getToken() || "";
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Cập nhật thất bại");
-      }
+      const payload: Partial<CreateCategoryPayload> = {
+        name,
+        type,
+        description,
+      };
 
+      await updateCategoryById(id as string, payload, token);
       toast.success("Cập nhật danh mục thành công!");
       router.push("/admin/categories");
     } catch (error: any) {
       toast.error(error.message || "Lỗi khi cập nhật danh mục.");
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (isRoleLoading || loading) {
+  if (loading || isRoleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white bg-gray-900">
-        <p className="text-lg">Đang tải...</p>
+        <p>Đang tải...</p>
       </div>
     );
   }
@@ -125,7 +119,7 @@ const EditCategoryPage: React.FC = () => {
             },
           ]}
           onSubmit={handleUpdate}
-          isSubmitting={submitting}
+          isSubmitting={isSubmitting}
           submitLabel="Cập nhật Category"
         />
       </div>

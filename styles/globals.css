@@ -1,17 +1,48 @@
+/* styles/globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-.ck-wrapper {
-  all: initial; /* 👈 tách toàn bộ style khỏi Tailwind */
-  font-family: inherit;
+/* -------------------
+ 🎨 Theme Variables
+-------------------- */
+:root {
+  --foreground: 17 24 39;
+  --primary: 255 87 34;
+  --border: 229 231 235;
+
+  /* cam → đen: từ top xuống */
+  --background: linear-gradient(to bottom, rgba(167, 223, 233, 0.979), #ffffff);
 }
 
+.dark {
+  --foreground: 255 255 255;
+  --primary: 147 51 234;
+  --border: 51 65 85;
+
+  /* 🌙 Dark: linear đen → xám */
+  --background: linear-gradient(to bottom, #000000, #1f2937);
+}
+
+/* ✅ Utility để dùng dễ */
+.bg-background {
+  background: var(--background);
+}
+.text-foreground {
+  color: rgb(var(--foreground));
+}
+
+/* -------------------
+ ✍️ CKEditor Reset Zone
+-------------------- */
+.ck-wrapper {
+  all: initial;
+  font-family: inherit;
+}
 .ck-wrapper * {
   all: unset;
   all: revert-layer;
 }
-
 .ck-wrapper .ck-editor,
 .ck-wrapper .ck-editor__main,
 .ck-wrapper .ck-editor__editable_inline {
@@ -24,8 +55,6 @@
   font-size: 1rem;
   font-family: sans-serif;
 }
-
-
 .ck-wrapper,
 .ck-wrapper .ck-editor,
 .ck-wrapper .ck-editor__main,

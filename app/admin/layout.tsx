@@ -5,8 +5,6 @@ import React, { useState } from 'react';
 import AdminSidebar from '../../components/AdminSidebar'; // Giữ nguyên đường dẫn này
 import { Icon } from '@iconify/react';
 import CBreadcrumbs from '@/components/CBreadcrumbs'; // Từ phiên bản thứ hai
-// import { SideNav } from "@/components/SideNavs"; // Không sử dụng nếu dùng AdminSidebar
-// import { Button } from "@heroui/button"; // Không sử dụng nếu không cần Button từ heroui
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isExpanded, setIsExpanded] = useState(true); // Từ phiên bản HEAD
@@ -35,16 +33,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Content */}
         <div className="flex-grow flex flex-col">
-          {/* Mobile Header - Từ phiên bản HEAD */}
-          <header className="bg-white dark:bg-gray-800 p-4 flex justify-between items-center md:hidden">
-            <h1 className="text-xl font-bold">Admin Panel</h1>
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-md bg-gray-200 dark:bg-gray-700"
-            >
-              <Icon icon="lucide:menu" width={24} />
-            </button>
-          </header>
+         
+ 
 
           <main className="flex-grow p-6 overflow-auto">
             <CBreadcrumbs /> {/* Từ phiên bản thứ hai */}

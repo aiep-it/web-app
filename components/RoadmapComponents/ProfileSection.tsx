@@ -1,87 +1,81 @@
-// web-app\components\RoadmapComponents\ProfileSection.tsx
-"use client"; // Đánh dấu đây là Client Component
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Button } from "@heroui/button";
 import { Card } from "@heroui/card";
 import { Icon } from "@iconify/react";
-import { useAuth } from '@clerk/nextjs'; // Import useAuth để lấy userId và token
+import { useAuth } from "@clerk/nextjs";
 
-
-interface UserMetrics {
-  streak: number;
-  learntToday: number;
-  projectsFinished: number;
-}
+import { UserMetrics } from "@/services/types/user";
+import { getUserMetrics } from "@/services/user";
 
 const ProfileSection: React.FC = () => {
-  const { userId, getToken } = useAuth(); // Lấy userId và hàm getToken
+  const { userId, getToken,  } = useAuth();
+  
   const [metrics, setMetrics] = useState<UserMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchMetrics() {
-      if (!userId) { // Nếu user chưa đăng nhập, không fetch
+    const fetchMetrics = async () => {
+      if (!userId) {
+        setMetrics({ streak: 0, learntToday: 0, projectsFinished: 0 });
         setLoading(false);
-        setMetrics({ streak: 0, learntToday: 0, projectsFinished: 0 }); // Giá trị mặc định
         return;
       }
 
-      setLoading(true);
-      setError(null);
-      const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
-
       try {
-        const token = await getToken(); // Lấy token Clerk
-        const res = await fetch(`${backendUrl}/users/me/metrics`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || 'Failed to fetch user metrics');
-        }
-
-        const data: UserMetrics = await res.json();
+        setLoading(true);
+        const token = await getToken();
+        if (!token) throw new Error("Missing token");
+        const data = await getUserMetrics(token);
         setMetrics(data);
       } catch (err: any) {
-        console.error('Error fetching user metrics:', err);
-        setError(err.message || 'Error loading metrics.');
-        setMetrics({ streak: 0, learntToday: 0, projectsFinished: 0 }); // Đặt lại mặc định khi lỗi
+        console.error("Error fetching metrics:", err);
+        setError(err.message || "Failed to load metrics");
+        setMetrics({ streak: 0, learntToday: 0, projectsFinished: 0 });
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchMetrics();
-  }, [userId, getToken]); 
+  }, [userId, getToken]);
 
-  const metricItems = [
-    { icon: "lucide:zap", text: metrics ? `${metrics.streak} day streak` : "Loading..." },
-    { icon: "lucide:book-open", text: metrics ? `${metrics.learntToday} learnt today` : "Loading..." },
-    { icon: "lucide:check-circle", text: metrics ? `${metrics.projectsFinished} projects finished` : "Loading..." }
-  ];
+  const renderMetricItems = () => {
+    if (!metrics) return [];
+
+    return [
+      {
+        icon: "lucide:zap",
+        text: `${metrics.streak} day streak`,
+      },
+      {
+        icon: "lucide:book-open",
+        text: `${metrics.learntToday} learnt today`,
+      },
+      {
+        icon: "lucide:check-circle",
+        text: `${metrics.projectsFinished} projects finished`,
+      },
+    ];
+  };
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-center mb-8 p-4 bg-gray-900 rounded-lg shadow-md">
-      {/* Nút "Set up your profile" */}
+    <div className="flex flex-col md:flex-row justify-between items-center mb-8 p-4 rounded-lg shadow-md">
+      {/* Profile button */}
       <Button color="primary" size="lg" className="mb-4 md:mb-0">
         Set up your profile
       </Button>
 
-      {/* Các chỉ số theo dõi học tập */}
+      {/* Metrics display */}
       <div className="flex flex-col md:flex-row gap-4">
         {loading ? (
           <div className="text-white">Loading metrics...</div>
         ) : error ? (
           <div className="text-red-500">{error}</div>
         ) : (
-          metricItems.map((metric, index) => (
+          renderMetricItems().map((metric, index) => (
             <Card key={index} className="p-3 bg-gray-800 text-white rounded-md">
               <div className="flex items-center gap-2">
                 <Icon icon={metric.icon} className="text-primary-500" />
@@ -93,6 +87,6 @@ const ProfileSection: React.FC = () => {
       </div>
     </div>
   );
-}
+};
 
 export default ProfileSection;
