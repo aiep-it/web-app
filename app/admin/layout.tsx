@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import AdminSidebar from '../../components/AdminSidebar'; // Giữ nguyên đường dẫn này
 import { Icon } from '@iconify/react';
 import CBreadcrumbs from '@/components/CBreadcrumbs'; // Từ phiên bản thứ hai
+import { Navbar } from "@/components/navbar";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isExpanded, setIsExpanded] = useState(true); // Từ phiên bản HEAD
@@ -12,7 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <ThemeProvider attribute="class"> {/* Từ phiên bản HEAD */}
-      <div className="min-h-screen flex bg-gray-100 dark:bg-black">
+      <div className="min-h-screen flex bg-gray-200 dark:bg-black ">
         {/* Overlay mobile */}
         {isMobileMenuOpen && (
           <div
@@ -35,9 +36,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="flex-grow flex flex-col">
          
  
-
+           <Navbar />
           <main className="flex-grow p-6 overflow-auto">
             <CBreadcrumbs /> {/* Từ phiên bản thứ hai */}
+             
             {children}
           </main>
         </div>

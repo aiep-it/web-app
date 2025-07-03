@@ -34,22 +34,14 @@ interface AdminSidebarProps {
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ isExpanded, onToggle }) => {
   return (
-    <aside className={`bg-black text-white h-screen flex flex-col border border-gray-700  transition-all duration-300 ${isExpanded ? 'w-64' : 'w-20'}`}>
+    <aside className={`bg-slate-300 text-slate-950 min-h-full  dark:bg-slate-900 dark:text-white h-screen flex flex-col border border-gray-400  transition-all  ${isExpanded ? 'w-64' : 'w-20'}`}>
       <div className="p-4 flex items-center justify-between">
         <Logo />
         <button onClick={onToggle} className="p-2 rounded-full hover:bg-gray-800">
           <Icon icon={isExpanded ? "lucide:chevron-left" : "lucide:chevron-right"} width={24} />
         </button>
       </div>
-      {/* <div className="p-4 flex items-center space-x-4">
-        <img src="" alt="Admin" className="w-10 h-10 rounded-full" />
-        {isExpanded && (
-          <div>
-            <p className="font-medium">shahriar sajeeb</p>
-            <p className="text-sm text-gray-400">Admin</p>
-          </div>
-        )}
-      </div> */}
+
       <nav className="flex-grow overflow-y-auto">
         {menuItems.map((group, index) => (
           <div key={index} className="mb-4">
@@ -59,7 +51,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isExpanded, onToggle }) => 
             <ul>
               {group.items.map((item, itemIndex) => (
                 <li key={itemIndex}>
-                  <Link href={item.href} className={`flex items-center px-4 py-2 text-gray-300 hover:bg-gray-800 ${isExpanded ? '' : 'justify-center'}`}>
+                  <Link href={item.href} className={`flex items-center px-4 py-2 hover:bg-gray-400 dark:hover:bg-gray-800  ${isExpanded ? '' : 'justify-center'}`}>
                     <Icon icon={item.icon} width={24} />
                     {isExpanded && <span className="ml-3">{item.name}</span>}
                   </Link>

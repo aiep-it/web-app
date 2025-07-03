@@ -20,6 +20,7 @@ import { createNode } from "@/services/node";
 import { NodePayload } from "@/services/types/node";
 import {  createItemCMS } from "@/services/cms";
 import { COLLECTIONS } from "@/config/cms";
+import { useAuth } from "@clerk/nextjs";
 
 interface NewNodesPageProps {
   id: string;
@@ -28,10 +29,15 @@ interface NewNodesPageProps {
 const NewNodesPage: React.FC<NewNodesPageProps> = ({ id }) => {
   const nodeFlowRef = useRef<NodeFlowRef>(null);
   const [roadmap, setRoadmap] = React.useState<Roadmap | null>(null);
-
+  const auth = useAuth();
+  const [token, setToken] = React.useState<string>('');
   useEffect(() => {
+    
     const fetchRoadmap = async () => {
-      const res = await getRoadmapById(id);
+      const t = await auth.getToken();
+      setToken(t || '');
+
+      const res = await getRoadmapById(id , "");
 
       setRoadmap(res);
     };

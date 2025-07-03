@@ -11,7 +11,7 @@
   --primary: 255 87 34;
   --border: 229 231 235;
 
-  /* cam → đen: từ top xuống */
+
   --background: linear-gradient(to bottom, rgba(167, 223, 233, 0.979), #ffffff);
 }
 

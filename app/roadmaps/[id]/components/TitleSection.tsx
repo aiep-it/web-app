@@ -17,6 +17,7 @@ import {
   AccordionItem
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
+import { currentUser } from '@clerk/nextjs/server';
 
 interface TitleSectionProps {
   title: string;
@@ -40,36 +41,39 @@ const TitleSection: React.FC<TitleSectionProps> = ({
   faqContent
 }) => {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Navbar maxWidth="xl" isBordered>
-        <NavbarContent justify="start">
-          <NavbarBrand>
-            <Link href="/roadmaps" color="foreground">
-              <Icon icon="lucide:arrow-left" className="mr-2" />
-              All Roadmaps
-            </Link>
-          </NavbarBrand>
-        </NavbarContent>
-        <NavbarContent justify="end">
-          <NavbarItem>
-            <Button color="primary" variant="flat" startContent={<Icon icon="lucide:calendar" />}>
-              Schedule Learning Time
-            </Button>
-          </NavbarItem>
-          <NavbarItem>
-            <Button color="primary" startContent={<Icon icon="lucide:download" />}>
-              Download
-            </Button>
-          </NavbarItem>
-          <NavbarItem>
-            <Button color="primary" variant="flat" startContent={<Icon icon="lucide:share" />}>
-              Share
-            </Button>
-          </NavbarItem>
-        </NavbarContent>
-      </Navbar>
+    <div  className="min-h-4 bg-gradient-to-b from-cyan-200 to-white  dark:from-black dark:to-inherit text-foreground border-collapse rounded-md ">
 
-      <main className="container mx-auto px-4 py-8 max-w-5xl">
+  <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
+    {/* Left - Brand */}
+    <div className="flex items-center">
+      <Link href="/" className="flex items-center text-foreground hover:underline">
+        <Icon icon="lucide:arrow-left" className="mr-2" />
+        All Roadmaps
+      </Link>
+    </div>
+
+    {/* Right - Buttons */}
+    <div className="flex items-center space-x-3">
+      <button className="flex items-center gap-2 text-primary border border-primary rounded-md px-3 py-1 hover:bg-primary/10 transition">
+        <Icon icon="lucide:calendar" />
+        Schedule Learning Time
+      </button>
+
+      <button className="flex items-center gap-2 text-white bg-primary rounded-md px-3 py-1 hover:bg-primary/90 transition">
+        <Icon icon="lucide:download" />
+        Download
+      </button>
+
+      <button className="flex items-center gap-2 text-primary border border-primary rounded-md px-3 py-1 hover:bg-primary/10 transition">
+        <Icon icon="lucide:share" />
+        Share
+      </button>
+    </div>
+  </div>
+
+
+
+      <main className="container mx-auto px-0 py-4 max-w-5xl">
         <h1 className="text-4xl font-bold mb-2">{title}</h1>
         <p className="text-xl text-gray-600 mb-6">{subtitle}</p>
 
@@ -91,7 +95,7 @@ const TitleSection: React.FC<TitleSectionProps> = ({
           />
         </Tabs>
 
-        <Card className="my-6 bg-cyan-200 dark:bg-cyan-950 dark:text-teal-200">
+        <Card className="my-4 bg-cyan-200 dark:bg-cyan-950 dark:text-teal-200 ">
           <CardBody>
             <div className="flex justify-between items-center mb-2 ">
               <div >

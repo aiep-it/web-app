@@ -102,7 +102,7 @@ export const Navbar = () => {
         </NavbarItem>
         <NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem>
         <NavbarItem className="hidden md:flex">
-          <Button
+          {/* <Button
             isExternal
             as={Link}
             className="text-sm font-normal text-default-600 bg-default-100"
@@ -111,7 +111,7 @@ export const Navbar = () => {
             variant="flat"
           >
             Sponsor
-          </Button>
+          </Button> */}
         </NavbarItem>
         {/* Clerk Auth Buttons */}
         <NavbarItem>

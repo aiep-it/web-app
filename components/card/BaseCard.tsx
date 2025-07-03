@@ -27,8 +27,8 @@ const BaseCard: React.FC<BaseCardProps> = ({
     <Card
       as={"div"}
       className="rounded-xl p-5 shadow-lg flex flex-col justify-between h-full hover:shadow-xl transition-shadow duration-300 cursor-pointer
-      bg-gradient-to-r from-primary-100 to-secondary-100
-      dark:from-primary-100 dark:to-secondary-100 dark:text-white
+      bg-gradient-to-r  bg-slate-200
+      dark:from-primary-100 dark:to-secondary-100  dark:text-white
       text-gray-900"
       isPressable
       onPress={() => {
@@ -37,7 +37,13 @@ const BaseCard: React.FC<BaseCardProps> = ({
     >
       <div>
         <h3 className="text-xl font-bold mb-1">{name}</h3>
-        <p className="text-sm text-white/80 mb-2">{description}</p>
+        <p
+          className="text-sm text-gray-900/80 dark:text-white mb-2 truncate overflow-hidden whitespace-nowrap max-w-full"
+          title={description}
+        >
+          {description && description.length > 0 ? description : "No description"}
+        </p>
+
       </div>
       <div className="flex justify-end gap-2 pt-4">
         <Button
