@@ -93,12 +93,19 @@ const VocabularyListPage = () => {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fetchListVocabs = async () => {
-    const res = await searchListVocab(vocabPayload);
-
-    if (res && typeof res === "object" && "content" in res) {
-      setVocabsList(res as VocabListResponse);
-    } else {
-      setVocabsList(undefined);
+    try{
+      const res = await searchListVocab(vocabPayload);
+      if (res && typeof res === "object" && "content" in res) {
+        setVocabsList(res as VocabListResponse);
+      } else {
+        setVocabsList(undefined);
+      }
+    }catch(e){
+      addToast({
+        title: "Error",
+        description: `Something wrong! Could you please try again!`,
+        color: "danger",
+      });
     }
   };
 
