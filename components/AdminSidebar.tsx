@@ -12,7 +12,7 @@ const menuItems = [
   { group: "Content", items: [
     { name: "Manage Category", icon: "lucide:book-plus", href: "/admin/categories" },
     { name: "Manage Roadmap", icon: "lucide:book-plus", href: "/admin/roadmaps" },
-    { name: "Manage Vocabulary", icon: "lucide:book-plus", href: "/admin/vocabularies" },
+    { name: "Manage Vocabulary", icon: "lucide:whole-word", href: "/admin/vocabularies" },
     { name: "Live Courses", icon: "lucide:video", href: "/admin/live-courses" },
   ]},
   { group: "Customization", items: [

@@ -2,6 +2,8 @@
 import {
   addToast,
   Button,
+  Chip,
+  Divider,
   Dropdown,
   DropdownItem,
   DropdownMenu,
@@ -11,7 +13,7 @@ import {
 import { Key, Selection } from "@react-types/shared";
 import React from "react";
 import { useEffect, useState } from "react";
-
+import { Icon } from "@iconify/react";
 import CAudioUpload from "@/components/CAudioUpload";
 import CTable from "@/components/CTable";
 import BaseForm from "@/components/form/BaseForm";
@@ -91,6 +93,7 @@ const VocabularyListPage = () => {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fetchListVocabs = async () => {
     try{
@@ -128,7 +131,16 @@ const VocabularyListPage = () => {
   useEffect(() => {
     fetchListVocabs();
   }, [vocabPayload]);
+  const checkMedia = async (mediaUrl: string) => {
+    if (!mediaUrl) return;
 
+    try {
+      const response = await fetch(mediaUrl, { method: "HEAD" });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
   const renderCell = (item: VocabData, key: string) => {
     if (key === "actions") {
       return (
@@ -143,9 +155,10 @@ const VocabularyListPage = () => {
               <DropdownItem
                 key="view"
                 onClick={async () => {
+                  const imageUrl = !(await checkMedia(item.imageUrl)) ? "" : item.imageUrl;
                   setActiveModal({
                     type: "view",
-                    vocab: item,
+                    vocab: { ...item, imageUrl: imageUrl },
                     isOpen: true
                   });
                 }}
@@ -155,6 +168,7 @@ const VocabularyListPage = () => {
               <DropdownItem
                 key="edit"
                 onClick={async () => {
+                  setAudio(item.audioUrl ? new Audio(item.audioUrl) : null);
                   setActiveModal({
                     type: "edit",
                     vocab: item,
@@ -348,6 +362,14 @@ const VocabularyListPage = () => {
       is_know: false,
     });
   };
+
+  function isVideo(url: string): boolean {
+    return /\.(mp4|webm|ogg)$/i.test(url);
+  }
+  const handlePlay = () => {
+    audio?.play();
+  };
+
   if (!hydrated) return null;
 
   return (
@@ -380,23 +402,47 @@ const VocabularyListPage = () => {
         isSubmitting={isSubmitting}
         moduleTitle="Vocabulary"
       >
-        {activeModal.type !== 'delete' ? (
+        {activeModal.type === 'view' ? (
+          <div className="p-4 flex flex-row gap-3">
+            {activeModal.vocab?.imageUrl ? (<div className="flex flex-col w-1/3 shadow-xl rounded-2xl">
+              {isVideo(activeModal.vocab?.imageUrl) ? (
+                  <video src={activeModal.vocab?.imageUrl} controls className="w-full h-auto object-cover shadow-xl rounded-2xl" />
+                ) : (
+                  <img src={activeModal.vocab?.imageUrl} alt={activeModal.vocab?.word} className="w-full h-auto object-cover shadow-xl rounded-2xl" />
+                )}
+            </div>): (<></>)}
+            <div className="flex flex-col gap-2 w-full">
+              <div className="flex flex-row gap-5 items-center">
+                <h2 className="text-xl font-bold">{activeModal.vocab?.word}</h2>
+                <Icon className="cursor-pointer" icon="lucide:speech" style={{color: `${audio===null ? 'rgb(144 144 144 / 25%)' : 'rgb(144 144 144)'}`}} width="20" height="20"onClick={handlePlay} />
+              </div>
+              <Divider/>
+              <div className="flex flex-row justify-between items-center gap-2">
+                  <div className="flex flex-col">
+                    <div className="text-gray-700 flex flex-row items-center gap-1"><Icon icon="lucide:notebook-pen" width="16" height="16" /> Meaning: {activeModal.vocab?.meaning}</div>
+                    <div className="text-gray-600 italic flex flex-row items-center gap-1"><Icon icon="lucide:badge-alert" width="16" height="16" />Example: "{activeModal.vocab?.example}"</div>
+                  </div>
+                  {activeModal.vocab?.is_know ? <Chip className="text-xs" size="sm" color="success">Learned</Chip> : <Chip className="text-xs" size="sm" color="warning">Learning</Chip>}
+              </div>
+            </div>
+          </div>) :
+        activeModal.type !== 'delete' ? (
           <div className="flex gap-6 mt-4">
-          <div className="flex flex-col gap-4 w-1/2">
-            <CImageUpload
-              initialUrl={activeModal.vocab?.imageUrl}
-              onSelect={(file) => setImageFile(file)}
-            />
-            <CAudioUpload onSelect={(file) => setAudioFile(file)} />
+            <div className="flex flex-col gap-4 w-1/2">
+              <CImageUpload
+                initialUrl={activeModal.vocab?.imageUrl}
+                onSelect={(file) => setImageFile(file)}
+              />
+              <CAudioUpload onSelect={(file) => setAudioFile(file)} />
+            </div>
+            <div className="w-1/2">
+              <BaseForm
+                fields={fields}
+                onSubmit={() => {}}
+                isFooter={false}
+              />
+            </div>
           </div>
-          <div className="w-1/2">
-            <BaseForm
-              fields={fields}
-              onSubmit={() => {}}
-              isFooter={false}
-            />
-          </div>
-        </div>
         ) : (
           <p>Are you sure you want to delete "<strong><i>{activeModal.vocab?.word}</i></strong>"</p>
         )}
