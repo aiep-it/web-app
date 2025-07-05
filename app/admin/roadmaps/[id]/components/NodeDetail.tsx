@@ -1,17 +1,19 @@
+import VocabularyListPage from "@/app/admin/vocabularies/page";
 import { getNodeById } from "@/services/node";
 import { NodeData } from "@/services/types/node";
-import { NodeContent } from "@/types/Node";
 import {
-  Avatar,
-  AvatarGroup,
   Button,
   DrawerBody,
   DrawerFooter,
   DrawerHeader,
   Image,
-  Link,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
   PressEvent,
-  Tooltip,
+  Tooltip
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { useRouter } from "next/navigation";
@@ -29,7 +31,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({
   viewOnly = false,
 }: NodeDetailProps) => {
   const [node, setNode] = React.useState<NodeData | null>(null);
-
+  const [isOpenModal, setOpenModal] = React.useState(false);
   const fetchNodeContent = async (id: string) => {
     const res = await getNodeById(id);
     if (res) {
@@ -41,8 +43,6 @@ const NodeDetail: React.FC<NodeDetailProps> = ({
       fetchNodeContent(nodeId);
     }
   }, [nodeId]);
-  // console.log("nodeContent", nodeContent);
-
   const router = useRouter();
   return (
     <>
@@ -183,6 +183,12 @@ const NodeDetail: React.FC<NodeDetailProps> = ({
                     <p>{node.description}</p>
                   </div>
                 </div>
+                <div className="flex flex-row items-center gap-4">
+                  <span className="text-medium font-medium">List Vocabulary</span>
+                  <div className="flex flex-row items-center gap-1 text-xs cursor-pointer hover:underline" onClick={() => 
+                    setOpenModal(true)
+                  }>View All <Icon icon="lucide:square-arrow-out-up-right" width="16" height="16" /></div>
+                </div>
               </div>
             </div>
           </>
@@ -194,6 +200,23 @@ const NodeDetail: React.FC<NodeDetailProps> = ({
             </p>
           </div>
         )}
+        <Modal isOpen={isOpenModal} onClose={() => setOpenModal(false)} size="2xl">
+          <ModalContent>
+            {(onClose) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1">List Vocabulary</ModalHeader>
+                <ModalBody>
+                  <VocabularyListPage isChild={true} nodeId={nodeId}/>
+                </ModalBody>
+                <ModalFooter>
+                  <Button color="danger" variant="light" onPress={onClose}>
+                    Close
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
       </DrawerBody>
       <DrawerFooter>
         <Button color="danger" variant="light" onPress={onClose}>

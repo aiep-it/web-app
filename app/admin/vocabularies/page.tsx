@@ -4,10 +4,6 @@ import {
   Button,
   Chip,
   Divider,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
   Pagination,
 } from "@heroui/react";
 import { Key, Selection } from "@react-types/shared";
@@ -35,6 +31,7 @@ import CImageUpload from "@/components/CImageUpload";
 import { uploadFile } from "@/services/cms";
 import { getFullPathFile } from "@/utils/expections";
 import { CModal } from "@/components/CModal";
+import { validMedia } from "@/utils/validMedia";
 
 const vocabColumns = [
   { uid: "word", name: "Word", sortable: true },
@@ -65,7 +62,11 @@ export const VerticalDotsIcon = ({ size = 24, ...props }) => {
   );
 };
 
-const VocabularyListPage = () => {
+interface VocabularyListPageProps {
+  isChild?: boolean;
+  nodeId?: string;
+}
+const VocabularyListPage = ({ isChild, nodeId }: VocabularyListPageProps) => {
   const [hydrated, setHydrated] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set<Key>());
   const [vocabsList, setVocabsList] = useState<VocabListResponse>();
@@ -77,7 +78,7 @@ const VocabularyListPage = () => {
         field: VocabColumn.created_at,
         order: "desc",
       } as VocabSort,
-    ],
+    ]
   });
   const [activeModal, setActiveModal] = useState<{
     type: 'create' | 'edit' | 'delete' | 'view';
@@ -97,7 +98,8 @@ const VocabularyListPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fetchListVocabs = async () => {
     try{
-      const res = await searchListVocab(vocabPayload);
+      const params: VocabSearchPayload= isChild ? {...vocabPayload, filters: { nodeId: nodeId} } : vocabPayload
+      const res = await searchListVocab(params);
       if (res && typeof res === "object" && "content" in res) {
         setVocabsList(res as VocabListResponse);
       } else {
@@ -131,69 +133,43 @@ const VocabularyListPage = () => {
   useEffect(() => {
     fetchListVocabs();
   }, [vocabPayload]);
-  const checkMedia = async (mediaUrl: string) => {
-    if (!mediaUrl) return;
-
-    try {
-      const response = await fetch(mediaUrl, { method: "HEAD" });
-      return response.ok;
-    } catch {
-      return false;
-    }
-  };
+  
   const renderCell = (item: VocabData, key: string) => {
     if (key === "actions") {
       return (
-        <div className="relative flex justify-end items-center gap-2">
-          <Dropdown>
-            <DropdownTrigger>
-              <Button isIconOnly size="sm" variant="light">
-                <VerticalDotsIcon className="text-default-300" />
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu>
-              <DropdownItem
-                key="view"
-                onClick={async () => {
-                  const imageUrl = !(await checkMedia(item.imageUrl)) ? "" : item.imageUrl;
-                  setActiveModal({
-                    type: "view",
-                    vocab: { ...item, imageUrl: imageUrl },
-                    isOpen: true
-                  });
-                }}
-              >
-                View
-              </DropdownItem>
-              <DropdownItem
-                key="edit"
-                onClick={async () => {
-                  setAudio(item.audioUrl ? new Audio(item.audioUrl) : null);
-                  setActiveModal({
-                    type: "edit",
-                    vocab: item,
-                    isOpen: true
-                  });
-                  setFormState({
-                    audioUrl: item.audioUrl,
-                    example: item.example,
-                    imageUrl: item.imageUrl,
-                    word: item.word,
-                    meaning: item.meaning,
-                    nodeId: item.nodeId,
-                  });
-                }}
-              >
-                Edit
-              </DropdownItem>
-              <DropdownItem
-                key="delete"
-                onClick={() => setActiveModal({ type: "delete", vocab: item, isOpen: true })}
-              >
-                Delete
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+        <div className="relative flex justify-start items-center gap-2">
+          <Icon icon="lucide:eye" width="16" height="16"
+            onClick={async () => {
+              const imageUrl = !(await validMedia(item.imageUrl)) ? "" : item.imageUrl;
+              setActiveModal({
+                type: "view",
+                vocab: { ...item, imageUrl: imageUrl },
+                isOpen: true
+              });
+            }}
+          />
+          <Icon icon="lucide:edit-3" width="16" height="16"
+            onClick={async () => {
+              setAudio(item.audioUrl ? new Audio(item.audioUrl) : null);
+              setActiveModal({
+                type: "edit",
+                vocab: item,
+                isOpen: true
+              });
+              setFormState({
+                audioUrl: item.audioUrl,
+                example: item.example,
+                imageUrl: item.imageUrl,
+                word: item.word,
+                meaning: item.meaning,
+                nodeId: item.nodeId,
+              });
+            }}
+          />
+          <Icon icon="streamline-plump:recycle-bin-2-remix" width="16" height="16" style={{color: "red"}}
+            onClick={() => setActiveModal({ type: "delete", vocab: item, isOpen: true })}
+          />
+         
         </div>
       );
     }
@@ -373,12 +349,12 @@ const VocabularyListPage = () => {
   if (!hydrated) return null;
 
   return (
-    <div className="min-h-screen dark:bg-black-10 text-foreground p-6">
+    <div className="dark:bg-black-10 text-foreground p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Vocabulary List</h1>
+        {isChild ?? <h1 className="text-3xl font-bold">Vocabulary List</h1>}
         <Button
           className="bg-gradient-to-r from-indigo-900 via-purple-900 to-gray-900 text-white"
-          onClick={() =>
+          onPress={() =>
             setActiveModal({ type: "create", isOpen: true })
           }
         >

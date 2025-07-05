@@ -17,7 +17,7 @@ export interface Column<T> {
   sortable?: boolean;
 }
 
-interface CTableProps<T> extends Omit<TableProps, "children"> {
+export interface CTableProps<T> extends Omit<TableProps, "children"> {
   columns: Column<T>[];
   data: T[];
   renderCell?: (item: T, columnKey: keyof T | string) => React.ReactNode;
@@ -39,7 +39,6 @@ export const CTable = <T extends { id: string | number }>({
         wrapper: "max-h-[100%]",
       }}
       selectionBehavior="toggle"
-      selectionMode="multiple"
     >
       <TableHeader columns={columns}>
         {(column) => (
