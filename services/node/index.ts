@@ -28,6 +28,19 @@ export async function getNodeById(id: string): Promise<NodeData | null> {
     }
 }
 
+export async function getNodesByRoadmapId(roadMapId: string): Promise<NodeData[] | null> {
+    try {
+        const response = await axiosInstance.get<NodeData[]>(ENDPOINTS.NODE.GET_BY_ROADMAP_ID(roadMapId));
+        if (response.status === 200) {
+            return response.data;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching nodes by roadmap ID:", error);
+        return null;
+    }
+}
+
 export async function updateNode(id: string, payload: NodeUpdatePayload): Promise<NodeData | null> {
     try {
         const response = await axiosInstance.put<NodeData>(ENDPOINTS.NODE.UPDATE(id), payload);

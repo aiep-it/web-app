@@ -7,3 +7,9 @@ export type NodeContent = {
 }
 
 export type NodeContentForm = Partial<Pick<NodeData, "id" | "title" | "description">> & NodeContent
+
+export type NodeContentCMS = {
+    id: string;
+    content: string;
+    nodeId: string;
+}

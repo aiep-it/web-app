@@ -1,6 +1,7 @@
-import NewNodesPage from "./NewNodesPage";
+import NodesListPage from "./NodesListPage";
+
 
 
 export default function Page({ params }: { params: { id: string } }) {
-  return <NewNodesPage id={params.id} />;
+  return <NodesListPage roadMapId={params.id} />;
 }

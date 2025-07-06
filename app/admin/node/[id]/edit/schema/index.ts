@@ -15,7 +15,7 @@ export const nodeFormSchema: yup.ObjectSchema<NodeContentForm> = yup.object({
 
   title: yup
     .string()
-    .min(3, "Title must be at least 3 characters")
+    .min(1, "Title must be at least 1 characters")
     .max(30, "Title must be at most 30 characters")
     .required("Title is required"),
 

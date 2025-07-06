@@ -1,5 +1,6 @@
-import { Edge, Node, Viewport } from "@xyflow/react";
-import { Roadmap } from "./roadmap";
+import { Edge, Node, Viewport } from '@xyflow/react';
+import { Roadmap } from './roadmap';
+import { NodeStatus } from '@/constant/enums';
 
 export type NodePayload = {
   id?: string;
@@ -13,17 +14,22 @@ export type NodeData = {
   roadmap: Roadmap;
   title: string;
   description: string;
+  coverImage?: string;
+  suggestionLevel?: string;
+  updated_at?: Date;
+  created_at?: Date;
+  status?: NodeStatus;
 };
 export type NodeUpdatePayload = {
-    title?: string;
-    description?: string;
-    coverImage?: string;
-    suggestionLevel?: string;
-}
+  title?: string;
+  description?: string;
+  coverImage?: string;
+  suggestionLevel?: string;
+};
 
 export type NodeViewCMS = {
-    roadmapId: string;
-    edges: Edge[];
-    nodes: Node[];
-    viewport: Viewport;
-}
+  roadmapId: string;
+  edges: Edge[];
+  nodes: Node[];
+  viewport: Viewport;
+};

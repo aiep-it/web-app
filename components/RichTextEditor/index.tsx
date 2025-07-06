@@ -45,8 +45,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
     ...config,
   };
-  console.log("RichTextEditor config:", mergedConfig);
-
   return (
     <div className="ck-wrapper  h-full" style={{ height: "100%" }}>
       <CKEditor

@@ -13,5 +13,6 @@ export const cms = createDirectus(CMS_URL)
 
 export const COLLECTIONS = {
     NodeView: 'NodeView',
-    Lookup: 'LookUp'
+    Lookup: 'LookUp',
+    NodeContent: 'NodeContent'
 }

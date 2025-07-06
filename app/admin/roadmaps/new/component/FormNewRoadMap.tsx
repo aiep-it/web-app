@@ -39,7 +39,7 @@ const FormNewRoadMap = () => {
       });
       const {id} = res
       methods.reset();
-      router.push(`/admin/roadmaps/${id}/nodes`);
+      router.push(`/admin/roadmaps/${id}/nodes/new`);
     }
   };
 

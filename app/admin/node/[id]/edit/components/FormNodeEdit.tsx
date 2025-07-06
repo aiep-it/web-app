@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { NodeContent, NodeContentForm } from "../types";
+import { NodeContent, NodeContentCMS, NodeContentForm } from "../types";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 import FormProvider from "@/components/FormProvider";
@@ -12,7 +12,7 @@ import CTextField from "@/components/FormProvider/Fields/CTextField";
 import CImageUpload from "@/components/FormProvider/Fields/CImageUpload";
 import CRichText from "@/components/FormProvider/Fields/CRichText";
 import ButtonConfirm from "@/components/ButtonConfirm";
-import { getItems, uploadFile } from "@/services/cms";
+import { createItemCMS, getItems, updateItemCMS, uploadFile } from "@/services/cms";
 import { addToast } from "@heroui/toast";
 import { SelectItem, Tooltip } from "@heroui/react";
 import { Icon } from "@iconify/react";
@@ -31,6 +31,7 @@ const defaultValues: NodeContent = {
 
 const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
   const [suggestionLevels, setSuggestionLevels] = useState<LookupContent[]>([]);
+  const [nodeContentCMS, setNodeContentCMS] = useState<NodeContentCMS | null>(null);
 
   const methods = useForm<NodeContentForm>({
     resolver: yupResolver(nodeFormSchema),
@@ -38,37 +39,58 @@ const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
   });
   const { handleSubmit } = methods;
 
-  const fetchNode = async (id: string) => {
-    const res = await getNodeById(id);
-    if (res) {
-      methods.reset({
-        ...res,
-      });
+  const updateContent = async (id: string, content: string) => {
+    const cmsPayload = {
+      nodeId: id,
+      content: content,
     }
-  };
-
-  const fetchLookup = async () => {
-    const res = await getItems<LookupContent>(COLLECTIONS.Lookup, {
-      filter: {
-        type: {
-          _eq: LOOKUP_KEY.SuggestionLevel,
-        },
-      },
-    });
-    if (res && res.length) {
-      setSuggestionLevels(res);
+    let res;
+    if (nodeContentCMS) {
+      res = await updateItemCMS(COLLECTIONS.NodeContent, nodeContentCMS.id, cmsPayload);
+    } else {
+      res = await createItemCMS(COLLECTIONS.NodeContent, cmsPayload);
     }
-  };
-
-  const fetchContent = async () => {
-    
+    return res && res.content ? res.content : null;
   }
 
+
   useEffect(() => {
-    if (nodeId) {
-      fetchNode(nodeId);
-      fetchLookup();
-    }
+    const loadData = async () => {
+      if (!nodeId) return;
+  
+      const [node, contentRes, lookupRes] = await Promise.all([
+        getNodeById(nodeId),
+        getItems<NodeContentCMS>(COLLECTIONS.NodeContent, {
+          filter: { nodeId: { _eq: nodeId } },
+        }),
+        getItems<LookupContent>(COLLECTIONS.Lookup, {
+          filter: { type: { _eq: LOOKUP_KEY.SuggestionLevel } },
+        }),
+      ]);
+  
+      // Set suggestion levels
+      if (lookupRes && lookupRes.length) {
+        setSuggestionLevels(lookupRes);
+      }
+  
+      // Set CMS content
+      let content = "";
+      if (contentRes && contentRes.length) {
+        const cmsContent = contentRes[0];
+        setNodeContentCMS(cmsContent);
+        content = cmsContent.content || "";
+      }
+  
+      // Reset form only once
+      if (node) {
+        methods.reset({
+          ...node,
+          content, // override if needed
+        });
+      }
+    };
+  
+    loadData();
   }, [nodeId]);
 
   const uploadCoverImage = async (file: File) => {
@@ -81,7 +103,10 @@ const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
   };
 
   const onSubmit = async (data: NodeContentForm) => {
-    const coverImage = await uploadCoverImage(data.coverImage as File);
+    let coverImage = data.coverImage instanceof File ? undefined : data.coverImage;
+    if (data.coverImage instanceof File) {
+      coverImage = await uploadCoverImage(data.coverImage);
+    }
 
     if (!coverImage) {
       addToast({
@@ -90,7 +115,6 @@ const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
         color: "danger",
       });
 
-      return;
     }
 
     const payload: NodeUpdatePayload = {
@@ -103,6 +127,11 @@ const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
     const res = await updateNode(nodeId as string, payload);
 
     if (res) {
+      let dataContent = data.content;
+      if (data.content) {
+        dataContent = await updateContent(res.id as string, data.content);
+      }
+
       addToast({
         title: "Node updated successfully",
         description: "Your node has been updated successfully.",
@@ -110,6 +139,7 @@ const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
       });
       methods.reset({
         ...res,
+        content: dataContent ||  "",
       });
     } else {
       addToast({
