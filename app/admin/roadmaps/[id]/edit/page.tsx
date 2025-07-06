@@ -7,33 +7,6 @@ import { Node } from "@xyflow/react";
 import ButtonConfirm from "@/components/ButtonConfirm";
 import NodeFlow, { NodeFlowRef } from "../components/NodeFlow";
 
-// Mock
-const defaultNodes: Node[] = [
-  {
-    id: "1",
-    position: { x: 200, y: 200 },
-    data: { label: "Group Node" },
-    width: 380,
-    height: 200,
-    type: "labeledGroupNode",
-  },
-  {
-    id: "2",
-    position: { x: 50, y: 100 },
-    data: { label: "Node" },
-    type: "input",
-    parentId: "1",
-    extent: "parent",
-  },
-  {
-    id: "3",
-    position: { x: 200, y: 50 },
-    data: { label: "Node" },
-    type: "input",
-    parentId: "1",
-    extent: "parent",
-  },
-];
 
 const AdminNodePage = () => {
   const nodeFlowRef = useRef<NodeFlowRef>(null);
@@ -44,7 +17,6 @@ const AdminNodePage = () => {
     const instance = formRef?.getRFInstance();
 
     instance?.toObject();
-    console.log("instance", instance?.getNodes(), instance?.toObject());
   };
 
   return (

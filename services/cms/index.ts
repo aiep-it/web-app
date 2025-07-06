@@ -6,6 +6,7 @@ import {
   QueryItem,
   readItem,
   readItems,
+  updateItem,
   uploadFiles,
 } from "@directus/sdk";
 
@@ -39,6 +40,19 @@ export const createItemCMS = async (
 ): Promise<any> => {
   try {
     return cms.request(createItem(collection, payload));
+  } catch (error) {
+    console.error(`Error creating item in collection ${collection}:`, error);
+    return null;
+  }
+};
+
+export const updateItemCMS = async (
+  collection: string,
+  item_id: string,
+  payload: any,
+): Promise<any> => {
+  try {
+    return cms.request(updateItem(collection, item_id, payload));
   } catch (error) {
     console.error(`Error creating item in collection ${collection}:`, error);
     return null;

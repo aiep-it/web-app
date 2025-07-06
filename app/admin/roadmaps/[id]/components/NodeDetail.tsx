@@ -1,8 +1,14 @@
-import VocabularyListPage from "@/app/admin/vocabularies/page";
+import { NodeContentCMS } from "@/app/admin/node/[id]/edit/types";
+import { COLLECTIONS } from "@/config/cms";
+import { getItems } from "@/services/cms";
 import { getNodeById } from "@/services/node";
 import { NodeData } from "@/services/types/node";
+import { NodeContent } from "@/types/Node";
+import { getFullPathFile } from "@/utils/expections";
+import VocabularyListPage from "@/app/admin/vocabularies/page";
 import {
   Button,
+  Chip,
   DrawerBody,
   DrawerFooter,
   DrawerHeader,
@@ -31,18 +37,35 @@ const NodeDetail: React.FC<NodeDetailProps> = ({
   viewOnly = false,
 }: NodeDetailProps) => {
   const [node, setNode] = React.useState<NodeData | null>(null);
+  const [nodeContentCMS, setNodeContentCMS] = React.useState<NodeContentCMS | null>(null);
   const [isOpenModal, setOpenModal] = React.useState(false);
-  const fetchNodeContent = async (id: string) => {
-    const res = await getNodeById(id);
-    if (res) {
-      setNode(res);
-    }
-  };
   React.useEffect(() => {
     if (nodeId) {
-      fetchNodeContent(nodeId);
+      const loadData = async () => {
+        if (!nodeId) return;
+
+        const [node, contentRes] = await Promise.all([
+          getNodeById(nodeId),
+          getItems<NodeContentCMS>(COLLECTIONS.NodeContent, {
+            filter: { nodeId: { _eq: nodeId } },
+          }),
+
+          
+        ]);
+
+        if(node) {
+          setNode(node);
+          if (contentRes && contentRes.length) {
+            const cmsContent = contentRes[0];
+            setNodeContentCMS(cmsContent);
+          }
+        }
+      }
+
+      loadData();
     }
   }, [nodeId]);
+
   const router = useRouter();
   return (
     <>
@@ -170,17 +193,33 @@ const NodeDetail: React.FC<NodeDetailProps> = ({
                 alt="Event image"
                 className="aspect-square w-full hover:scale-110"
                 height={300}
-                src="https://dxri5rqql2ood.cloudfront.net/cms/assets/23ee8798-bf2a-4a5f-a63b-7d5f50084a41"
+                src={node.coverImage ? getFullPathFile(node.coverImage) : "https://placehold.co/600x400"}
               />
             </div>
             <div className="flex flex-col gap-2 py-4">
               <h1 className="text-2xl font-bold leading-7">{node?.title}</h1>
               <p className="text-sm text-default-500">{node.description}</p>
+              {
+                node.suggestionLevel &&  <Chip color="secondary">{node.suggestionLevel}</Chip>
+              }
+             
               <div className="mt-4 flex flex-col gap-3">
                 <div className="flex flex-col mt-4 gap-3 items-start">
                   <span className="text-medium font-medium">Content</span>
                   <div className="text-medium text-default-500 flex flex-col gap-2">
-                    <p>{node.description}</p>
+                    {
+                       nodeContentCMS?.content ? (
+                        <div
+                        className="prose max-w-none"
+                        dangerouslySetInnerHTML={{ __html: nodeContentCMS?.content || "" }}
+                      />
+                       ) : (
+                        <p className="text-default-500">
+                          No Content to show
+                        </p>
+                       )
+                    }
+                
                   </div>
                 </div>
                 <div className="flex flex-row items-center gap-4">

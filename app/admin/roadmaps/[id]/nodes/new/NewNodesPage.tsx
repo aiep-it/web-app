@@ -15,7 +15,7 @@ import { Edge, Node } from "@xyflow/react";
 import ButtonConfirm from "@/components/ButtonConfirm";
 import { Roadmap } from "@/services/types/roadmap";
 import { getRoadmapById } from "@/services/roadmap";
-import NodeFlow, { NodeFlowRef } from "../components/NodeFlow";
+import NodeFlow, { NodeFlowRef } from "../../components/NodeFlow";
 import { createNode } from "@/services/node";
 import { NodePayload } from "@/services/types/node";
 import {  createItemCMS } from "@/services/cms";

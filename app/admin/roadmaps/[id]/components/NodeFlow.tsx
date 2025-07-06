@@ -47,6 +47,12 @@ import NodeHeader from "./NodeTypes/NodeHeader";
 
 interface IProps {
   nodeData?: Node[];
+  edgeData?: Edge[];
+  viewPort?: {
+    x: number;
+    y: number;
+    zoom: number;
+  };
 }
 interface NodeFlowProps extends IProps, ReactFlowProps {}
 
@@ -98,13 +104,13 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
     const [colorMode, setColorMode] = useState<"system" | "dark" | "light">(
       "dark"
     );
-    const { nodeData, ...restProps } = props;
+    const { nodeData, edgeData, ...restProps } = props;
 
     const reactFlowWrapper = useRef(null);
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>(
       nodeData || []
     );
-    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(edgeData || []);
     const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(
       null
     );
