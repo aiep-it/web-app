@@ -49,11 +49,7 @@ export const createRoadmap = async (
   token: string
 ): Promise<Roadmap | null> => {
   try {
-    const response = await axiosInstance.post(ENDPOINTS.ROAD_MAP.CREATE, payload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await axiosInstance.post(ENDPOINTS.ROAD_MAP.CREATE, payload);
     if (response.status === 201 || response.status === 200) {
       return response.data;
     }
