@@ -9,6 +9,10 @@ export const siteConfig = {
       href: "/",
     },
     {
+      label: "Learn Vocabulary",
+      href: "/learn-vocabulary",
+    },
+    {
       label: "Docs",
       href: "/docs",
     },
@@ -33,6 +37,10 @@ export const siteConfig = {
     {
       label: "Dashboard",
       href: "/dashboard",
+    },
+    {
+      label: "Learn Vocabulary",
+      href: "/learn-vocabulary",
     },
     {
       label: "Projects",

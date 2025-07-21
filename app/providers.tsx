@@ -9,6 +9,7 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ToastProvider } from "@heroui/toast";
 import useAxiosAuth from "@/hooks/useAxiosAuth";
+import { VocabularyProvider } from "@/components/vocabulary/VocabularyContext";
 
 
 export interface ProvidersProps {
@@ -42,7 +43,11 @@ export function Providers({ children, themeProps }: ProvidersProps) {
       {isMounted && <AuthTokenSync />}
       <HeroUIProvider navigate={router.push}>
          <ToastProvider placement='top-right'/>
-        <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
+        <NextThemesProvider {...themeProps}>
+          <VocabularyProvider>
+            {children}
+          </VocabularyProvider>
+        </NextThemesProvider>
       </HeroUIProvider>
     </ClerkProvider>
   );
