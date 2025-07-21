@@ -1,13 +1,13 @@
 "use client";
 import React from "react";
-import FormNodeEdit from "./components/FormNodeEdit";
+import FormTopicEdit from "./components/FormTopicEdit";
 import { Card, CardBody, CardHeader } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
-interface NodeEditPageProps {
+interface TopicEditPageProps {
   id: string;
 }
-const NodeEditPage: React.FC<NodeEditPageProps> = ({ id }) => {
+const TopicEditPage: React.FC<TopicEditPageProps> = ({ id }) => {
   return (
     <div className="bg-background flex items-center justify-center p-4">
       <Card className="w-full">
@@ -21,11 +21,11 @@ const NodeEditPage: React.FC<NodeEditPageProps> = ({ id }) => {
           </div>
         </CardHeader>
         <CardBody>
-          <FormNodeEdit nodeId={id} />
+          <FormTopicEdit topicId={id} />
         </CardBody>
       </Card>
     </div>
   );
 };
 
-export default NodeEditPage;
+export default TopicEditPage;

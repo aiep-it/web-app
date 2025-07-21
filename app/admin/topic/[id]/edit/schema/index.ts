@@ -1,8 +1,8 @@
 import * as yup from "yup";
-import { NodeContent, NodeContentForm } from "../types";
+import { TopicContent, TopicContentForm } from "../types";
 import { Roadmap } from "@/services/types/roadmap";
 
-export const nodeFormSchema: yup.ObjectSchema<NodeContentForm> = yup.object({
+export const topicFormSchema: yup.ObjectSchema<TopicContentForm> = yup.object({
   id: yup.string().required("Node ID is required"),
 
   content: yup

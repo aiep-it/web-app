@@ -68,7 +68,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ fields, onSubmit, isSubmitting, sub
       ))}
 
       <div className="flex justify-end pt-4">
-        {isFooter && <Button
+        { <Button
           type="submit"
           disabled={isSubmitting}
           className="bg-gradient-to-r from-indigo-900 via-purple-900 to-gray-900 text-white"

@@ -15,7 +15,7 @@ import NodeFlowViewOnlyWrapper from './components/ViewOnly';
 import { Roadmap } from '@/services/types/roadmap';
 import { getItems } from '@/services/cms';
 import { COLLECTIONS } from '@/config/cms';
-import { NodeViewCMS } from '@/services/types/node';
+import { NodeViewCMS } from '@/services/types/topic';
 import NodeFlow from './components/NodeFlow';
 import { useRouter } from 'next/navigation';
 
@@ -90,7 +90,7 @@ const RoadMapDetailPage: React.FC<RoadMapDetailPageProps> = ({ id }) => {
               {editNode ? 'Save Node' : 'Edit Node'}
             </Button>
             <Button className="mx-3" color="secondary" variant="bordered" onPress={() => {
-              router.push(`/admin/roadmaps/${id}/nodes`); // Navigate to Nodes List Page
+              router.push(`/admin/roadmaps/${id}/topics`); // Navigate to Nodes List Page
             }}>
               List Node Detail
             </Button>
@@ -114,8 +114,11 @@ const RoadMapDetailPage: React.FC<RoadMapDetailPageProps> = ({ id }) => {
                 />
               )
             ) : (
-              <div className="flex h-32 items-center justify-center rounded-md border-2 border-dashed border-default-200 bg-default-50">
-                <p className="text-default-500">No Exist Nodes</p>
+              <div className="flex h-32 items-center justify-center rounded-md border-2 border-dashed border-default-200 bg-default-50 flex-col">
+                <p className="text-default-500">Không Có Chủ Đề</p>
+                <Button className='mt-3' variant='ghost' color='primary' onPress={() => {router.push(`/admin/roadmaps/${roadmap?.id}/topics/new`)}}>
+                  Chuyển Đến Trang Tạo Chủ Đề Mới
+                </Button>
               </div>
             )
           ) : (

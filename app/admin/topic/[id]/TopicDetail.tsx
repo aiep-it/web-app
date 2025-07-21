@@ -9,23 +9,23 @@ import {
   Tooltip,
 } from '@heroui/react';
 import React, { useEffect, useState } from 'react';
-import NodeEditPage from './edit/NodeEditPage';
-import { NodeData } from '@/services/types/node';
-import { getNodeById } from '@/services/node';
+import NodeEditPage from './edit/TopicEditPage';
+import { TopicData } from '@/services/types/topic';
+import { getTopicId } from '@/services/topic';
 import { getItems } from '@/services/cms';
 import { COLLECTIONS } from '@/config/cms';
-import { NodeContentCMS } from './edit/types';
-import NodeDetailInfo from './components/NodeDetailInfo';
+import { TopicContentCMS } from './edit/types';
+import NodeDetailInfo from './components/TopicDetailInfo';
 import { Icon } from '@iconify/react';
 import VocabularyListPage from '../../vocabularies/page';
 
-interface NodeDetailProps {
+interface TopicDetailProps {
   id: string;
 }
-const NodeDetail: React.FC<NodeDetailProps> = ({ id }) => {
+const TopicDetail: React.FC<TopicDetailProps> = ({ id }) => {
   const [activeTab, setActiveTab] = React.useState('roadmap');
-  const [node, setNode] = useState<NodeData>();
-  const [nodeContentCMS, setNodeContentCMS] = useState<NodeContentCMS | null>(
+  const [topic, setTopic] = useState<TopicData>();
+  const [topicContentCMS, setTopicContentCMS] = useState<TopicContentCMS | null>(
     null,
   );
 
@@ -33,22 +33,22 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ id }) => {
     const loadData = async () => {
       if (!id) return;
 
-      const [node, contentRes] = await Promise.all([
-        getNodeById(id),
-        getItems<NodeContentCMS>(COLLECTIONS.NodeContent, {
+      const [topic, contentRes] = await Promise.all([
+        getTopicId(id),
+        getItems<TopicContentCMS>(COLLECTIONS.NodeContent, {
           filter: { nodeId: { _eq: id } },
         }),
       ]);
 
       // Reset form only once
-      if (node) {
-        setNode(node);
+      if (topic) {
+        setTopic(topic);
       }
       // Set CMS content
       let content = '';
       if (contentRes && contentRes.length) {
         const cmsContent = contentRes[0];
-        setNodeContentCMS(cmsContent);
+        setTopicContentCMS(cmsContent);
         content = cmsContent.content || '';
       }
     };
@@ -71,7 +71,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ id }) => {
             <Icon icon="lucide:arrow-left" />
           </Button>
         </Tooltip>
-        <h1>Node Detail</h1>
+        <h1>Topic Detail</h1>
       </CardHeader>
       <CardBody>
         <Tabs
@@ -82,13 +82,13 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ id }) => {
           radius="full"
         >
           <Tab key="info" title="Node Information">
-            <NodeDetailInfo nodeData={node} nodeContent={nodeContentCMS} />
+            <NodeDetailInfo topicData={topic} topicContent={topicContentCMS} />
           </Tab>
           <Tab key="document" title="Document" >
             {/* TODO */}
           </Tab>
           <Tab key="vocab" title="Vocab" >
-            <VocabularyListPage />
+            <VocabularyListPage topic={topic}/>
           </Tab>
          
         </Tabs>
@@ -97,4 +97,4 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ id }) => {
   );
 };
 
-export default NodeDetail;
+export default TopicDetail;

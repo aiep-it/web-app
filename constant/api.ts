@@ -16,11 +16,11 @@ export const ENDPOINTS = {
     GET_BY_ID: (id: string) => `/roadmaps/${id}`,
     CREATE: "/roadmaps",
   },
-  NODE: {
-    GET_BY_ROADMAP_ID: (roadMapId: string) => `/node/list/${roadMapId}`,
-    GET_BY_ID: (id: string) => `/node/${id}`,
-    CREATE: '/node',
-    UPDATE: (id: string) => `/node/${id}`,
+  TOPIC: {
+    GET_BY_ROADMAP_ID: (roadMapId: string) => `/topic/list/${roadMapId}`,
+    GET_BY_ID: (id: string) => `/topic/${id}`,
+    CREATE: '/topic',
+    UPDATE: (id: string) => `/topic/${id}`,
   },
   VOCAB: {
     SEARCH: "/vocabs/search",

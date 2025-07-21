@@ -1,5 +1,5 @@
-import { NodeStatus } from '@/constant/enums';
-import { NodeData } from '@/services/types/node';
+import { TopicStatus } from '@/constant/enums';
+import { TopicData } from '@/services/types/topic';
 import { parseDateTime } from '@/utils/dateTimeUtil';
 import { getFullPathFile } from '@/utils/expections';
 import {
@@ -14,15 +14,15 @@ import {
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import React from 'react';
-import { NodeContentCMS } from '../edit/types';
+import { TopicContentCMS } from '../edit/types';
 
-interface nodeDataInfoProps {
-  nodeData?: NodeData;
-  nodeContent?: NodeContentCMS | null;
+interface TopicDataInfoProps {
+  topicData?: TopicData;
+  topicContent?: TopicContentCMS | null;
 }
-const nodeDataInfo: React.FC<nodeDataInfoProps> = ({
-  nodeData,
-  nodeContent,
+const TopicDataInfo: React.FC<TopicDataInfoProps> = ({
+  topicData,
+  topicContent,
 }) => {
   return (
     <div className="w-full mx-auto p-4 space-y-6">
@@ -30,31 +30,31 @@ const nodeDataInfo: React.FC<nodeDataInfoProps> = ({
         <CardHeader className="flex flex-col md:flex-row gap-4">
           <Image
             src={
-              nodeData?.coverImage
-                ? getFullPathFile(nodeData?.coverImage)
+              topicData?.coverImage
+                ? getFullPathFile(topicData?.coverImage)
                 : undefined
             }
             className="w-full md:w-64 h-48 md:h-36 text-large"
           />
           <div className="flex-grow space-y-2">
-            <h1 className="text-2xl font-bold">{nodeData?.title}</h1>
-            <p className="text-default-500">{nodeData?.description}</p>
+            <h1 className="text-2xl font-bold">{topicData?.title}</h1>
+            <p className="text-default-500">{topicData?.description}</p>
             <div className="flex flex-wrap gap-2">
               <Chip color="primary" variant="flat">
-                {nodeData?.roadmap?.name}
+                {topicData?.roadmap?.name}
               </Chip>
               <Chip color="secondary" variant="flat">
-                {nodeData?.suggestionLevel}
+                {topicData?.suggestionLevel}
               </Chip>
               <Chip
                 color={
-                  nodeData?.status === NodeStatus.SETTUPED
+                  topicData?.status === TopicStatus.SETTUPED
                     ? 'success'
                     : 'warning'
                 }
                 variant="flat"
               >
-                {nodeData?.status?.replace('_', ' ')}
+                {topicData?.status?.replace('_', ' ')}
               </Chip>
             </div>
           </div>
@@ -64,7 +64,7 @@ const nodeDataInfo: React.FC<nodeDataInfoProps> = ({
           <div className="flex flex-wrap justify-between gap-4">
             <div className="flex items-center gap-2">
               <Icon icon="lucide:map" className="text-default-400" />
-              <span>Roadmap: {nodeData?.roadmap.name}</span>
+              <span>Roadmap: {topicData?.roadmap.name}</span>
             </div>
             <div className="flex items-center gap-2">
               <Icon icon="lucide:calendar" className="text-default-400" />
@@ -74,12 +74,12 @@ const nodeDataInfo: React.FC<nodeDataInfoProps> = ({
           <Divider />
           <div>
             <h2 className="text-xl font-semibold mb-2">About this Node</h2>
-            <p>{nodeData?.description}</p>
+            <p>{topicData?.description}</p>
             <Divider className='my-3'/>
-            {nodeContent?.content ? (
+            {topicContent?.content ? (
               <div
                 className="prose max-w-none"
-                dangerouslySetInnerHTML={{ __html: nodeContent?.content || '' }}
+                dangerouslySetInnerHTML={{ __html: topicContent?.content || '' }}
               />
             ) : (
               <p className="text-default-500">No Content to show</p>
@@ -105,4 +105,4 @@ const nodeDataInfo: React.FC<nodeDataInfoProps> = ({
   );
 };
 
-export default nodeDataInfo;
+export default TopicDataInfo;

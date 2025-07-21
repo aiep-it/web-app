@@ -1,4 +1,4 @@
-import NodeEditPage from "./NodeEditPage";
+import NodeEditPage from "./TopicEditPage";
 
 
 export default function Page({ params }: { params: { id: string } }) {

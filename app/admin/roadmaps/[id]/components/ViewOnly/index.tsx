@@ -22,7 +22,7 @@ import { forwardRef, useEffect, useRef, useState } from "react";
 import { NodeContent } from "@/types/Node";
 import { AnimatedSVGEdge } from "../AnimatedSVGEdge";
 import NodeHeader from "../NodeTypes/NodeHeader";
-import NodeDetail from "../NodeDetail";
+import NodeDetail from "../TopicDetail";
 
 interface IProps {
   nodeData?: Node[];

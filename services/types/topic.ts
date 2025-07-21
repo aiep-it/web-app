@@ -1,15 +1,15 @@
 import { Edge, Node, Viewport } from '@xyflow/react';
 import { Roadmap } from './roadmap';
-import { NodeStatus } from '@/constant/enums';
+import { TopicStatus } from '@/constant/enums';
 
-export type NodePayload = {
+export type TopicPayload = {
   id?: string;
   roadmapId?: string;
   title: string;
   description?: string;
 };
 
-export type NodeData = {
+export type TopicData = {
   id: string;
   roadmap: Roadmap;
   title: string;
@@ -18,9 +18,9 @@ export type NodeData = {
   suggestionLevel?: string;
   updated_at?: Date;
   created_at?: Date;
-  status?: NodeStatus;
+  status?: TopicStatus;
 };
-export type NodeUpdatePayload = {
+export type TopicUpdatePayload = {
   title?: string;
   description?: string;
   coverImage?: string;

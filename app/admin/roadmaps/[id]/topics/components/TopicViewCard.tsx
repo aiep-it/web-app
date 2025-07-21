@@ -1,5 +1,5 @@
-import { NodeStatus } from '@/constant/enums';
-import { NodeData } from '@/services/types/node';
+import { TopicStatus } from '@/constant/enums';
+import { TopicData } from '@/services/types/topic';
 import { parseDateTime } from '@/utils/dateTimeUtil';
 import { getFullPathFile } from '@/utils/expections';
 import {
@@ -19,38 +19,38 @@ import { useRouter } from 'next/navigation';
 import React from 'react';
 
 interface IProps {
-  nodeData: NodeData;
+  topicData: TopicData;
 }
-const NodeViewCard: React.FC<IProps> = ({ nodeData }) => {
+const TopicViewCard: React.FC<IProps> = ({ topicData }) => {
   const router = useRouter();
   return (
     <Card className="max-w-[400px] w-full">
       <CardHeader className="p-0">
-        {nodeData.coverImage ? (
+        {topicData.coverImage ? (
           <Image
             removeWrapper
             className="z-0 w-full h-[200px] scale-125 -translate-y-6 object-cover"
-            alt={nodeData.title}
+            alt={topicData.title}
             src={
-              getFullPathFile(nodeData.coverImage) ||
+              getFullPathFile(topicData.coverImage) ||
               'https://placehold.co/600x400'
             }
           />
         ) : (
           <div className="w-full h-[100px] flex items-center justify-center">
-            <h3>{nodeData.title}</h3>
+            <h3>{topicData.title}</h3>
           </div>
         )}
       </CardHeader>
       <CardBody className="mt-3">
-        <h4 className="font-bold text-large">{nodeData.title}</h4>
-        {nodeData?.status && nodeData.status === NodeStatus.SETTUPED ? (
+        <h4 className="font-bold text-large">{topicData.title}</h4>
+        {topicData?.status && topicData.status === TopicStatus.SETTUPED ? (
           <>
             <Chip className="my-2" variant="flat" color="success">
-              {nodeData.suggestionLevel}{' '}
+              {topicData.suggestionLevel}{' '}
             </Chip>
             <p className="text-small text-default-500">
-              {nodeData.description || '-'}
+              {topicData.description || '-'}
             </p>
           </>
         ) : (
@@ -64,12 +64,12 @@ const NodeViewCard: React.FC<IProps> = ({ nodeData }) => {
           <div className="flex items-center">
             <Icon icon="lucide:clock" className="mr-1 text-default-400" />
             <span className="text-tiny text-default-400">
-              {!nodeData.updated_at && !nodeData.created_at
+              {!topicData.updated_at && !topicData.created_at
                 ? '-'
-                : nodeData.updated_at
-                  ? parseDateTime(nodeData.updated_at, 'DD/MM/YYYY HH:mm')
+                : topicData.updated_at
+                  ? parseDateTime(topicData.updated_at, 'DD/MM/YYYY HH:mm')
                   : parseDateTime(
-                      nodeData.created_at || new Date(),
+                      topicData.created_at || new Date(),
                       'DD/MM/YYYY HH:mm',
                     )}
             </span>
@@ -81,7 +81,7 @@ const NodeViewCard: React.FC<IProps> = ({ nodeData }) => {
                 color="primary"
                 variant="bordered"
                 onPress={() => {
-                  router.push(`/admin/node/${nodeData.id}`);
+                  router.push(`/admin/node/${topicData.id}`);
                 }}
               >
                 Detail
@@ -93,7 +93,7 @@ const NodeViewCard: React.FC<IProps> = ({ nodeData }) => {
                 size="sm"
                 color="primary"
                 onPress={() => {
-                  router.push(`/admin/node/${nodeData.id}/edit`);
+                  router.push(`/admin/node/${topicData.id}/edit`);
                 }}
               >
                 Edit
@@ -106,4 +106,4 @@ const NodeViewCard: React.FC<IProps> = ({ nodeData }) => {
   );
 };
 
-export default NodeViewCard;
+export default TopicViewCard;

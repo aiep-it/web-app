@@ -1,13 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { NodeContent, NodeContentCMS, NodeContentForm } from "../types";
+import { TopicContent, TopicContentCMS, TopicContentForm } from "../types";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 import FormProvider from "@/components/FormProvider";
-import { NodeUpdatePayload } from "@/services/types/node";
-import { nodeFormSchema } from "../schema";
-import { getNodeById, updateNode } from "@/services/node";
+import { TopicUpdatePayload } from "@/services/types/topic";
+import { topicFormSchema } from "../schema";
+import { getTopicId, updateTopic } from "@/services/topic";
 import CTextField from "@/components/FormProvider/Fields/CTextField";
 import CImageUpload from "@/components/FormProvider/Fields/CImageUpload";
 import CRichText from "@/components/FormProvider/Fields/CRichText";
@@ -21,20 +21,20 @@ import { LookupContent } from "@/types/lookup";
 import { LOOKUP_KEY } from "@/constant/lookupKey";
 import CSelector from "@/components/FormProvider/Fields/CSelector";
 
-interface FormNodeEditProps {
-  nodeId?: string;
+interface FormTopicEditProps {
+  topicId?: string;
 }
-const defaultValues: NodeContent = {
+const defaultValues: TopicContent = {
   content: "",
   coverImage: undefined,
 };
 
-const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
+const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId }) => {
   const [suggestionLevels, setSuggestionLevels] = useState<LookupContent[]>([]);
-  const [nodeContentCMS, setNodeContentCMS] = useState<NodeContentCMS | null>(null);
+  const [topicContentCMS, setTopicContentCMS] = useState<TopicContentCMS | null>(null);
 
-  const methods = useForm<NodeContentForm>({
-    resolver: yupResolver(nodeFormSchema),
+  const methods = useForm<TopicContentForm>({
+    resolver: yupResolver(topicFormSchema),
     defaultValues,
   });
   const { handleSubmit } = methods;
@@ -45,8 +45,8 @@ const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
       content: content,
     }
     let res;
-    if (nodeContentCMS) {
-      res = await updateItemCMS(COLLECTIONS.NodeContent, nodeContentCMS.id, cmsPayload);
+    if (topicContentCMS) {
+      res = await updateItemCMS(COLLECTIONS.NodeContent, topicContentCMS.id, cmsPayload);
     } else {
       res = await createItemCMS(COLLECTIONS.NodeContent, cmsPayload);
     }
@@ -56,12 +56,12 @@ const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!nodeId) return;
+      if (!topicId) return;
   
-      const [node, contentRes, lookupRes] = await Promise.all([
-        getNodeById(nodeId),
-        getItems<NodeContentCMS>(COLLECTIONS.NodeContent, {
-          filter: { nodeId: { _eq: nodeId } },
+      const [topicData, contentRes, lookupRes] = await Promise.all([
+        getTopicId(topicId),
+        getItems<TopicContentCMS>(COLLECTIONS.NodeContent, {
+          filter: { nodeId: { _eq: topicId } },
         }),
         getItems<LookupContent>(COLLECTIONS.Lookup, {
           filter: { type: { _eq: LOOKUP_KEY.SuggestionLevel } },
@@ -77,21 +77,21 @@ const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
       let content = "";
       if (contentRes && contentRes.length) {
         const cmsContent = contentRes[0];
-        setNodeContentCMS(cmsContent);
+        setTopicContentCMS(cmsContent);
         content = cmsContent.content || "";
       }
   
       // Reset form only once
-      if (node) {
+      if (topicData) {
         methods.reset({
-          ...node,
+          ...topicData,
           content, // override if needed
         });
       }
     };
   
     loadData();
-  }, [nodeId]);
+  }, [topicId]);
 
   const uploadCoverImage = async (file: File) => {
     const fileId = await uploadFile(file);
@@ -102,7 +102,7 @@ const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
     return null;
   };
 
-  const onSubmit = async (data: NodeContentForm) => {
+  const onSubmit = async (data: TopicContentForm) => {
     let coverImage = data.coverImage instanceof File ? undefined : data.coverImage;
     if (data.coverImage instanceof File) {
       coverImage = await uploadCoverImage(data.coverImage);
@@ -117,14 +117,14 @@ const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
 
     }
 
-    const payload: NodeUpdatePayload = {
+    const payload: TopicUpdatePayload = {
       title: data.title,
       description: data.description,
       coverImage: coverImage,
       suggestionLevel: data.suggestionLevel
     };
 
-    const res = await updateNode(nodeId as string, payload);
+    const res = await updateTopic(topicId as string, payload);
 
     if (res) {
       let dataContent = data.content;
@@ -156,7 +156,7 @@ const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
           <div className="flex-1">
             <CTextField
               title="Node Title"
-              disabled={Boolean(nodeId)}
+              disabled={Boolean(topicId)}
               name="title"
               label="Title"
               isRequired
@@ -219,4 +219,4 @@ const FormNodeEdit: React.FC<FormNodeEditProps> = ({ nodeId }) => {
   );
 };
 
-export default FormNodeEdit;
+export default FormTopicEdit;

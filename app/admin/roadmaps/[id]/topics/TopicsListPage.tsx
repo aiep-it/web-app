@@ -1,5 +1,5 @@
 'use client';
-import { NodeData } from '@/services/types/node';
+import { TopicData } from '@/services/types/topic';
 import {
   Button,
   ButtonGroup,
@@ -18,30 +18,30 @@ import {
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import React, { useEffect, useState } from 'react';
-import NodeViewCard from './components/NodeViewCard';
-import { getNodesByRoadmapId } from '@/services/node';
+import TopicViewCard from './components/TopicViewCard';
+import { getTopicsByRoadmapId } from '@/services/topic';
 import { Roadmap } from '@/services/types/roadmap';
 import { getRoadmapById } from '@/services/roadmap';
 
-interface NodeListPageProps {
+interface TopicListPageProps {
   roadMapId: string;
 }
-const NodesListPage: React.FC<NodeListPageProps> = ({
+const TopicListPage: React.FC<TopicListPageProps> = ({
   roadMapId, // Assuming you pass the roadmapId as a prop
 }) => {
   const [viewMode, setViewMode] = React.useState<'list' | 'card'>('card');
   const [loading, setLoading] = useState<boolean>(false);
   const [roadmap, setRoadmap] = React.useState<Roadmap | null>(); // State to hold the roadmapId
 
-  const [nodes, setNodes] = useState<NodeData[]>([]);
+  const [topics, setTopics] = useState<TopicData[]>([]);
 
   const fetchNodes = async (roadmapId: string) => {
     setLoading(true);
-    const res = await getNodesByRoadmapId(roadmapId);
+    const res = await getTopicsByRoadmapId(roadmapId);
     if (res) {
-      setNodes(res);
+      setTopics(res);
     } else {
-      setNodes([]);
+      setTopics([]);
     }
     setLoading(false);
   };
@@ -119,8 +119,8 @@ const NodesListPage: React.FC<NodeListPageProps> = ({
                     : 'space-y-4'
                 }
               >
-                {nodes.map((node) => (
-                  <NodeViewCard key={node.id} nodeData={node} />
+                {topics.map((topic) => (
+                  <TopicViewCard key={topic.id} topicData={topic} />
                   // viewMode === 'card' ? <NodeViewCard key={node.id} nodeData={node} /> : <ListView key={course.id} course={course} />
                 ))}
               </div>
@@ -139,4 +139,4 @@ const NodesListPage: React.FC<NodeListPageProps> = ({
   );
 };
 
-export default NodesListPage;
+export default TopicListPage;

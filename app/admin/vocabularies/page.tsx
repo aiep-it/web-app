@@ -35,7 +35,12 @@ import CImageUpload from "@/components/CImageUpload";
 import { uploadFile } from "@/services/cms";
 import { getFullPathFile } from "@/utils/expections";
 import { CModal } from "@/components/CModal";
+import { Topic } from "@/types/vocabulary";
+import { TopicData } from "@/services/types/topic";
 
+interface VocabularyListPageProps {
+  topic?: TopicData;
+}
 const vocabColumns = [
   { uid: "word", name: "Word", sortable: true },
   { uid: "meaning", name: "Meaning", sortable: false },
@@ -65,7 +70,10 @@ export const VerticalDotsIcon = ({ size = 24, ...props }) => {
   );
 };
 
-const VocabularyListPage = () => {
+
+const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
+  topic
+}) => {
   const [hydrated, setHydrated] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set<Key>());
   const [vocabsList, setVocabsList] = useState<VocabListResponse>();
@@ -378,7 +386,7 @@ const VocabularyListPage = () => {
         <h1 className="text-3xl font-bold">Vocabulary List</h1>
         <Button
           className="bg-gradient-to-r from-indigo-900 via-purple-900 to-gray-900 text-white"
-          onClick={() =>
+          onPress={() =>
             setActiveModal({ type: "create", isOpen: true })
           }
         >

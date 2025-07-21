@@ -1,8 +1,9 @@
-import { NodeContentCMS } from "@/app/admin/node/[id]/edit/types";
+
+import { TopicContentCMS } from "@/app/admin/topic/[id]/edit/types";
 import { COLLECTIONS } from "@/config/cms";
 import { getItems } from "@/services/cms";
-import { getNodeById } from "@/services/node";
-import { NodeData } from "@/services/types/node";
+import { getTopicId } from "@/services/topic";
+import { TopicData } from "@/services/types/topic";
 import { NodeContent } from "@/types/Node";
 import { getFullPathFile } from "@/utils/expections";
 import {
@@ -22,36 +23,36 @@ import { Icon } from "@iconify/react";
 import { useRouter } from "next/navigation";
 import React from "react";
 
-interface NodeDetailProps {
-  nodeId?: string;
+interface TopicDetailProps {
+  topicId?: string;
   onClose?: (e: PressEvent) => void;
   viewOnly?: boolean;
 }
 
-const NodeDetail: React.FC<NodeDetailProps> = ({
-  nodeId,
+const NodeDetail: React.FC<TopicDetailProps> = ({
+  topicId,
   onClose,
   viewOnly = false,
-}: NodeDetailProps) => {
-  const [node, setNode] = React.useState<NodeData | null>(null);
-  const [nodeContentCMS, setNodeContentCMS] = React.useState<NodeContentCMS | null>(null);
+}: TopicDetailProps) => {
+  const [topic, setTopic] = React.useState<TopicData | null>(null);
+  const [nodeContentCMS, setNodeContentCMS] = React.useState<TopicContentCMS | null>(null);
 
   React.useEffect(() => {
-    if (nodeId) {
+    if (topicId) {
       const loadData = async () => {
-        if (!nodeId) return;
+        if (!topicId) return;
 
-        const [node, contentRes] = await Promise.all([
-          getNodeById(nodeId),
-          getItems<NodeContentCMS>(COLLECTIONS.NodeContent, {
-            filter: { nodeId: { _eq: nodeId } },
+        const [topicData, contentRes] = await Promise.all([
+          getTopicId(topicId),
+          getItems<TopicContentCMS>(COLLECTIONS.NodeContent, {
+            filter: { nodeId: { _eq: topicId } },
           }),
 
           
         ]);
 
-        if(node) {
-          setNode(node);
+        if(topicData) {
+          setTopic(topicData);
           if (contentRes && contentRes.length) {
             const cmsContent = contentRes[0];
             setNodeContentCMS(cmsContent);
@@ -61,7 +62,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({
 
       loadData();
     }
-  }, [nodeId]);
+  }, [topicId]);
 
   const router = useRouter();
   return (
@@ -125,8 +126,8 @@ const NodeDetail: React.FC<NodeDetailProps> = ({
             size="sm"
             // variant='bordered'
             onPress={() => {
-              if (node?.id && nodeId) {
-                router.push(`/admin/node/${node.id}/edit`);
+              if (topic?.id && topicId) {
+                router.push(`/admin/node/${topic.id}/edit`);
               }
             }}
           >
@@ -181,7 +182,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({
         </div>
       </DrawerHeader>
       <DrawerBody className="pt-16">
-        {nodeId && node ? (
+        {topicId && topic ? (
           <>
             <div className="flex w-full justify-center items-center pt-4">
               <Image
@@ -190,14 +191,14 @@ const NodeDetail: React.FC<NodeDetailProps> = ({
                 alt="Event image"
                 className="aspect-square w-full hover:scale-110"
                 height={300}
-                src={node.coverImage ? getFullPathFile(node.coverImage) : "https://placehold.co/600x400"}
+                src={topic.coverImage ? getFullPathFile(topic.coverImage) : "https://placehold.co/600x400"}
               />
             </div>
             <div className="flex flex-col gap-2 py-4">
-              <h1 className="text-2xl font-bold leading-7">{node?.title}</h1>
-              <p className="text-sm text-default-500">{node.description}</p>
+              <h1 className="text-2xl font-bold leading-7">{topic?.title}</h1>
+              <p className="text-sm text-default-500">{topic.description}</p>
               {
-                node.suggestionLevel &&  <Chip color="secondary">{node.suggestionLevel}</Chip>
+                topic.suggestionLevel &&  <Chip color="secondary">{topic.suggestionLevel}</Chip>
               }
              
               <div className="mt-4 flex flex-col gap-3">

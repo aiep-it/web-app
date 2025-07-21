@@ -6,7 +6,7 @@ import { Icon } from "@iconify/react";
 const navItems = [
   { icon: "lucide:layout-dashboard", label: "Dashboard", href: "/dashboard" },
   { icon: "lucide:map", label: "Road Map", href: "/admin/roadmap" },
-  { icon: "lucide:hexagon", label: "Node", href: "/admin/nodes" },
+  { icon: "lucide:hexagon", label: "Node", href: "/admin/topics" },
   { icon: "lucide:bar-chart", label: "Analytics", href: "/analytics" },
   { icon: "lucide:settings", label: "Settings", href: "/settings" },
 ];

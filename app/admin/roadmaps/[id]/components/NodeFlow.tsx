@@ -40,7 +40,7 @@ import {
   useState,
 } from "react";
 import { AnimatedSVGEdge } from "./AnimatedSVGEdge";
-import NodeDetail from "./NodeDetail";
+import NodeDetail from "./TopicDetail";
 import { NodeContent } from "@/types/Node";
 import { BaseNode } from "@/components/BaseNode";
 import NodeHeader from "./NodeTypes/NodeHeader";
