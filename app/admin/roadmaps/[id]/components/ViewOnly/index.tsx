@@ -120,7 +120,7 @@ const NodeFlowViewOnly = forwardRef<NodeFlowRef, IProps>((props, ref) => {
         <DrawerContent>
           {(onClose) => (
             <NodeDetail
-              nodeId={nodeSelected?.id}
+              topicId={nodeSelected?.id}
               onClose={onClose}
             />
           )}
