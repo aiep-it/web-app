@@ -9,10 +9,11 @@ import { useRoadmaps } from '@/hooks/useRoadmaps';
 import { useTopics } from '@/hooks/useTopics';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/rootReducer';
-import Link from 'next/link';
 import { Icon } from '@iconify/react';
 import { useVocabsSafe } from '@/hooks/useVocabsSafe';
 import { VocabColumn } from '@/services/types/vocab';
+import { useAuth } from '@clerk/nextjs';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface RoadmapSectionProps {
   roadmap: Roadmap;
@@ -85,6 +86,10 @@ export default function LearnVocabularyPage() {
   const [loadingTopics, setLoadingTopics] = useState<Record<string, boolean>>({});
   const [authError, setAuthError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
+  
+  // Clerk authentication hooks
+  const { isLoaded, isSignedIn, getToken } = useAuth();
+  const { userRole, isRoleLoading } = useUserRole();
 
   // Get all topics from Redux outside of the render loop
   const allTopicsByRoadmap = useSelector((state: RootState) => state.topic.topicsByRoadmap);
@@ -97,18 +102,16 @@ export default function LearnVocabularyPage() {
     setIsClient(true);
   }, []);
   
-  // Check authentication status - only on client side
+  // Check authentication status - wait for Clerk to load
   useEffect(() => {
-    if (isClient) {
-      const token = localStorage.getItem("token");
-      
-      if (!token) {
+    if (isClient && isLoaded) {
+      if (!isSignedIn) {
         setAuthError("Please log in to access vocabulary learning features");
       } else {
         setAuthError(null);
       }
     }
-  }, [isClient]);
+  }, [isClient, isLoaded, isSignedIn]);
 
   // Memoize roadmap IDs to avoid unnecessary re-computation
   const roadmapIds = useMemo(() => roadmaps.map(r => r.id), [roadmaps]);
@@ -116,7 +119,9 @@ export default function LearnVocabularyPage() {
   // Load topics for all roadmaps và vocabularies
   useEffect(() => {
     const loadAllData = async () => {
-      if (roadmaps.length > 0 && isClient) {
+      // Only proceed if Clerk is loaded and user is signed in
+      if (roadmaps.length > 0 && isClient && isLoaded && isSignedIn) {
+        
         // Set loading state for topics
         const newLoadingState: Record<string, boolean> = {};
         roadmaps.forEach((roadmap) => {
@@ -133,11 +138,8 @@ export default function LearnVocabularyPage() {
 
           await Promise.all(topicsPromises);
           
-          // After topics are loaded, load vocabularies
-          console.log('Topics loaded, now loading vocabularies...');
-          
-          // Check authentication before loading vocabs
-          const token = localStorage.getItem("token");
+          // Get token from Clerk
+          const token = await getToken();        
           if (token) {
             const result = await getVocabs({
               page: 1,
@@ -154,7 +156,7 @@ export default function LearnVocabularyPage() {
               console.log('Vocabularies loaded successfully:', result);
             }
           } else {
-            console.log('No auth token found, skipping vocab load');
+            console.log('No Clerk token found, skipping vocab load');
           }
           
         } catch (error) {
@@ -169,7 +171,6 @@ export default function LearnVocabularyPage() {
             console.error('Error details:', errorDetails);
             
             if ((error as any).response?.status === 403) {
-              console.error('Authentication failed - user might need to login again');
               setAuthError("Authentication failed. Please log in again.");
             }
           }
@@ -181,11 +182,18 @@ export default function LearnVocabularyPage() {
           });
           setLoadingTopics(newLoadingState);
         }
+      } else {
+        console.log('Not loading data yet - waiting for:', {
+          roadmapsLoaded: roadmaps.length > 0,
+          isClient,
+          clerkIsLoaded: isLoaded,
+          userIsSignedIn: isSignedIn
+        });
       }
     };
 
     loadAllData();
-  }, [roadmapIds, getTopicsByRoadmap, getVocabs, isClient]); // Added isClient dependency
+  }, [roadmapIds, getTopicsByRoadmap, getVocabs, isClient, isLoaded, isSignedIn, getToken]); // Added Clerk dependencies
 
 
   if (isLoading) {

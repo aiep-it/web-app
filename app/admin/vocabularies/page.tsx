@@ -14,6 +14,8 @@ import { Key, Selection } from "@react-types/shared";
 import React from "react";
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
+import { useAuth } from "@clerk/nextjs";
+import { useUserRole } from "@/hooks/useUserRole";
 import CAudioUpload from "@/components/CAudioUpload";
 import CTable from "@/components/CTable";
 import BaseForm from "@/components/form/BaseForm";
@@ -75,6 +77,8 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
   topic
 }) => {
   const [hydrated, setHydrated] = useState(false);
+  const { getToken, isLoaded } = useAuth();
+  const { userRole, isSignedIn, isRoleLoading } = useUserRole();
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set<Key>());
   const [vocabsList, setVocabsList] = useState<VocabListResponse>();
   const [vocabPayload, setVocabPayload] = useState<VocabSearchPayload>({
@@ -105,6 +109,18 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fetchListVocabs = async () => {
     try{
+      // Get token from Clerk before making API call
+      const token = await getToken();
+      
+      if (!token) {
+        addToast({
+          title: "Authentication Error",
+          description: "Please log in to view vocabularies",
+          color: "danger",
+        });
+        return;
+      }
+      
       const res = await searchListVocab(vocabPayload);
       if (res && typeof res === "object" && "content" in res) {
         setVocabsList(res as VocabListResponse);
@@ -137,8 +153,18 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
   useEffect(() => setHydrated(true), []);
 
   useEffect(() => {
-    fetchListVocabs();
-  }, [vocabPayload]);
+    // Only fetch data when Clerk is loaded, user is authenticated and role is loaded
+    if (isLoaded && isSignedIn && !isRoleLoading && (userRole === 'admin' || userRole === 'staff')) {
+      fetchListVocabs();
+    } else {
+      console.log('Admin vocabs - not ready to fetch data:', {
+        clerkIsLoaded: isLoaded,
+        isSignedIn,
+        roleLoading: isRoleLoading,
+        userRole
+      });
+    }
+  }, [vocabPayload, isLoaded, isSignedIn, isRoleLoading, userRole]);
   const checkMedia = async (mediaUrl: string) => {
     if (!mediaUrl) return;
 
