@@ -74,14 +74,14 @@ const RoadmapSection: React.FC<RoadmapSectionProps> = ({ title, roadmaps, clerkT
   };
 
   return (
-    <div className="mb-8 p-4 bg-gray-900 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-white">{title}</h2>
+    <div className="mb-8 p-4 bg-white rounded-lg shadow-md border border-gray-200">
+      <h2 className="text-2xl font-bold mb-4 text-gray-900">{title}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {roadmaps.map((roadmap) => {
           const isBookmarked = roadmap.isBookmarked;
 
           return (
-            <Card key={roadmap.id} className="p-4 bg-gray-800 text-white relative rounded-md hover:bg-gray-700 transition-colors">
+            <Card key={roadmap.id} className="p-4 bg-white text-gray-900 relative rounded-md hover:bg-gray-50 transition-colors border border-gray-200">
               <Link href={`/roadmaps/${roadmap.id}`} className="absolute inset-0 z-0"></Link>
               <div className="relative z-10 flex justify-between items-center mb-2">
                 <span className="text-lg font-medium pr-8 truncate">{roadmap.name}</span>

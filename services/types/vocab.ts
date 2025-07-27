@@ -26,12 +26,12 @@ export interface VocabPayload {
   imageUrl?: string;
   audioUrl?: string;
   is_know?: boolean;
-  nodeId?: string;
+  nodeId?: string; // API expects nodeId for updates
 }
 
 export interface VocabData {
   id: string;
-  nodeId: string;
+  topicId: string; // Changed from nodeId to topicId to match API response
   word: string;
   meaning: string;
   example: string;
@@ -40,7 +40,7 @@ export interface VocabData {
   is_know: boolean;
   is_deleted: boolean;
   created_at: string;
-  updated_at: string;
+  updated_at: string | null;
 }
 
 export interface VocabListResponse {

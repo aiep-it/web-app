@@ -110,7 +110,7 @@ export default async function HomePage() {
 );
 
   return (
-    <main className="min-h-screen bg-gray-900 text-white p-6 md:p-8">
+    <main className="min-h-screen bg-white text-gray-900 p-6 md:p-8">
       {/* <TokenDisplay /> */}
 
       <ProfileSection />
@@ -131,7 +131,7 @@ export default async function HomePage() {
             return (
               <div key={category.id} className="mb-8">
                 {/* Tiêu đề của Category */}
-                <h3 className="text-2xl font-bold mb-4 text-white mt-8 border-b border-gray-700 pb-2">
+                <h3 className="text-2xl font-bold mb-4 text-gray-900 mt-8 border-b border-gray-300 pb-2">
                   {category.name}
                 </h3>
 
@@ -143,7 +143,7 @@ export default async function HomePage() {
                     clerkToken={clerkToken}
                   />
                 ) : (
-                  <p className="text-gray-400 text-center py-4">
+                  <p className="text-gray-600 text-center py-4">
                     Hiện chưa có lộ trình nào trong danh mục này.
                   </p>
                 )}
@@ -154,7 +154,7 @@ export default async function HomePage() {
       )}
       {/* Trường hợp không có category nào */}
       {sortedCategories.length === 0 && (
-        <div className="text-white text-center py-8 text-xl">
+        <div className="text-gray-900 text-center py-8 text-xl">
           Chưa có danh mục lộ trình nào được tạo.
         </div>
       )}

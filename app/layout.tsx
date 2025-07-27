@@ -51,7 +51,7 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
+        <Providers themeProps={{ attribute: "class", defaultTheme: "light" }}>
           {isAdmin ? (
             <div className="relative flex flex-col ">
               <Navbar />
@@ -59,9 +59,9 @@ export default function RootLayout({
               <Footer />
             </div>
           ) : (
-            <div className="relative flex bg-gray-900 flex-col">
+            <div className="relative flex bg-white flex-col">
               <Navbar />
-              <main className="container mx-auto bg-gray-900 max-w-7xl pt-16 px-6 flex-grow">
+              <main className="container mx-auto bg-white max-w-7xl pt-16 px-6 flex-grow">
                 {children}
               </main>
               <Footer />

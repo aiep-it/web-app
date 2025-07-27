@@ -122,7 +122,7 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
 
   const getEmptyVocabData = (): VocabData => ({
     id: "",
-    nodeId: "",
+    topicId: "",
     word: "",
     meaning: "",
     example: "",
@@ -188,7 +188,7 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
                     imageUrl: item.imageUrl,
                     word: item.word,
                     meaning: item.meaning,
-                    nodeId: item.nodeId,
+                    nodeId: item.topicId,
                   });
                 }}
               >
@@ -238,13 +238,13 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
       required: true,
     },
     {
-      id: "nodeId",
-      label: "Node",
+      id: "topicId",
+      label: "Topic",
       type: "select" as const,
       value: formState.nodeId ?? "",
       onChange: (val: any) =>
-        setFormState((prev) => ({ ...prev, nodeId: val })),
-      options: nodes,
+        setFormState((prev) => ({ ...prev, topicId: val })),
+      options: topic ? [{ label: topic.id, value: topic.id }] : [],
       required: true,
     },
   ];

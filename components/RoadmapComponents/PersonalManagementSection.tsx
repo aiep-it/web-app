@@ -21,10 +21,10 @@ interface PersonalManagementSectionProps {
 
 const PersonalManagementSection: React.FC<PersonalManagementSectionProps> = ({ learningRoadmaps }) => {
   return (
-    <div className="mb-8 p-4 bg-gray-900 rounded-lg shadow-md">
+    <div className="mb-8 p-4 bg-white rounded-lg shadow-md border border-gray-200">
       {/* Tiêu đề cho các roadmap đang học */}
       {learningRoadmaps.length > 0 && (
-        <h3 className="text-xl font-semibold mb-4 text-white">Your Progress</h3>
+        <h3 className="text-xl font-semibold mb-4 text-gray-900">Your Progress</h3>
       )}
 
       {/* Hiển thị các roadmap đang học (có tiến độ > 0) hoặc đã bookmark*/}
@@ -42,8 +42,8 @@ const PersonalManagementSection: React.FC<PersonalManagementSectionProps> = ({ l
                 ></div>
 
                 <div className="relative z-10 flex justify-between items-center w-full">
-                  <span className="text-white font-medium truncate">{roadmap.name}</span>
-                  <span className="text-white font-semibold">{roadmap.progressPercentage.toFixed(0)}%</span>
+                  <span className="text-gray-900 font-medium truncate">{roadmap.name}</span>
+                  <span className="text-gray-900 font-semibold">{roadmap.progressPercentage.toFixed(0)}%</span>
                 </div>
               </div>
             </Link>
@@ -53,7 +53,7 @@ const PersonalManagementSection: React.FC<PersonalManagementSectionProps> = ({ l
 
       {/* Hiển thị thông báo nếu không có roadmap nào đang học hoặc bookmark*/}
       {learningRoadmaps.length === 0 && (
-        <div className="text-white text-center py-4 text-lg">
+        <div className="text-gray-900 text-center py-4 text-lg">
           Bạn chưa bắt đầu học lộ trình nào. Hãy chọn một lộ trình để bắt đầu!
         </div>
       )}
@@ -82,7 +82,7 @@ const PersonalManagementSection: React.FC<PersonalManagementSectionProps> = ({ l
         ].map((item, index) => (
           <div
             key={index}
-            className="flex flex-col md:flex-row justify-between items-start md:items-center p-3 rounded-md bg-gray-800 text-white hover:bg-gray-700 transition-colors"
+            className="flex flex-col md:flex-row justify-between items-start md:items-center p-3 rounded-md bg-white text-gray-900 hover:bg-gray-50 transition-colors border border-gray-200"
           >
             <div className="flex items-center gap-3 mb-2 md:mb-0"> {/* Tăng gap */}
               <Icon icon={item.icon} className="text-primary-400 text-xl" /> {/* Thay đổi màu và kích thước icon */}
