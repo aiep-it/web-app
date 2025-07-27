@@ -1,10 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
-import { Button } from "@heroui/react";
-import { useVocabulary } from "@/components/vocabulary/VocabularyContext";
+import { Button, Card, CardBody, CardHeader, Progress } from "@heroui/react";
+import { useSelector, useDispatch } from 'react-redux';
+import { toast } from 'react-hot-toast';
+
+import { RootState } from '@/store';
+import { selectVocabsByTopic, updateVocabInStore, fetchVocabs } from '@/store/slices/vocabSlice';
+import { updateVocab } from '@/services/vocab';
+import type { AppDispatch } from '@/store';
 
 interface LearningPageProps {
   params: {
@@ -15,27 +21,34 @@ interface LearningPageProps {
 export default function LearningPage() {
   const params = useParams();
   const router = useRouter();
-  const { 
-    getTopic, 
-    isLoading, 
-    markWordAsKnown, 
-    isWordKnown, 
-    markTopicAsCompleted,
-    getTopicProgress
-  } = useVocabulary();
+  const dispatch = useDispatch<AppDispatch>();
   
   const topicId = params?.topicId as string;
-  const topic = getTopic(topicId);
+  
+  // Get topic and vocab data from Redux
+  const topicState = useSelector((state: RootState) => state.topic);
+  const vocabState = useSelector((state: RootState) => state.vocab);
+  const topicVocabs = useSelector((state: RootState) => 
+    selectVocabsByTopic(state, topicId)
+  );
+  
+  // Find topic from Redux state
+  const topic = useMemo(() => {
+    const allTopics = Object.values(topicState.topicsByRoadmap).flat();
+    return allTopics.find(t => t.id === topicId);
+  }, [topicState.topicsByRoadmap, topicId]);
   
   // Learning state
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [showMeaning, setShowMeaning] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   // Text-to-Speech function
   const speakWord = (text: string) => {
-    if ('speechSynthesis' in window) {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       // Cancel any ongoing speech
       window.speechSynthesis.cancel();
       
@@ -51,44 +64,65 @@ export default function LearningPage() {
       
       window.speechSynthesis.speak(utterance);
     } else {
-      alert('Your browser does not support text-to-speech feature.');
+      if (isClient) {
+        alert('Your browser does not support text-to-speech feature.');
+      }
     }
   };
 
+  // Fetch vocabs if not already loaded
   useEffect(() => {
-    // If topic not found and data is loaded, redirect to main vocabulary page
-    if (!topic && !isLoading) {
+    if (topicId && topicVocabs.length === 0) {
+      // Fetch vocabs with filters for this topic
+      dispatch(fetchVocabs({
+        page: 1,
+        size: 100, // Get a large number to fetch all vocabs for the topic
+        filters: { topicId: topicId }
+      }));
+    }
+  }, [topicId, topicVocabs.length, dispatch]);
+
+  // Client-side hydration check
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    // If topic not found, redirect to main vocabulary page
+    if (!topic && Object.keys(topicState.topicsByRoadmap).length > 0) {
       router.push("/learn-vocabulary");
     }
-  }, [topic, isLoading, router]);
+  }, [topic, topicState.topicsByRoadmap, router]);
 
   useEffect(() => {
     // Check if all words are completed
-    if (topic && currentWordIndex >= topic.vocabulary.length) {
+    if (topicVocabs.length > 0 && currentWordIndex >= topicVocabs.length) {
       setIsComplete(true);
     }
-  }, [currentWordIndex, topic]);
-
-  // Auto-mark topic as completed when progress reaches 100%
-  useEffect(() => {
-    if (topic && topicId) {
-      const progress = getTopicProgress(topicId);
-      if (progress === 100) {
-        markTopicAsCompleted(topicId);
-      }
-    }
-  }, [topic, topicId, getTopicProgress, markTopicAsCompleted]);
+  }, [currentWordIndex, topicVocabs.length]);
 
   useEffect(() => {
     // Cleanup speech synthesis when component unmounts
     return () => {
-      if ('speechSynthesis' in window) {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
     };
   }, []);
 
-  if (isLoading) {
+  // Don't render until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700">Loading...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (vocabState.loading || !topicVocabs.length) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <div className="text-center">
@@ -109,15 +143,15 @@ export default function LearningPage() {
             color="primary"
             startContent={<Icon icon="mdi:arrow-left" className="text-lg" />}
           >
-            Back to Categories
+            Back to Topics
           </Button>
         </div>
       </div>
     );
   }
 
-  const currentWord = topic.vocabulary[currentWordIndex];
-  const totalWords = topic.vocabulary.length;
+  const currentWord = topicVocabs[currentWordIndex];
+  const totalWords = topicVocabs.length;
   const progress = Math.round(((currentWordIndex) / totalWords) * 100);
 
   const handleContinue = () => {
@@ -129,9 +163,35 @@ export default function LearningPage() {
     }
   };
 
-  const handleAlreadyKnow = () => {
+  const handleAlreadyKnow = async () => {
     if (currentWord) {
-      markWordAsKnown(currentWord.id);
+      setIsUpdating(true);
+      try {
+        // Update via API - use nodeId (which maps to topicId)
+        await updateVocab(currentWord.id, {
+          word: currentWord.word,
+          meaning: currentWord.meaning,
+          example: currentWord.example,
+          imageUrl: currentWord.imageUrl,
+          audioUrl: currentWord.audioUrl,
+          is_know: true,
+          nodeId: currentWord.topicId, // API expects nodeId
+        });
+        
+        // Update Redux store
+        dispatch(updateVocabInStore({
+          ...currentWord,
+          is_know: true
+        }));
+        
+        // Show success feedback
+        toast.success("Marked as known!");
+      } catch (error) {
+        console.error('Error updating vocab:', error);
+        toast.error("Failed to update. Please try again.");
+      } finally {
+        setIsUpdating(false);
+      }
     }
     handleContinue();
   };
@@ -148,7 +208,7 @@ export default function LearningPage() {
 
   // Completion Screen
   if (isComplete) {
-    const knownWordsCount = topic.vocabulary.filter(word => isWordKnown(word.id)).length;
+    const knownWordsCount = topicVocabs.filter(word => word.is_know).length;
     const completionRate = Math.round((knownWordsCount / totalWords) * 100);
 
     return (
@@ -165,7 +225,7 @@ export default function LearningPage() {
               Topic Completed!
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              Great job completing "{topic.name}"
+              Great job completing "{topic?.title || 'this topic'}"
             </p>
 
             {/* Stats */}
@@ -230,7 +290,7 @@ export default function LearningPage() {
               size="sm"
               startContent={<Icon icon="mdi:arrow-left" className="text-lg" />}
             >
-              Back to Categories
+              Back to Topics
             </Button>
             <div className="text-sm text-gray-500">
               {currentWordIndex + 1} of {totalWords}
@@ -245,7 +305,7 @@ export default function LearningPage() {
             />
           </div>
           <div className="text-center text-sm text-gray-600">
-            {progress}% Complete - {topic.name}
+            {progress}% Complete - {topic?.title}
           </div>
         </div>
 
@@ -280,11 +340,6 @@ export default function LearningPage() {
                   />
                 </button>
               </div>
-              {currentWord?.pronunciation && (
-                <p className="text-lg text-gray-500 mb-4">
-                  {currentWord.pronunciation}
-                </p>
-              )}
               
               {!showMeaning ? (
                 <Button
@@ -337,16 +392,17 @@ export default function LearningPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Button
             onClick={handleAlreadyKnow}
+            isLoading={isUpdating}
             color="success" variant="flat"
             size="lg"
             className="h-14 font-semibold"
-            startContent={<Icon icon="mdi:check-circle" className="text-xl" />}
+            startContent={!isUpdating && <Icon icon="mdi:check-circle" className="text-xl" />}
           >
-            Already Know This
+            {isUpdating ? "Updating..." : "Already Know This"}
           </Button>
           <Button
             onClick={handleContinue}
-            isDisabled={!showMeaning}
+            isDisabled={!showMeaning || isUpdating}
             color={showMeaning ? "primary" : "default"}
             variant="solid"
             size="lg"

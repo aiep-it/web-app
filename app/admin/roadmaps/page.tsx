@@ -96,7 +96,7 @@ const RoadmapListPage = () => {
         onSearch={() => {}}
         addRecord={() => router.push('/admin/roadmaps/new')}
       />
-      <Accordion className="mt-5">
+      <Accordion className="mt-5" defaultExpandedKeys={categories.map(c => c.id)}>
         {categories.length > 0 ? (
           categories.map((category) => {
             const filteredRoadmaps = roadmaps.filter(

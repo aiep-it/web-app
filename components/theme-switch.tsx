@@ -20,10 +20,17 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
 }) => {
   const { theme, setTheme } = useTheme();
   const isSSR = useIsSSR();
-
+  
+  // Always ensure the theme is set to light mode for children's learning app
+  // Prevent switching to dark mode
   const onChange = () => {
-    theme === "light" ? setTheme("dark") : setTheme("light");
+    setTheme("light");
   };
+  
+  // Force light theme if it's currently dark
+  if (theme === "dark") {
+    setTheme("light");
+  }
 
   const {
     Component,
@@ -33,8 +40,8 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
     getInputProps,
     getWrapperProps,
   } = useSwitch({
-    isSelected: theme === "light" || isSSR,
-    "aria-label": `Switch to ${theme === "light" || isSSR ? "dark" : "light"} mode`,
+    isSelected: true, // Always selected for light theme
+    "aria-label": "Light mode for children's learning",
     onChange,
   });
 
@@ -70,11 +77,8 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
           ),
         })}
       >
-        {!isSelected || isSSR ? (
-          <SunFilledIcon size={22} />
-        ) : (
-          <MoonFilledIcon size={22} />
-        )}
+        {/* Always show sun icon for light theme */}
+        <SunFilledIcon size={22} />
       </div>
     </Component>
   );

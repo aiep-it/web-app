@@ -68,7 +68,7 @@ const ProfileSection: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-center mb-8 p-4 bg-gray-900 rounded-lg shadow-md">
+    <div className="flex flex-col md:flex-row justify-between items-center mb-8 p-4 bg-white rounded-lg shadow-md border border-gray-200">
       {/* Nút "Set up your profile" */}
       <Button color="primary" size="lg" className="mb-4 md:mb-0">
         Set up your profile
@@ -77,12 +77,12 @@ const ProfileSection: React.FC = () => {
       {/* Các chỉ số theo dõi học tập */}
       <div className="flex flex-col md:flex-row gap-4">
         {loading ? (
-          <div className="text-white">Loading metrics...</div>
+          <div className="text-gray-900">Loading metrics...</div>
         ) : error ? (
           <div className="text-red-500">{error}</div>
         ) : (
           metricItems.map((metric, index) => (
-            <Card key={index} className="p-3 bg-gray-800 text-white rounded-md">
+            <Card key={index} className="p-3 bg-white text-gray-900 rounded-md border border-gray-200">
               <div className="flex items-center gap-2">
                 <Icon icon={metric.icon} className="text-primary-500" />
                 <span>{metric.text}</span>
