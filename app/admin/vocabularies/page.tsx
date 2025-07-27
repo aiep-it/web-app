@@ -137,8 +137,18 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
   useEffect(() => setHydrated(true), []);
 
   useEffect(() => {
-    fetchListVocabs();
-  }, [vocabPayload]);
+    // Only fetch data when Clerk is loaded, user is authenticated and role is loaded
+    if (isLoaded && isSignedIn && !isRoleLoading && (userRole === 'admin' || userRole === 'staff')) {
+      fetchListVocabs();
+    } else {
+      console.log('Admin vocabs - not ready to fetch data:', {
+        clerkIsLoaded: isLoaded,
+        isSignedIn,
+        roleLoading: isRoleLoading,
+        userRole
+      });
+    }
+  }, [vocabPayload, isLoaded, isSignedIn, isRoleLoading, userRole]);
   const checkMedia = async (mediaUrl: string) => {
     if (!mediaUrl) return;
 
