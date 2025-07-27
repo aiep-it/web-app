@@ -26,12 +26,12 @@ export interface VocabPayload {
   imageUrl?: string;
   audioUrl?: string;
   is_know?: boolean;
-  nodeId?: string;
+  topicId?: string;
 }
 
 export interface VocabData {
   id: string;
-  nodeId: string;
+  topicId: string;
   word: string;
   meaning: string;
   example: string;

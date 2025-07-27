@@ -96,3 +96,52 @@ export async function deleteVocab(id: string) {
     return false;
   }
 }
+
+export async function fetchVocabsByTopicId(topicId: string, payload: VocabSearchPayload) {
+  try {
+    return await axiosInstance
+      .post(ENDPOINTS.VOCAB.GET_BY_TOPIC_ID(topicId), payload)
+      .then((response) => {
+        if (response.status === 200) {
+          return response.data as VocabListResponse;
+        }
+
+        return [];
+      })
+      .catch((e) => {
+        console.error("Error fetching vocabs:", e);
+
+        return [];
+      });
+  } catch (error) {
+    console.error("Error fetching vocabs:", error);
+
+    return [];
+  }
+}
+
+
+export async function aiGenerate(topicId: string) {
+  try {
+    return await axiosInstance
+      .post(ENDPOINTS.VOCAB.AI_GENRATE, {
+        topicId
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          return response.data;
+        }
+
+        return [];
+      })
+      .catch((e) => {
+        console.error("Error fetching vocabs:", e);
+
+        return [];
+      });
+  } catch (error) {
+    console.error("Error fetching vocabs:", error);
+
+    return [];
+  }
+}

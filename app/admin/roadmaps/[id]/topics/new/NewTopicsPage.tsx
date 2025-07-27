@@ -46,7 +46,6 @@ const NewTopicsPage: React.FC<NewTopicsPageProps> = ({ id }) => {
     const instance = formRef?.getRFInstance();
 
     // TODO validation nodes and edges
-    console.log('instance', instance);
     if (instance) {
       const { nodes, edges, viewport = null } = instance.toObject();
 

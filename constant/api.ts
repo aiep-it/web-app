@@ -12,7 +12,7 @@ export const ENDPOINTS = {
     DELETE: (id: string) => `/categories/${id}`,
   },
   ROAD_MAP: {
-    GET_ALL: "",
+    GET_ALL: "/roadmaps",
     GET_BY_ID: (id: string) => `/roadmaps/${id}`,
     CREATE: "/roadmaps",
   },
@@ -27,5 +27,7 @@ export const ENDPOINTS = {
     CREATE: "/vocabs",
     UPDATE: (id: string) => `/vocabs/${id}`,
     DELETE: (id: string) => `/vocabs/${id}`,
+    GET_BY_TOPIC_ID: (topicId: string) => `/vocabs/topic/${topicId}`,
+    AI_GENRATE: `/vocabs/ai/gen`,
   },
 };

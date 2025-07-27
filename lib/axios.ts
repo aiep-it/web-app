@@ -73,7 +73,7 @@ export const isTokenExpired = (): boolean => {
 const axiosInstance = axios.create({
   baseURL: getApiUrl(),
   withCredentials: true,
-  timeout: 10000, // 10s
+  timeout: 60000, // 10s
   headers: {
     "Content-Type": "application/json",
   },

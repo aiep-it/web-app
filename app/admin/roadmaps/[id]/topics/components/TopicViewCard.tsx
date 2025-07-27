@@ -81,7 +81,7 @@ const TopicViewCard: React.FC<IProps> = ({ topicData }) => {
                 color="primary"
                 variant="bordered"
                 onPress={() => {
-                  router.push(`/admin/node/${topicData.id}`);
+                  router.push(`/admin/topic/${topicData.id}`);
                 }}
               >
                 Detail
@@ -93,7 +93,7 @@ const TopicViewCard: React.FC<IProps> = ({ topicData }) => {
                 size="sm"
                 color="primary"
                 onPress={() => {
-                  router.push(`/admin/node/${topicData.id}/edit`);
+                  router.push(`/admin/topic/${topicData.id}/edit`);
                 }}
               >
                 Edit
