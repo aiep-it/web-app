@@ -30,4 +30,12 @@ export const ENDPOINTS = {
     GET_BY_TOPIC_ID: (topicId: string) => `/vocabs/topic/${topicId}`,
     AI_GENRATE: `/vocabs/ai/gen`,
   },
+  STUDENT: {
+    GET_ALL: '/students',
+    CREATE: '/students/create',
+    IMPORT: '/students/bulk-import',
+    UPDATE: (id: string) => `/students/${id}`,
+    DELETE: (id: string) => `/students/${id}`,
+    CHANGE_MY_PASSWORD: '/students/me/change-password',
+  },
 };
