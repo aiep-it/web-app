@@ -1,163 +1,57 @@
-// app/page.tsx
-import ProfileSection from '@/components/RoadmapComponents/ProfileSection';
-import PersonalManagementSection from '@/components/RoadmapComponents/PersonalManagementSection';
-import RoadmapSection from '@/components/RoadmapComponents/RoadmapSection';
-import type { Metadata } from 'next';
-import { auth } from '@clerk/nextjs/server';
-import TokenDisplay from '@/components/token-display';
+import { Container } from "@/components/landing/Container";
+import { Hero } from "@/components/landing/Hero";
+import { SectionTitle } from "@/components/landing/SectionTitle";
+import { Benefits } from "@/components/landing/Benefits";
+import { Video } from "@/components/landing/Video";
+import { Testimonials } from "@/components/landing/Testimonials";
+import { Faq } from "@/components/landing/Faq";
+import { Cta } from "@/components/landing/Cta";
 
-export const metadata: Metadata = {
-  title: 'Trang Chủ Học Tập Của Tôi',
-  description: 'Trang chủ của nền tảng học tập với các lộ trình vai trò và kỹ năng.',
-};
-
-// Định nghĩa kiểu dữ liệu cho Roadmap
-interface Roadmap {
-  id: string;
-  name: string;
-  categoryId: string;
-  type: string; // Vẫn giữ type vì nó có trong DB và dữ liệu của bạn, nhưng không dùng để lọc hiển thị
-  is_deleted?: boolean;
-  isNew?: boolean;
-  progressPercentage: number;
-  isBookmarked: boolean;
-}
-
-// Định nghĩa kiểu dữ liệu cho Category
-interface Category {
-  id: string;
-  name: string;
-  type: string; // Vẫn giữ type vì nó có trong DB, nhưng không dùng để lọc hiển thị
-  order: number;
-}
-
-async function fetchRoadmaps(clerkToken: string | null): Promise<Roadmap[]> {
-  const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
-
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  };
-  if (clerkToken) {
-    headers['Authorization'] = `Bearer ${clerkToken}`;
-  }
-
-  try {
-    const res = await fetch(`${backendUrl}/roadmaps`, {
-      method: 'GET',
-      headers: headers,
-      next: { revalidate: 0 }
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      console.error(`Failed to fetch roadmaps: ${res.status} - ${JSON.stringify(errorData)}`);
-      return [];
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching roadmaps:', error);
-    return [];
-  }
-}
-
-async function fetchCategories(): Promise<Category[]> {
-  const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
-  try {
-    const res = await fetch(`${backendUrl}/categories`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      next: { revalidate: 0 }
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      console.error(`Failed to fetch categories: ${res.status} - ${JSON.stringify(errorData)}`);
-      return [];
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    return [];
-  }
-}
-
-
-export default async function HomePage() {
-  const { sessionId, userId, getToken } = await auth();
-
-  let clerkToken: string | null = null;
-  if (sessionId) {
-    clerkToken = await getToken();
-  }
-
-  console.log('Server Component - clerkToken:', clerkToken ? 'Token is present' : 'Token is NULL');
-  console.log('Server Component - userId from auth():', userId);
-  console.log('Server Component - sessionId from auth():', sessionId);
-
-
-  const allRoadmaps = await fetchRoadmaps(clerkToken);
-  const categories = await fetchCategories();
-
- 
-  const sortedCategories = categories.sort((a, b) => a.order - b.order);
-// fix logic ở đây
- const learningRoadmaps = allRoadmaps.filter(
-  rm => (rm.progressPercentage > 0 || rm.isBookmarked) && !rm.is_deleted
-);
-
+import { benefitOne, benefitTwo } from "@/components/landing/data";
+export default function Home() {
   return (
-    <main className="min-h-screen bg-white text-gray-900 p-6 md:p-8">
-      {/* <TokenDisplay /> */}
+    <Container>
+      <Hero />
+      <SectionTitle
+        preTitle="Nextly Benefits"
+        title=" Why should you use this landing page"
+      >
+        Nextly is a free landing page & marketing website template for startups
+        and indie projects. Its built with Next.js & TailwindCSS. And its
+        completely open-source.
+      </SectionTitle>
 
-      <ProfileSection />
-      <PersonalManagementSection learningRoadmaps={learningRoadmaps} />
+      <Benefits data={benefitOne} />
+      <Benefits imgPos="right" data={benefitTwo} />
 
-      {/* Hiển thị TẤT CẢ các Category theo đúng ý bạn */}
-      {sortedCategories.length > 0 && (
-        <div className="mb-8">
-          
-          {sortedCategories.map(category => {
-            // Lọc roadmaps chỉ theo categoryId (và is_deleted)
-            const filteredRoadmaps = allRoadmaps.filter(
-              (rm) =>
-                rm.categoryId === category.id &&
-                !rm.is_deleted // Vẫn giữ điều kiện này
-            );
+      <SectionTitle
+        preTitle="Watch a video"
+        title="Learn how to fullfil your needs"
+      >
+        This section is to highlight a promo or demo video of your product.
+        Analysts says a landing page with video has 3% more conversion rate. So,
+        don&apos;t forget to add one. Just like this.
+      </SectionTitle>
 
-            return (
-              <div key={category.id} className="mb-8">
-                {/* Tiêu đề của Category */}
-                <h3 className="text-2xl font-bold mb-4 text-gray-900 mt-8 border-b border-gray-300 pb-2">
-                  {category.name}
-                </h3>
+      <Video videoId="fZ0D0cnR88E" />
 
-                {/* Kiểm tra và hiển thị Roadmaps hoặc thông báo rỗng */}
-                {filteredRoadmaps.length > 0 ? (
-                  <RoadmapSection
-                    title="" // Không cần tiêu đề phụ trong RoadmapSection nữa
-                    roadmaps={filteredRoadmaps}
-                    clerkToken={clerkToken}
-                  />
-                ) : (
-                  <p className="text-gray-600 text-center py-4">
-                    Hiện chưa có lộ trình nào trong danh mục này.
-                  </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-      {/* Trường hợp không có category nào */}
-      {sortedCategories.length === 0 && (
-        <div className="text-gray-900 text-center py-8 text-xl">
-          Chưa có danh mục lộ trình nào được tạo.
-        </div>
-      )}
-    </main>
+      <SectionTitle
+        preTitle="Testimonials"
+        title="Here's what our customers said"
+      >
+        Testimonials is a great way to increase the brand trust and awareness.
+        Use this section to highlight your popular customers.
+      </SectionTitle>
+
+      <Testimonials />
+
+      <SectionTitle preTitle="FAQ" title="Frequently Asked Questions">
+        Answer your customers possible questions here, it will increase the
+        conversion rate as well as support or chat requests.
+      </SectionTitle>
+
+      {/* <Faq /> */}
+      <Cta />
+    </Container>
   );
 }
