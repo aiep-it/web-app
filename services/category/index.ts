@@ -1,6 +1,7 @@
 import { ENDPOINTS } from "@/constant/api";
 import axiosInstance from "@/lib/axios";
 import { Category } from "../types/category";
+import { CategoryCreateForm } from "@/app/admin/roadmaps/categories/types";
 
 export async function getAllCategories(): Promise<Category[]> {
   try {
@@ -21,3 +22,24 @@ export async function getAllCategories(): Promise<Category[]> {
     return [];
   }
 }
+
+export async function addNewCategory(payload: CategoryCreateForm): Promise<Category | null> {
+  try {
+    return await axiosInstance
+      .post(ENDPOINTS.CATEGORY.CREATE, payload)
+      .then((response) => {
+        if (response.status === 201) {
+          return response.data;
+        }
+        return null;
+      })
+      .catch((e) => {
+        console.error("Error fetching categories:", e);
+        return null;
+      });
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return null;
+  }
+}
+

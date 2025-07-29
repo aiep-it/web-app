@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import {
   addToast,
   Button,
@@ -26,31 +26,31 @@ import {
   VocabPayload,
   VocabSearchPayload,
   VocabSort,
-} from "@/services/types/vocab";
+} from '@/services/types/vocab';
 import {
+  fetchVocabsByTopicId,
   searchListVocab,
   createVocab,
   deleteVocab,
   updateVocab,
-} from "@/services/vocab";
-import CImageUpload from "@/components/CImageUpload";
-import { uploadFile } from "@/services/cms";
-import { getFullPathFile } from "@/utils/expections";
-import { CModal } from "@/components/CModal";
-import { Topic } from "@/types/vocabulary";
-import { TopicData } from "@/services/types/topic";
+  aiGenerate,
+} from '@/services/vocab';
+import CImageUpload from '@/components/CImageUpload';
+import { uploadFile } from '@/services/cms';
+import { getFullPathFile } from '@/utils/expections';
+import { CModal } from '@/components/CModal';
+import { Topic } from '@/types/vocabulary';
+import { TopicData } from '@/services/types/topic';
 
 interface VocabularyListPageProps {
   topic?: TopicData;
 }
 const vocabColumns = [
-  { uid: "word", name: "Word", sortable: true },
-  { uid: "meaning", name: "Meaning", sortable: false },
-  { uid: "example", name: "Example", sortable: false },
-  { uid: "actions", name: "Actions", sortable: false },
+  { uid: 'word', name: 'Word', sortable: true },
+  { uid: 'meaning', name: 'Meaning', sortable: false },
+  { uid: 'example', name: 'Example', sortable: false },
+  { uid: 'actions', name: 'Actions', sortable: false },
 ];
-
-const nodes = [{ value: "cmcgnmgey0001ka8hzzzmyk50", label: "HTML" }];
 
 export const VerticalDotsIcon = ({ size = 24, ...props }) => {
   return (
@@ -72,13 +72,11 @@ export const VerticalDotsIcon = ({ size = 24, ...props }) => {
   );
 };
 
-
-const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
-  topic
-}) => {
+const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
   const [hydrated, setHydrated] = useState(false);
   const { getToken, isLoaded } = useAuth();
   const { userRole, isSignedIn, isRoleLoading } = useUserRole();
+  useEffect(() => setHydrated(true), []);
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set<Key>());
   const [vocabsList, setVocabsList] = useState<VocabListResponse>();
   const [vocabPayload, setVocabPayload] = useState<VocabSearchPayload>({
@@ -87,7 +85,7 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
     sort: [
       {
         field: VocabColumn.created_at,
-        order: "desc",
+        order: 'desc',
       } as VocabSort,
     ],
   });
@@ -97,10 +95,10 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
     isOpen: boolean;
   }>({ type: 'view', isOpen: false });
   const [formState, setFormState] = useState<VocabPayload>({
-    word: "",
-    meaning: "",
-    example: "",
-    nodeId: "",
+    word: '',
+    meaning: '',
+    example: '',
+    nodeId: '',
     is_know: false,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -108,7 +106,7 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fetchListVocabs = async () => {
-    try{
+    try {
       // Get token from Clerk before making API call
       const token = await getToken();
       
@@ -121,17 +119,19 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
         return;
       }
       
-      const res = await searchListVocab(vocabPayload);
-      if (res && typeof res === "object" && "content" in res) {
+      const res = topic?.id
+        ? await fetchVocabsByTopicId(topic.id, vocabPayload)
+        : await searchListVocab(vocabPayload);
+      if (res && typeof res === 'object' && 'content' in res) {
         setVocabsList(res as VocabListResponse);
       } else {
         setVocabsList(undefined);
       }
-    }catch(e){
+    } catch (e) {
       addToast({
-        title: "Error",
+        title: 'Error',
         description: `Something wrong! Could you please try again!`,
-        color: "danger",
+        color: 'danger',
       });
     }
   };
@@ -146,8 +146,8 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
     audioUrl: "",
     is_know: false,
     is_deleted: false,
-    created_at: "",
-    updated_at: "",
+    created_at: '',
+    updated_at: '',
   });
 
   useEffect(() => setHydrated(true), []);
@@ -169,14 +169,14 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
     if (!mediaUrl) return;
 
     try {
-      const response = await fetch(mediaUrl, { method: "HEAD" });
+      const response = await fetch(mediaUrl, { method: 'HEAD' });
       return response.ok;
     } catch {
       return false;
     }
   };
   const renderCell = (item: VocabData, key: string) => {
-    if (key === "actions") {
+    if (key === 'actions') {
       return (
         <div className="relative flex justify-end items-center gap-2">
           <Dropdown>
@@ -189,11 +189,13 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
               <DropdownItem
                 key="view"
                 onClick={async () => {
-                  const imageUrl = !(await checkMedia(item.imageUrl)) ? "" : item.imageUrl;
+                  const imageUrl = !(await checkMedia(item.imageUrl))
+                    ? ''
+                    : item.imageUrl;
                   setActiveModal({
-                    type: "view",
+                    type: 'view',
                     vocab: { ...item, imageUrl: imageUrl },
-                    isOpen: true
+                    isOpen: true,
                   });
                 }}
               >
@@ -204,9 +206,9 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
                 onClick={async () => {
                   setAudio(item.audioUrl ? new Audio(item.audioUrl) : null);
                   setActiveModal({
-                    type: "edit",
+                    type: 'edit',
                     vocab: item,
-                    isOpen: true
+                    isOpen: true,
                   });
                   setFormState({
                     audioUrl: item.audioUrl,
@@ -222,7 +224,9 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
               </DropdownItem>
               <DropdownItem
                 key="delete"
-                onClick={() => setActiveModal({ type: "delete", vocab: item, isOpen: true })}
+                onClick={() =>
+                  setActiveModal({ type: 'delete', vocab: item, isOpen: true })
+                }
               >
                 Delete
               </DropdownItem>
@@ -234,31 +238,31 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
 
     const value = item[key as keyof VocabData];
 
-    return value === "" || value === undefined || value === null ? "--" : value;
+    return value === '' || value === undefined || value === null ? '--' : value;
   };
   const fields = [
     {
-      id: "word",
-      label: "Word",
-      type: "text" as const,
-      value: formState.word ?? "",
+      id: 'word',
+      label: 'Word',
+      type: 'text' as const,
+      value: formState.word ?? '',
       onChange: (val: any) => setFormState((prev) => ({ ...prev, word: val })),
       required: true,
     },
     {
-      id: "meaning",
-      label: "Meaning",
-      type: "text" as const,
-      value: formState.meaning ?? "",
+      id: 'meaning',
+      label: 'Meaning',
+      type: 'text' as const,
+      value: formState.meaning ?? '',
       onChange: (val: any) =>
         setFormState((prev) => ({ ...prev, meaning: val })),
       required: true,
     },
     {
-      id: "example",
-      label: "Example",
-      type: "text" as const,
-      value: formState.example ?? "",
+      id: 'example',
+      label: 'Example',
+      type: 'text' as const,
+      value: formState.example ?? '',
       onChange: (val: any) =>
         setFormState((prev) => ({ ...prev, example: val })),
       required: true,
@@ -272,6 +276,7 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
         setFormState((prev) => ({ ...prev, topicId: val })),
       options: topic ? [{ label: topic.id, value: topic.id }] : [],
       required: true,
+      disabled: !!topic,
     },
   ];
 
@@ -279,8 +284,8 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
     return (
       <div className="py-2 px-2 flex justify-between items-center">
         <span className="w-[30%] text-small text-default-400">
-          {selectedKeys === "all"
-            ? "All items selected"
+          {selectedKeys === 'all'
+            ? 'All items selected'
             : `${selectedKeys.size} of ${vocabsList?.totalElements} selected`}
         </span>
         <Pagination
@@ -300,27 +305,27 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
   }, [selectedKeys, vocabsList?.page]);
 
   const handleSubmit = async () => {
-    let res:VocabData;
-    let imageUrl = "";
-    let audioUrl = "";
+    let res: VocabData;
+    let imageUrl = '';
+    let audioUrl = '';
     setIsSubmitting(true);
-    try{
-      if(activeModal.type === "delete") {
+    try {
+      if (activeModal.type === 'delete') {
         if (!activeModal.vocab?.id) {
-            addToast({
-              title: "Error",
-              description: `Vocabulary ID is missing!`,
-              color: "danger",
-            });
-            return;
-          }
-        const isDelete = await deleteVocab(activeModal.vocab?.id);
-        if(isDelete) {
           addToast({
-              title: "Notification",
-              description: `Deleted "${activeModal.vocab.word}" success!`,
-              color: "success",
-            });
+            title: 'Error',
+            description: `Vocabulary ID is missing!`,
+            color: 'danger',
+          });
+          return;
+        }
+        const isDelete = await deleteVocab(activeModal.vocab?.id);
+        if (isDelete) {
+          addToast({
+            title: 'Notification',
+            description: `Deleted "${activeModal.vocab.word}" success!`,
+            color: 'success',
+          });
           fetchListVocabs();
         }
         return;
@@ -339,85 +344,112 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
         imageUrl,
         audioUrl,
       };
-      switch(activeModal.type){
-        case "create":
+      switch (activeModal.type) {
+        case 'create':
           res = await createVocab(vocabPayload);
           if (res) {
             addToast({
-              title: "Notification",
+              title: 'Notification',
               description: `Created "${vocabPayload.word}" success!`,
-              color: "success",
+              color: 'success',
             });
             fetchListVocabs();
           }
-       
+
           break;
-        case "edit":
+        case 'edit':
           if (!activeModal.vocab?.id) {
             addToast({
-              title: "Error",
+              title: 'Error',
               description: `Vocabulary ID is missing!`,
-              color: "danger",
+              color: 'danger',
             });
             break;
           }
           res = await updateVocab(activeModal.vocab.id, vocabPayload);
           if (res) {
             addToast({
-              title: "Notification",
+              title: 'Notification',
               description: `Updated "${vocabPayload.word}" success!`,
-              color: "success",
+              color: 'success',
             });
             fetchListVocabs();
           }
           break;
       }
-    }catch(e){
+    } catch (e) {
       addToast({
-        title: "Error",
+        title: 'Error',
         description: `Something wrong! Could you please try again!`,
-        color: "danger",
+        color: 'danger',
       });
-    }
-    finally{
+    } finally {
       setIsSubmitting(false);
       handleClose();
     }
-  }
+  };
   const handleClose = () => {
     setActiveModal({ type: 'view', vocab: getEmptyVocabData(), isOpen: false });
     setFormState({
-      word: "",
-      meaning: "",
-      example: "",
-      nodeId: "",
-      audioUrl: "",
-      imageUrl: "",
+      word: '',
+      meaning: '',
+      example: '',
+      nodeId: topic?.id || '',
+      audioUrl: '',
+      imageUrl: '',
       is_know: false,
     });
   };
 
-  function isVideo(url: string): boolean {
+  const isVideo = (url: string): boolean => {
     return /\.(mp4|webm|ogg)$/i.test(url);
-  }
+  };
+  
   const handlePlay = () => {
     audio?.play();
   };
 
   if (!hydrated) return null;
 
+  const handleAIGen = async () => {
+    if (topic?.id) {
+      const res = await aiGenerate(topic.id);
+      if (res && res.data) {
+        await fetchListVocabs();
+
+        addToast({
+          title: 'AI Generated',
+          description: 'Vocabulary generated successfully!',
+          color: 'success',
+        });
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen dark:bg-black-10 text-foreground p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Vocabulary List</h1>
-        <Button
-          className="bg-gradient-to-r from-indigo-900 via-purple-900 to-gray-900 text-white"
-          onPress={() =>
-            setActiveModal({ type: "create", isOpen: true })
-          }
-        >
-          + Add New Vocabulary
-        </Button>
+        <div>
+          <Button
+            color="primary"
+            onPress={() => setActiveModal({ type: 'create', isOpen: true })}
+            startContent={<Icon icon="lucide:plus" />}
+          >
+            + Add New Vocabulary
+          </Button>
+
+          {topic?.id && (
+            <Button
+              className="mx-3"
+              color="secondary"
+              onPress={() => handleAIGen()}
+              startContent={<Icon icon="lucide:bot" />}
+            >
+              AI Generate
+            </Button>
+          )}
+        </div>
       </div>
 
       <CTable<VocabData>
@@ -438,29 +470,64 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
       >
         {activeModal.type === 'view' ? (
           <div className="p-4 flex flex-row gap-3">
-            {activeModal.vocab?.imageUrl ? (<div className="flex flex-col w-1/3 shadow-xl rounded-2xl">
-              {isVideo(activeModal.vocab?.imageUrl) ? (
-                  <video src={activeModal.vocab?.imageUrl} controls className="w-full h-auto object-cover shadow-xl rounded-2xl" />
+            {activeModal.vocab?.imageUrl ? (
+              <div className="flex flex-col w-1/3 shadow-xl rounded-2xl">
+                {isVideo(activeModal.vocab?.imageUrl) ? (
+                  <video
+                    src={activeModal.vocab?.imageUrl}
+                    controls
+                    className="w-full h-auto object-cover shadow-xl rounded-2xl"
+                  />
                 ) : (
-                  <img src={activeModal.vocab?.imageUrl} alt={activeModal.vocab?.word} className="w-full h-auto object-cover shadow-xl rounded-2xl" />
+                  <img
+                    src={activeModal.vocab?.imageUrl}
+                    alt={activeModal.vocab?.word}
+                    className="w-full h-auto object-cover shadow-xl rounded-2xl"
+                  />
                 )}
-            </div>): (<></>)}
+              </div>
+            ) : (
+              <></>
+            )}
             <div className="flex flex-col gap-2 w-full">
               <div className="flex flex-row gap-5 items-center">
                 <h2 className="text-xl font-bold">{activeModal.vocab?.word}</h2>
-                <Icon className="cursor-pointer" icon="lucide:speech" style={{color: `${audio===null ? 'rgb(144 144 144 / 25%)' : 'rgb(144 144 144)'}`}} width="20" height="20"onClick={handlePlay} />
+                <Icon
+                  className="cursor-pointer"
+                  icon="lucide:speech"
+                  style={{
+                    color: `${audio === null ? 'rgb(144 144 144 / 25%)' : 'rgb(144 144 144)'}`,
+                  }}
+                  width="20"
+                  height="20"
+                  onClick={handlePlay}
+                />
               </div>
-              <Divider/>
+              <Divider />
               <div className="flex flex-row justify-between items-center gap-2">
-                  <div className="flex flex-col">
-                    <div className="text-gray-700 flex flex-row items-center gap-1"><Icon icon="lucide:notebook-pen" width="16" height="16" /> Meaning: {activeModal.vocab?.meaning}</div>
-                    <div className="text-gray-600 italic flex flex-row items-center gap-1"><Icon icon="lucide:badge-alert" width="16" height="16" />Example: "{activeModal.vocab?.example}"</div>
+                <div className="flex flex-col">
+                  <div className="text-gray-700 flex flex-row items-center gap-1">
+                    <Icon icon="lucide:notebook-pen" width="16" height="16" />{' '}
+                    Meaning: {activeModal.vocab?.meaning}
                   </div>
-                  {activeModal.vocab?.is_know ? <Chip className="text-xs" size="sm" color="success">Learned</Chip> : <Chip className="text-xs" size="sm" color="warning">Learning</Chip>}
+                  <div className="text-gray-600 italic flex flex-row items-center gap-1">
+                    <Icon icon="lucide:badge-alert" width="16" height="16" />
+                    Example: "{activeModal.vocab?.example}"
+                  </div>
+                </div>
+                {activeModal.vocab?.is_know ? (
+                  <Chip className="text-xs" size="sm" color="success">
+                    Learned
+                  </Chip>
+                ) : (
+                  <Chip className="text-xs" size="sm" color="warning">
+                    Learning
+                  </Chip>
+                )}
               </div>
             </div>
-          </div>) :
-        activeModal.type !== 'delete' ? (
+          </div>
+        ) : activeModal.type !== 'delete' ? (
           <div className="flex gap-6 mt-4">
             <div className="flex flex-col gap-4 w-1/2">
               <CImageUpload
@@ -470,15 +537,17 @@ const VocabularyListPage:React.FC<VocabularyListPageProps>   = ({
               <CAudioUpload onSelect={(file) => setAudioFile(file)} />
             </div>
             <div className="w-1/2">
-              <BaseForm
-                fields={fields}
-                onSubmit={() => {}}
-                isFooter={false}
-              />
+              <BaseForm fields={fields} onSubmit={() => {}} isFooter={false} />
             </div>
           </div>
         ) : (
-          <p>Are you sure you want to delete "<strong><i>{activeModal.vocab?.word}</i></strong>"</p>
+          <p>
+            Are you sure you want to delete "
+            <strong>
+              <i>{activeModal.vocab?.word}</i>
+            </strong>
+            "
+          </p>
         )}
       </CModal>
     </div>

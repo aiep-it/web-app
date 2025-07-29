@@ -7,6 +7,7 @@ export interface Roadmap {
     createdAt?: Date;
     updatedAt?: Date;
     category: Category;
+    categoryId?: string;
 }
 
 export interface RoadmapPayload { 

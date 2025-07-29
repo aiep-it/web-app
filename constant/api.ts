@@ -27,5 +27,7 @@ export const ENDPOINTS = {
     CREATE: "/vocabs",
     UPDATE: (id: string) => `/vocabs/${id}`,
     DELETE: (id: string) => `/vocabs/${id}`,
+    GET_BY_TOPIC_ID: (topicId: string) => `/vocabs/topic/${topicId}`,
+    AI_GENRATE: `/vocabs/ai/gen`,
   },
 };
