@@ -1,16 +1,25 @@
 'use client';
-import { useState } from 'react';
+import React from 'react';
 
-export default function ExportToCSV() {
-  const [data] = useState([
-    { fullName: 'Nguyễn Văn A', phone: '0123456789', address: 'Hà Nội' },
-    { fullName: 'Trần Thị B', phone: '0987654321', address: 'Đà Nẵng' },
-  ]);
+type Props = {
+  data: {
+    fullName: string | null;
+    username: string | null;
+    parentPhone: string | null;
+    address: string | null;
+  }[];
+};
 
+export default function ExportToCSV({ data }: Props) {
   const handleExport = () => {
     const csv = [
-      ['Họ tên', 'SĐT', 'Địa chỉ'],
-      ...data.map(row => [row.fullName, row.phone, row.address]),
+      ['Họ tên', 'Username', 'SĐT phụ huynh', 'Địa chỉ'],
+      ...data.map(row => [
+        row.fullName ?? '',
+        row.username ?? '',
+        row.parentPhone ?? '',
+        row.address ?? '',
+      ]),
     ]
       .map(row => row.join(','))
       .join('\n');
@@ -25,14 +34,11 @@ export default function ExportToCSV() {
   };
 
   return (
-    <div className="space-x-2">
-      
-      <button
-        onClick={handleExport}
-        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-      >
-        Export CSV
-      </button>
-    </div>
+    <button
+      onClick={handleExport}
+      className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded"
+    >
+      Export CSV
+    </button>
   );
 }

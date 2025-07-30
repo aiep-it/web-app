@@ -3,6 +3,7 @@
 export const ENDPOINTS = {
   AUTHEN: {
     ROLE: "/users/update-metadata",
+    WITH_CLERK_ID: '/users/with-clerk-id',
   },
   CATEGORY: {
     GET_ALL: "/categories",
@@ -37,5 +38,6 @@ export const ENDPOINTS = {
     UPDATE: (id: string) => `/students/${id}`,
     DELETE: (id: string) => `/students/${id}`,
     CHANGE_MY_PASSWORD: '/students/me/change-password',
+    WITH_CLERK_ID: '/students/with-clerk-id',
   },
 };

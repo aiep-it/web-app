@@ -3,11 +3,14 @@ import React, { useEffect, useState } from 'react';
 import {
   Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
   Input, Button, useDisclosure, Modal, ModalContent,
-  ModalHeader, ModalBody, ModalFooter
+  ModalHeader, ModalBody, ModalFooter, Spinner
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
-import { Student } from '@/services/types/student';
-import { getAllStudents, deleteStudent } from '@/services/student';
+import { Student, StudentPayload } from '@/services/types/student';
+import { getAllStudents, deleteStudent, updateStudent } from '@/services/student';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { studentSchema } from '@/app/admin/usermanage/schema/studentSchema';
 import ExportToCSV from './ExportToCSV';
 
 export default function StudentTable() {
@@ -15,8 +18,28 @@ export default function StudentTable() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
+
+  // 🟡 Modal Edit
+  const {
+    isOpen: isEditOpen,
+    onOpen: openEdit,
+    onClose: closeEdit,
+  } = useDisclosure();
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<StudentPayload>({
+    resolver: yupResolver(studentSchema),
+  });
+
+  const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
     const data = await getAllStudents();
@@ -42,10 +65,36 @@ export default function StudentTable() {
     }
   };
 
+  const handleEdit = (student: Student) => {
+    setEditingStudent(student);
+    reset({
+      fullName: student.fullName,
+      parentName: student.parentName,
+      parentPhone: student.parentPhone,
+      address: student.address,
+    });
+    openEdit();
+  };
+
+  const onSubmitEdit = async (data: StudentPayload) => {
+    if (!editingStudent) return;
+    setLoading(true);
+    try {
+      const result = await updateStudent(editingStudent.id, data);
+      if (result) {
+        closeEdit();
+        fetchData();
+      }
+    } catch (err) {
+      console.error('❌ Lỗi cập nhật học sinh:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filtered = students.filter((s) =>
     (s.fullName || '').toLowerCase().includes(search.toLowerCase())
   );
-
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginated = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
@@ -66,15 +115,11 @@ export default function StudentTable() {
           startContent={<Icon icon="lucide:search" className="text-default-400" />}
           className="w-full max-w-xs"
         />
-        <ExportToCSV />
+      <ExportToCSV data={students} />
+
       </div>
 
-      <Table
-        aria-label="Danh sách học sinh"
-        classNames={{
-          wrapper: "max-h-[600px]",
-        }}
-      >
+      <Table aria-label="Danh sách học sinh" classNames={{ wrapper: "max-h-[600px]" }}>
         <TableHeader>
           <TableColumn>Họ tên</TableColumn>
           <TableColumn>Phụ huynh</TableColumn>
@@ -91,13 +136,11 @@ export default function StudentTable() {
               <TableCell>{s.address}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <Button size="sm" color="primary" variant="light">
-                    <Icon icon="lucide:edit" className="text-lg" />
-                    Sửa
+                  <Button size="sm" color="primary" variant="light" onPress={() => handleEdit(s)}>
+                    <Icon icon="lucide:edit" className="text-lg" /> Sửa
                   </Button>
                   <Button size="sm" color="danger" variant="light" onPress={() => handleDelete(s)}>
-                    <Icon icon="lucide:trash-2" className="text-lg" />
-                    Xóa
+                    <Icon icon="lucide:trash-2" className="text-lg" /> Xóa
                   </Button>
                 </div>
               </TableCell>
@@ -106,18 +149,11 @@ export default function StudentTable() {
         </TableBody>
       </Table>
 
-      {/* ✅ Pagination đẹp như mẫu */}
+      {/* ✅ Pagination */}
       <div className="flex justify-center items-center gap-1 mt-4">
-        <Button
-          isIconOnly
-          size="sm"
-          variant="light"
-          onClick={() => handlePageChange(page - 1)}
-          isDisabled={page === 1}
-        >
+        <Button isIconOnly size="sm" variant="light" onClick={() => handlePageChange(page - 1)} isDisabled={page === 1}>
           <Icon icon="lucide:chevron-left" />
         </Button>
-
         {Array.from({ length: totalPages }, (_, i) => (
           <Button
             key={i + 1}
@@ -129,32 +165,69 @@ export default function StudentTable() {
             {i + 1}
           </Button>
         ))}
-
-        <Button
-          isIconOnly
-          size="sm"
-          variant="light"
-          onClick={() => handlePageChange(page + 1)}
-          isDisabled={page === totalPages}
-        >
+        <Button isIconOnly size="sm" variant="light" onClick={() => handlePageChange(page + 1)} isDisabled={page === totalPages}>
           <Icon icon="lucide:chevron-right" />
         </Button>
       </div>
 
+      {/* ✅ Modal Xóa */}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalContent>
           {(onClose) => (
             <>
               <ModalHeader>Xác nhận xóa</ModalHeader>
+              <ModalBody>Bạn có chắc muốn xóa học sinh <b>{studentToDelete?.fullName}</b>?</ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>Hủy</Button>
+                <Button color="primary" onPress={confirmDelete}>Xác nhận</Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* ✅ Modal Chỉnh sửa */}
+      <Modal isOpen={isEditOpen} onClose={closeEdit}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader>Chỉnh sửa học sinh</ModalHeader>
               <ModalBody>
-                Bạn có chắc muốn xóa học sinh {studentToDelete?.fullName}?
+                <form className="space-y-4">
+                  <Input
+                    label="Họ tên học sinh"
+                    {...register('fullName')}
+                    labelPlacement="outside-top" 
+                    isInvalid={!!errors.fullName}
+                    errorMessage={errors.fullName?.message}
+                  />
+                  <Input
+                    label="Tên phụ huynh"
+                    {...register('parentName')}
+                    labelPlacement="outside-top" 
+                    isInvalid={!!errors.parentName}
+                    errorMessage={errors.parentName?.message}
+                  />
+                  <Input
+                    label="SĐT phụ huynh"
+                    {...register('parentPhone')}
+                    labelPlacement="outside-top" 
+                    isInvalid={!!errors.parentPhone}
+                    errorMessage={errors.parentPhone?.message}
+                  />
+                  <Input
+                    label="Địa chỉ"
+                    {...register('address')}
+                    labelPlacement="outside-top" 
+                    isInvalid={!!errors.address}
+                    errorMessage={errors.address?.message}
+                  />
+                </form>
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Hủy
-                </Button>
-                <Button color="primary" onPress={confirmDelete}>
-                  Xác nhận
+                <Button variant="light" onPress={onClose}>Hủy</Button>
+                <Button color="primary" onClick={handleSubmit(onSubmitEdit)} disabled={loading}>
+                  {loading ? <Spinner size="sm" /> : 'Lưu'}
                 </Button>
               </ModalFooter>
             </>

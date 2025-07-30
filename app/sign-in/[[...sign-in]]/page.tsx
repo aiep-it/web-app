@@ -1,4 +1,5 @@
 // web-app/app/sign-in/[[...sign-in]]/page.tsx
+'use client'
 import { SignIn, useAuth } from '@clerk/nextjs';
 import { useEffect } from 'react';
 
