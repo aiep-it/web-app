@@ -3,6 +3,7 @@
 export const ENDPOINTS = {
   AUTHEN: {
     ROLE: "/users/update-metadata",
+    GET_USER_BY_CLERK_ID: (clerkId: string) => `/users/${clerkId}`,
   },
   CATEGORY: {
     GET_ALL: "/categories",
@@ -30,4 +31,11 @@ export const ENDPOINTS = {
     GET_BY_TOPIC_ID: (topicId: string) => `/vocabs/topic/${topicId}`,
     AI_GENRATE: `/vocabs/ai/gen`,
   },
+  EXERCISE: {
+    GET_ALL: "/exercises",
+    CREATE: '/exercises',
+    GET_BY_EXERCISE_ID: (exerciseId: string) => `/exercises/${exerciseId}`,
+    UPDATE: (id: string) => `/exercises/${id}`,
+    DELETE: (id: string) => `/exercises/${id}`,
+  }
 };

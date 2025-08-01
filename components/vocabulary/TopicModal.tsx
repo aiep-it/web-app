@@ -1,9 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/rootReducer';
+import { selectVocabsByTopic } from '@/store/slices/vocabSlice';
 import { Category, Topic } from '@/types/vocabulary';
 import { useVocabulary } from './VocabularyContext';
 import { useRouter } from 'next/navigation';
+import { useVocabsSafe } from '@/hooks/useVocabsSafe';
+import { VocabColumn } from '@/services/types/vocab';
 
 interface TopicModalProps {
   category: Category | null;
@@ -245,23 +250,28 @@ const TopicCard: React.FC<{
           </div>
         </button>
 
-        {/* Exercise Button - Only show for completed topics */}
-        {(isCompleted || progress === 100) && !topic.isLocked && (
-          <button
-            className="w-full mt-3 py-3 px-6 rounded-xl font-semibold text-sm transition-all duration-300 transform
+        {/* Exercise Button - Always show for testing */}
+        <button
+          className="w-full mt-3 py-3 px-6 rounded-xl font-semibold text-sm transition-all duration-300 transform
                        bg-gradient-to-r from-purple-500 to-purple-600 text-white 
                        hover:from-purple-600 hover:to-purple-700 active:scale-95 
                        shadow-md hover:shadow-lg border-2 border-purple-300/50"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDoExercise(topic.id);
-            }}
-          >
-            <div className="flex items-center justify-center gap-2">
-              <span>Do Exercises</span>
-            </div>
-          </button>
-        )}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDoExercise(topic.id);
+          }}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <span>Do exercise</span>
+            {isCompleted || progress === 100 ? (
+              <span className="text-xs bg-green-400 px-2 py-1 rounded">✓</span>
+            ) : (
+              <span className="text-xs bg-orange-400 px-2 py-1 rounded">
+                TEST
+              </span>
+            )}
+          </div>
+        </button>
       </div>
 
       {/* Achievement Badge for Completed Topics */}
@@ -286,6 +296,49 @@ export const TopicModal: React.FC<TopicModalProps> = ({
   const { getTopicProgress, getCategoryProgress, isTopicCompleted } =
     useVocabulary();
   const router = useRouter();
+  const { getVocabs, loading: vocabLoading } = useVocabsSafe();
+
+  // Get all vocabs from Redux to calculate topic completion
+  const allVocabs = useSelector((state: RootState) => state.vocab.vocabs);
+
+  // Load vocabularies when modal opens (if not already loaded)
+  useEffect(() => {
+    if (isOpen && allVocabs.length === 0 && !vocabLoading) {
+      console.log('[TopicModal] Loading vocabularies...');
+      getVocabs({
+        page: 1,
+        size: 50,
+        sort: [
+          {
+            field: VocabColumn.created_at,
+            order: 'desc',
+          },
+        ],
+      });
+    }
+  }, [isOpen, allVocabs.length, vocabLoading, getVocabs]);
+
+  // Helper function to calculate topic completion using Redux data
+  const getTopicCompletionFromRedux = (topicId: string) => {
+    try {
+      const topicVocabs = allVocabs.filter(
+        (vocab) => vocab.topicId === topicId,
+      );
+
+      if (!Array.isArray(topicVocabs) || topicVocabs.length === 0) {
+        return { progress: 0, isCompleted: false };
+      }
+
+      const knownVocabs = topicVocabs.filter((vocab) => vocab.is_know).length;
+      const progress = Math.round((knownVocabs / topicVocabs.length) * 100);
+      const isCompleted = progress === 100;
+
+      return { progress, isCompleted };
+    } catch (error) {
+      console.error('Error calculating topic completion:', error);
+      return { progress: 0, isCompleted: false };
+    }
+  };
 
   if (!category || !isOpen) return null;
 
@@ -298,7 +351,7 @@ export const TopicModal: React.FC<TopicModalProps> = ({
 
   const handleDoExercise = (topicId: string) => {
     onClose();
-    router.push(`/learn-vocabulary/exercise/${topicId}`);
+    router.push(`/learn-vocabulary/exercise/${topicId}/quiz`);
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -427,16 +480,21 @@ export const TopicModal: React.FC<TopicModalProps> = ({
             <div className="grid gap-6">
               {category.topics
                 .sort((a, b) => a.order - b.order)
-                .map((topic) => (
-                  <TopicCard
-                    key={topic.id}
-                    topic={topic}
-                    onStartTopic={handleStartTopic}
-                    onDoExercise={handleDoExercise}
-                    progress={getTopicProgress(topic.id)}
-                    isCompleted={isTopicCompleted(topic.id)}
-                  />
-                ))}
+                .map((topic) => {
+                  const { progress, isCompleted } = getTopicCompletionFromRedux(
+                    topic.id,
+                  );
+                  return (
+                    <TopicCard
+                      key={topic.id}
+                      topic={topic}
+                      onStartTopic={handleStartTopic}
+                      onDoExercise={handleDoExercise}
+                      progress={progress}
+                      isCompleted={isCompleted}
+                    />
+                  );
+                })}
             </div>
 
             {/* Motivational Section */}

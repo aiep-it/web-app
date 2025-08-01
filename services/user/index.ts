@@ -1,7 +1,7 @@
 
 import { ENDPOINTS } from "@/constant/api";
 import axiosInstance from "@/lib/axios";
-import { UpdateRoleRequest } from "../types/user";
+import { UpdateRoleRequest, UserData } from "../types/user";
 
 export async function updateRole(payload: UpdateRoleRequest)  {
   try {
@@ -17,4 +17,17 @@ export async function updateRole(payload: UpdateRoleRequest)  {
   } catch {
     return null
   }
+}
+
+export async function getUserByClerkId(id: string): Promise<UserData | null> {
+    try {
+        const response = await axiosInstance.get<UserData>(ENDPOINTS.AUTHEN.GET_USER_BY_CLERK_ID(id));
+        if (response.status === 200) {
+            return response.data;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching user by clerk ID:", error);
+        return null;
+    }
 }

@@ -7,7 +7,6 @@ import {
   ModalHeader, 
   ModalBody, 
   ModalFooter,
-  Button,
   Card,
   CardBody,
   Chip,
@@ -22,6 +21,7 @@ import { selectVocabsByTopic, updateVocabInStore } from '@/store/slices/vocabSli
 import { TopicData } from '@/services/types/topic';
 import { VocabData } from '@/services/types/vocab';
 import { updateVocab } from '@/services/vocab';
+import { CustomButton } from '@/shared/components/button/CustomButton';
 
 interface VocabLearningModalProps {
   isOpen: boolean;
@@ -262,12 +262,10 @@ export function VocabLearningModal({ isOpen, onClose, topic }: VocabLearningModa
                             {/* Audio */}
                             {vocab.audioUrl && (
                               <div className="mt-2">
-                                <Button
+                                <CustomButton
                                   size="sm"
-                                  variant="light"
-                                  startContent={
-                                    <Icon icon="material-symbols:volume-up" />
-                                  }
+                                  preset="ghost"
+                                  icon="material-symbols:volume-up"
                                   onClick={() => {
                                     const audio = new Audio(vocab.audioUrl);
                                     audio.play().catch(e => 
@@ -276,7 +274,7 @@ export function VocabLearningModal({ isOpen, onClose, topic }: VocabLearningModa
                                   }}
                                 >
                                   Listen
-                                </Button>
+                                </CustomButton>
                               </div>
                             )}
                           </div>
@@ -285,26 +283,18 @@ export function VocabLearningModal({ isOpen, onClose, topic }: VocabLearningModa
                       
                       {/* Action Button */}
                       <div className="flex-shrink-0">
-                        <Button
+                        <CustomButton
                           size="sm"
-                          color={vocab.is_know ? "default" : "primary"}
-                          variant={vocab.is_know ? "light" : "solid"}
-                          isLoading={loadingVocabs[vocab.id]}
-                          disabled={loadingVocabs[vocab.id]}
-                          startContent={
-                            !loadingVocabs[vocab.id] && (
-                              <Icon 
-                                icon={vocab.is_know 
-                                  ? "material-symbols:refresh" 
-                                  : "material-symbols:check-circle"
-                                } 
-                              />
-                            )
+                          preset={vocab.is_know ? "ghost" : "primary"}
+                          loading={loadingVocabs[vocab.id]}
+                          icon={vocab.is_know 
+                            ? "material-symbols:refresh" 
+                            : "material-symbols:check-circle"
                           }
                           onClick={() => handleToggleKnown(vocab)}
                         >
                           {vocab.is_know ? "Mark as Unknown" : "Already Know This"}
-                        </Button>
+                        </CustomButton>
                       </div>
                     </div>
                   </CardBody>
@@ -315,27 +305,50 @@ export function VocabLearningModal({ isOpen, onClose, topic }: VocabLearningModa
         </ModalBody>
 
         <ModalFooter>
-          <Button color="danger" variant="light" onPress={onClose}>
+          <CustomButton 
+            preset="danger" 
+            onPress={onClose}
+          >
             Close
-          </Button>
+          </CustomButton>
           {topicVocabs.length > 0 && (
-            <Button 
-              color="primary" 
-              variant="solid"
+            <CustomButton 
+              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-sm"
+              size='md'
+              icon="material-symbols:play-arrow"
               onPress={() => {
                 onClose();
                 router.push(`/learn-vocabulary/${topic.id}`);
               }}
-              startContent={<Icon icon="material-symbols:play-arrow" />}
             >
               Start Learning
-            </Button>
+            </CustomButton>
+          )}
+          {/* Exercise Button - Always show for testing */}
+          {topicVocabs.length > 0 && (
+            <CustomButton 
+              preset="primary" 
+              icon="material-symbols:quiz"
+              onPress={() => {
+                onClose();
+                router.push(`/learn-vocabulary/exercise/${topic.id}/quiz`);
+              }}
+            >
+              Do exercise
+              {progress.percentage === 100 ? (
+                <Chip size="sm" color="success" variant="flat" className="ml-2">✓</Chip>
+              ) : (
+                <Chip size="sm" color="warning" variant="flat" className="ml-2">TEST</Chip>
+              )}
+            </CustomButton>
           )}
           {progress.percentage === 100 && (
-            <Button color="success" variant="solid">
-              <Icon icon="material-symbols:celebration" className="mr-1" />
+            <CustomButton 
+              preset="success"
+              icon="material-symbols:celebration"
+            >
               Completed!
-            </Button>
+            </CustomButton>
           )}
         </ModalFooter>
       </ModalContent>
