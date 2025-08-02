@@ -42,6 +42,13 @@ function ExerciseRoadmapSection({ roadmap, topics, isLoading }: ExerciseRoadmapS
   
   // Function to count exercises by topic and type
   const getExerciseCount = (topicId: string, exerciseType: string) => {
+    if (exerciseType === 'type-answer') {
+      // Count image and audio exercises for Type Answer
+      return allExercises.filter(exercise => 
+        exercise.topicId === topicId && (exercise.type === 'image' || exercise.type === 'audio')
+      ).length;
+    }
+    
     return allExercises.filter(exercise => 
       exercise.topicId === topicId && exercise.type === exerciseType
     ).length;

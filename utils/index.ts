@@ -11,3 +11,8 @@ export const getApiUrl = () => {
 
   return baseUrl;
 };
+
+export function getCmsAssetUrl(id?: string | null): string {
+  if (!id) return '';
+  return `${process.env.NEXT_PUBLIC_CMS_BASE_URL}/assets/${id}`;
+}

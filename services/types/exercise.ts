@@ -19,6 +19,7 @@ export interface ExercisePayload {
   difficulty: Difficulty;
   topicId: string; // ID of the topic this exercise belongs to
   userId: string; // ID of the user who created this exercise
+  assetId?: string; // CMS Asset ID for image/audio
 }
 
 export interface ExerciseData {
@@ -33,5 +34,6 @@ export interface ExerciseData {
   userId: string; 
   createdAt: string;
   updatedAt?: string | null; 
+  assetId?: string; // CMS Asset ID for image/audio
 }
 
