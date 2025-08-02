@@ -5,21 +5,21 @@ import {
   NavbarMenuToggle,
   NavbarItem,
   NavbarMenuItem,
-} from "@heroui/navbar";
-import { Button } from "@heroui/button";
-import { Kbd } from "@heroui/kbd";
-import { Link } from "@heroui/link";
-import { Input } from "@heroui/input";
+} from '@heroui/navbar';
+import { Button } from '@heroui/button';
+import { Kbd } from '@heroui/kbd';
+import { Link } from '@heroui/link';
+import { Input } from '@heroui/input';
 
-import { siteConfig } from "@/config/site";
-import { ThemeSwitch } from "@/components/theme-switch";
+import { siteConfig } from '@/config/site';
+import { ThemeSwitch } from '@/components/theme-switch';
 import {
   TwitterIcon,
   GithubIcon,
   DiscordIcon,
   HeartFilledIcon,
-  SearchIcon
-} from "@/components/icons";
+  SearchIcon,
+} from '@/components/icons';
 
 // Clerk imports
 import {
@@ -28,18 +28,18 @@ import {
   SignInButton,
   SignUpButton,
   UserButton,
-} from "@clerk/nextjs";
+} from '@clerk/nextjs';
 
 export const Navbar = () => {
   const searchInput = (
     <Input
       aria-label="Search"
       classNames={{
-        inputWrapper: "bg-default-100",
-        input: "text-sm",
+        inputWrapper: 'bg-default-100',
+        input: 'text-sm',
       }}
       endContent={
-        <Kbd className="hidden lg:inline-block" keys={["command"]}>
+        <Kbd className="hidden lg:inline-block" keys={['command']}>
           K
         </Kbd>
       }
@@ -87,10 +87,14 @@ export const Navbar = () => {
         <NavbarItem>
           <SignedOut>
             <SignInButton mode="modal">
-              <Button variant="flat" className="mx-1">Đăng nhập</Button>
+              <Button variant="flat" className="mx-1">
+                Đăng nhập
+              </Button>
             </SignInButton>
             <SignUpButton mode="modal">
-              <Button variant="flat" className="mx-1">Đăng ký</Button>
+              <Button variant="flat" className="mx-1">
+                Đăng ký
+              </Button>
             </SignUpButton>
           </SignedOut>
           <SignedIn>
@@ -115,19 +119,38 @@ export const Navbar = () => {
               <Link
                 color={
                   index === 2
-                    ? "primary"
+                    ? 'primary'
                     : index === siteConfig.navMenuItems.length - 1
-                      ? "danger"
-                      : "foreground"
+                      ? 'danger'
+                      : 'foreground'
                 }
                 href={item.href}
                 size="lg"
               >
                 {item.label}
               </Link>
+              {/* Clerk Auth Buttons */}
+              
             </NavbarMenuItem>
           ))}
         </div>
+        <NavbarItem>
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <Button variant="flat" className="mx-1">
+                      Đăng nhập
+                    </Button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <Button variant="flat" className="mx-1">
+                      Đăng ký
+                    </Button>
+                  </SignUpButton>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/" />
+                </SignedIn>
+              </NavbarItem>
       </NavbarMenu>
     </HeroUINavbar>
   );

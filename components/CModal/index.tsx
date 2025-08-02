@@ -44,7 +44,7 @@ export const CModal: React.FC<CModalProps> = ({ isOpen, onClose, onSubmit, type,
                 <Button
                   disabled={isSubmitting}
                   onPress={onSubmit}
-                  className="bg-gradient-to-r from-indigo-900 via-purple-900 to-gray-900 text-white"
+                  color={type === 'delete' ? 'danger' : config.color}
                 >
                   {isSubmitting ? "Đang xử lý..." :  (type === 'delete' ? 'Delete' : 'Submit')}
                 </Button>

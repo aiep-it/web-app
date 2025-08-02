@@ -127,11 +127,11 @@ const NodeDetail: React.FC<TopicDetailProps> = ({
             // variant='bordered'
             onPress={() => {
               if (topic?.id && topicId) {
-                router.push(`/admin/node/${topic.id}/edit`);
+                router.push(`/admin/topic/${topic.id}/edit`);
               }
             }}
           >
-            Edit Node
+            Edit Topic
           </Button>
         </div>
         <div className="flex gap-1 items-center">

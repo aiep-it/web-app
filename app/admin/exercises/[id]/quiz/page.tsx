@@ -13,10 +13,14 @@ import { QuizEditor } from '@/components/Exercise/QuizEditor';
 import { QuizDisplay } from '@/components/Exercise/QuizDisplay';
 import { ExerciseData } from '@/services/types/exercise';
 
-export default function QuizExercisePage() {
+interface QuizExercisePageProps {
+  myTopicId?: string
+}
+export default function QuizExercisePage({myTopicId} : QuizExercisePageProps) {
   const params = useParams();
   const router = useRouter();
   const topicId = params.id as string;
+
   
   const { 
     getAllExercises,

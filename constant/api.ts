@@ -29,6 +29,7 @@ export const ENDPOINTS = {
     UPDATE: (id: string) => `/vocabs/${id}`,
     DELETE: (id: string) => `/vocabs/${id}`,
     GET_BY_TOPIC_ID: (topicId: string) => `/vocabs/topic/${topicId}`,
+    GET_ALL_BY_TOPIC_ID:  (topicId: string) => `/vocabs/topic/:topicId/all`,
     AI_GENRATE: `/vocabs/ai/gen`,
   },
   STUDENT: {
@@ -47,10 +48,13 @@ export const ENDPOINTS = {
     DELETE: (id: string) => `/exercises/${id}`,
   },
   WORK_SPACE: {
-    GET_ALL: "/workspaces",
+    GET_ALL: "/workspace",
     GET_BY_ID: (id: string) => `/workspaces/${id}`,
     CREATE_TOPIC: "/workspace/topics",
     UPDATE: (id: string) => `/workspaces/${id}`,
     DELETE: (id: string) => `/workspaces/${id}`,
+  },
+  AI: {
+    GEN_FROM_IMAGE: "/ai/personal-learning",
   }
 };

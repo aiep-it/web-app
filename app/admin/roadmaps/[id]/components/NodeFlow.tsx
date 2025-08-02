@@ -1,5 +1,5 @@
-"use client";
-import CDrawer from "@/components/CDrawer";
+'use client';
+import CDrawer from '@/components/CDrawer';
 import {
   addToast,
   Button,
@@ -7,7 +7,7 @@ import {
   Input,
   PressEvent,
   useDisclosure,
-} from "@heroui/react";
+} from '@heroui/react';
 import {
   ReactFlow,
   Controls,
@@ -28,9 +28,9 @@ import {
   ReactFlowInstance,
   ReactFlowProps,
   useStore,
-} from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
-import { useTheme } from "next-themes";
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { useTheme } from 'next-themes';
 import {
   forwardRef,
   useCallback,
@@ -38,12 +38,10 @@ import {
   useImperativeHandle,
   useRef,
   useState,
-} from "react";
-import { AnimatedSVGEdge } from "./AnimatedSVGEdge";
-import NodeDetail from "./TopicDetail";
-import { NodeContent } from "@/types/Node";
-import { BaseNode } from "@/components/BaseNode";
-import NodeHeader from "./NodeTypes/NodeHeader";
+} from 'react';
+import { AnimatedSVGEdge } from './AnimatedSVGEdge';
+import NodeDetail from './TopicDetail';
+import NodeHeader from './NodeTypes/NodeHeader';
 
 interface IProps {
   nodeData?: Node[];
@@ -69,7 +67,7 @@ const nodeTypes = {
 };
 const nodeOrigin: [number, number] = [0.5, 0.0];
 
-const flowKey = "example-flow";
+const flowKey = 'example-flow';
 const getNodeId = () => `randomnode_${+new Date()}`;
 
 function getBoundsOfNodes(
@@ -77,7 +75,7 @@ function getBoundsOfNodes(
     position: { x: number; y: number };
     width?: number;
     height?: number;
-  }[]
+  }[],
 ) {
   const xValues = nodes.map((n) => n.position.x);
   const yValues = nodes.map((n) => n.position.y);
@@ -101,28 +99,30 @@ function getBoundsOfNodes(
 const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
   (props: NodeFlowProps, ref) => {
     const { theme } = useTheme();
-    const [colorMode, setColorMode] = useState<"system" | "dark" | "light">(
-      "dark"
+    const [colorMode, setColorMode] = useState<'system' | 'dark' | 'light'>(
+      'dark',
     );
     const { nodeData, edgeData, ...restProps } = props;
 
     const reactFlowWrapper = useRef(null);
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>(
-      nodeData || []
+      nodeData || [],
     );
-    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(edgeData || []);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(
+      edgeData || [],
+    );
     const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(
-      null
+      null,
     );
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const { screenToFlowPosition, setViewport } = useReactFlow();
     const [nodeSelected, setNodeSelected] = useState<Node>();
-    const [labelInput, setLabelInput] = useState("");
+    const [labelInput, setLabelInput] = useState('');
 
     const onConnect = useCallback(
       (params: any) =>
-        setEdges((eds) => addEdge({ ...params, type: "animatedSvg" }, eds)),
-      []
+        setEdges((eds) => addEdge({ ...params, type: 'animatedSvg' }, eds)),
+      [],
     );
 
     const onNodeClick = (event: any, node: Node) => {
@@ -136,11 +136,11 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
       if (rfInstance) {
         const flow = rfInstance?.toObject();
         localStorage.setItem(flowKey, JSON.stringify(flow));
-        console.log("rfInstance", rfInstance?.toObject());
+        console.log('rfInstance', rfInstance?.toObject());
 
         addToast({
-          title: "Draff Success",
-          color: "success",
+          title: 'Draff Success',
+          color: 'success',
         });
       }
     }, [rfInstance]);
@@ -152,7 +152,7 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
           // we need to remove the wrapper bounds, in order to get the correct position
           const id = getNodeId();
           const { clientX, clientY } =
-            "changedTouches" in event ? event.changedTouches[0] : event;
+            'changedTouches' in event ? event.changedTouches[0] : event;
           const newNode = {
             id,
             position: screenToFlowPosition({
@@ -160,7 +160,7 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
               y: clientY,
             }),
             data: {
-              label: `Child_${connectionState.fromNode?.data?.label || "New"}`,
+              label: `Child_${connectionState.fromNode?.data?.label || 'New'}`,
             },
             origin: [0.5, 0.0],
           } as Node;
@@ -171,12 +171,12 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
               id,
               source: connectionState.fromNode.id,
               target: id,
-              type: "animatedSvg",
-            })
+              type: 'animatedSvg',
+            }),
           );
         }
       },
-      [screenToFlowPosition]
+      [screenToFlowPosition],
     );
 
     const onNodesDelete = useCallback(
@@ -188,7 +188,7 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
             const connectedEdges = getConnectedEdges([node], edges);
 
             const remainingEdges = acc.filter(
-              (edge: Edge) => !connectedEdges.includes(edge)
+              (edge: Edge) => !connectedEdges.includes(edge),
             );
 
             const createdEdges = incomers.flatMap(({ id: source }) =>
@@ -196,15 +196,15 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
                 id: `${source}->${target}`,
                 source,
                 target,
-                type: "animatedSvg",
-              }))
+                type: 'animatedSvg',
+              })),
             );
 
             return [...remainingEdges, ...createdEdges];
-          }, edges)
+          }, edges),
         );
       },
-      [nodes, edges]
+      [nodes, edges],
     );
 
     const onRestore = useCallback(() => {
@@ -227,12 +227,12 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
     const onAdd = useCallback(() => {
       const newNode = {
         id: getNodeId(),
-        data: { label: "Added node" },
+        data: { label: 'Added node' },
         position: {
           x: (Math.random() - 0.5) * 400,
           y: (Math.random() - 0.5) * 400,
         },
-        type: "input",
+        type: 'input',
       };
       setNodes((nds) => nds.concat(newNode));
     }, [setNodes]);
@@ -240,11 +240,11 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
     useEffect(() => {
       if (theme) {
         switch (theme) {
-          case "dark":
-            setColorMode("dark");
+          case 'dark':
+            setColorMode('dark');
             break;
-          case "light":
-            setColorMode("light");
+          case 'light':
+            setColorMode('light');
             break;
           default:
             break;
@@ -263,8 +263,8 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
         nodes.map((node) =>
           node.id === nodeId
             ? { ...node, data: { ...node.data, label: newLabel } }
-            : node
-        )
+            : node,
+        ),
       );
     };
 
@@ -278,10 +278,10 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
       const groupNode: Node = {
         id: groupId,
         position: { x: bounds.x - 50, y: bounds.y - 50 },
-        data: { label: "Group Node" },
+        data: { label: 'Group Node' },
         width: 380,
         height: 200,
-        type: "labeledGroupNode",
+        type: 'labeledGroupNode',
       };
 
       const updatedNodes: Node[] = nodes.map((n) =>
@@ -289,13 +289,13 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
           ? {
               ...n,
               parentId: groupId,
-              extent: "parent",
+              extent: 'parent',
               position: {
                 x: n.position.x - (bounds.x - 50),
                 y: n.position.y - (bounds.y - 50),
               },
             }
-          : n
+          : n,
       );
 
       setNodes([groupNode, ...updatedNodes]);
@@ -309,7 +309,7 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
       <div
         className="wrapper"
         ref={reactFlowWrapper}
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: '100%', height: '100%' }}
       >
         <ReactFlow
           nodes={nodes}
@@ -348,14 +348,14 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
                   type="text"
                   labelPlacement="outside"
                   value={labelInput}
-                  onChange={(e) => setLabelInput(e.target.value)}
+                  onChange={(e: any) => setLabelInput(e.target.value)}
                   onBlur={() => {
                     if (nodeSelected) {
                       updateNodeLabel(nodeSelected.id, labelInput);
                     }
                   }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && nodeSelected) {
+                  onKeyDown={(e: any) => {
+                    if (e.key === 'Enter' && nodeSelected) {
                       updateNodeLabel(nodeSelected.id, labelInput);
                       // Nếu muốn mất focus sau khi Enter:
                       (e.target as HTMLInputElement).blur();
@@ -386,16 +386,13 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
         <CDrawer isOpen={isOpen} onOpenChange={onOpenChange}>
           <DrawerContent>
             {(onClose) => (
-              <NodeDetail
-                topicId={nodeSelected?.id}
-                onClose={onClose}
-              />
+              <NodeDetail topicId={nodeSelected?.id} onClose={onClose} />
             )}
           </DrawerContent>
         </CDrawer>
       </div>
     );
-  }
+  },
 );
 
 export default forwardRef<NodeFlowRef, NodeFlowProps>((props, ref) => {

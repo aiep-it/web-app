@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Modal,
   ModalContent,
@@ -12,14 +12,22 @@ import { Input } from '@heroui/input';
 import { Textarea } from '@heroui/input';
 import { Icon } from '@iconify/react';
 import { CustomButton } from '@/shared/components';
-import { WorkspaceCreateTopicPayload } from '@/services/types/workspace';
-import { createTopicWorkspace } from '@/services/wordspace';
+import {
+  Workspace,
+  WorkspaceCreateTopicPayload,
+} from '@/services/types/workspace';
+import { createTopicWorkspace, getMyWorkspace } from '@/services/wordspace';
 import toast from 'react-hot-toast';
+import RoadmapSection from '@/components/RoadmapComponents/RoadmapSection';
+import { Roadmap } from '@/services/types/roadmap';
+import { Card } from '@heroui/react';
+import { TopicCard } from '@/components/vocabulary/TopicCard';
 
 export default function MyWorkspacePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [folderName, setFolderName] = useState('');
   const [description, setDescription] = useState('');
+  const [myWorkspace, setMyWorkspace] = useState<Workspace | null>(null);
 
   const handleClose = () => {
     setIsModalOpen(false);
@@ -41,12 +49,23 @@ export default function MyWorkspacePage() {
       setIsModalOpen(false);
       setFolderName('');
       setDescription('');
+      loadWorkspace(); // Reload topics after creation
     } else {
       // Handle error case
       toast.error('Failed to create folder. Please try again.');
     }
   };
 
+  const loadWorkspace = async () => {
+    const workspace = await getMyWorkspace();
+    if (workspace) {
+      setMyWorkspace(workspace);
+    }
+  };
+
+  useEffect(() => {
+    loadWorkspace();
+  }, []);
   return (
     <div className="w-full p-6">
       <div className="mb-8">
@@ -63,7 +82,7 @@ export default function MyWorkspacePage() {
           onPress={() => setIsModalOpen(true)}
           className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-sm"
         >
-          New Folder
+          New Topic
         </CustomButton>
       </div>
 
@@ -131,7 +150,67 @@ export default function MyWorkspacePage() {
         </ModalContent>
       </Modal>
 
-      {/* Other components like CategorySection can be added here */}
+      {/* Main Content */}
+      <div className="w-full px-6 pb-8">
+        <div className="space-y-6">
+          <div className="mb-6 text-center mt-4">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              Your Topics
+            </h2>
+            <p className="text-gray-600">
+              Select a category to view available topics and start learning.
+            </p>
+          </div>
+
+          <div className="space-y-8">
+            {/* Topics Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {myWorkspace?.topics?.length ? (
+                myWorkspace?.topics?.map((topic) => (
+                  <TopicCard key={topic.id} topic={topic} isWorkspace={true} />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <Icon
+                    icon="material-symbols:quiz-outline"
+                    className="text-gray-300 text-6xl mb-4 mx-auto"
+                  />
+                  <p className="text-gray-500">
+                    No topics available in this category
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Empty State */}
+          {myWorkspace && (
+            <div className="text-center py-12 bg-white rounded-lg border border-gray-200 max-w-2xl mx-auto">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg
+                  className="w-8 h-8 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No courses available yet
+              </h3>
+              <p className="text-gray-500">
+                Check back later for new vocabulary courses.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

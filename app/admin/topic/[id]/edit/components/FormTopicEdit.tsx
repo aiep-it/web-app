@@ -61,7 +61,7 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId }) => {
       const [topicData, contentRes, lookupRes] = await Promise.all([
         getTopicId(topicId),
         getItems<TopicContentCMS>(COLLECTIONS.NodeContent, {
-          filter: { topicId: { _eq: topicId } },
+          filter: { nodeId: { _eq: topicId } },
         }),
         getItems<LookupContent>(COLLECTIONS.Lookup, {
           filter: { type: { _eq: LOOKUP_KEY.SuggestionLevel } },

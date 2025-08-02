@@ -145,3 +145,58 @@ export async function aiGenerate(topicId: string) {
     return [];
   }
 }
+
+
+
+export async function getByTopicId(topicId: string) {
+  try {
+    return await axiosInstance
+      .get(ENDPOINTS.VOCAB.GET_ALL_BY_TOPIC_ID(topicId))
+      .then((response) => {
+        if (response.status === 200) {
+          return response.data;
+        }
+
+        return null;
+      })
+      .catch((e) => {
+        console.error('Error creating vocabulary:', e);
+
+        return null;
+      });
+  } catch (error) {
+    console.error('Error creating vocabulary:', error);
+
+    return null;
+  }
+}
+
+export async function genByImage(file: File) {
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    return await axiosInstance
+      .post(ENDPOINTS.AI.GEN_FROM_IMAGE, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          return response.data;
+        }
+
+        return null;
+      })
+      .catch((e) => {
+        console.error('Error generating vocabulary by image:', e);
+
+        return null;
+      });
+  } catch (error) {
+    console.error('Error generating vocabulary by image:', error);
+
+    return null;
+  }
+}
