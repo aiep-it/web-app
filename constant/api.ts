@@ -31,11 +31,26 @@ export const ENDPOINTS = {
     GET_BY_TOPIC_ID: (topicId: string) => `/vocabs/topic/${topicId}`,
     AI_GENRATE: `/vocabs/ai/gen`,
   },
+  STUDENT: {
+    GET_ALL: '/students',
+    CREATE: '/students/create',
+    IMPORT: '/students/bulk-import',
+    UPDATE: (id: string) => `/students/${id}`,
+    DELETE: (id: string) => `/students/${id}`,
+    CHANGE_MY_PASSWORD: '/students/me/change-password',
+  },
   EXERCISE: {
     GET_ALL: "/exercises",
     CREATE: '/exercises',
     GET_BY_EXERCISE_ID: (exerciseId: string) => `/exercises/${exerciseId}`,
     UPDATE: (id: string) => `/exercises/${id}`,
     DELETE: (id: string) => `/exercises/${id}`,
+  },
+  WORK_SPACE: {
+    GET_ALL: "/workspaces",
+    GET_BY_ID: (id: string) => `/workspaces/${id}`,
+    CREATE_TOPIC: "/workspace/topics",
+    UPDATE: (id: string) => `/workspaces/${id}`,
+    DELETE: (id: string) => `/workspaces/${id}`,
   }
 };

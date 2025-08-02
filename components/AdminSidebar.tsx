@@ -6,7 +6,7 @@ import { Logo } from '@/components/icons';
 const menuItems = [
   { group: "Data", items: [
     { name: "Dashboard", icon: "lucide:layout-dashboard", href: "/admin/dashboard" },
-    { name: "Users", icon: "lucide:users", href: "/admin/users" },
+    { name: "Users", icon: "lucide:users", href: "/admin/usermanage" },
     { name: "Invoices", icon: "lucide:file-text", href: "/admin/invoices" },
   ]},
   { group: "Content", items: [

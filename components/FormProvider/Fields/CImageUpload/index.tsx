@@ -71,7 +71,7 @@ const CImageUpload = forwardRef<HTMLInputElement, Props>(
                   id="background-upload"
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
+                  onChange={(e: any) => {
                     const file = e.target.files?.[0] || null;
                     onChange(file);
                   }}
