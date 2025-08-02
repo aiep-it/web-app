@@ -9,10 +9,11 @@ import { useRoadmaps } from '@/hooks/useRoadmaps';
 import { useTopics } from '@/hooks/useTopics';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/rootReducer';
-import Link from 'next/link';
 import { Icon } from '@iconify/react';
 import { useVocabsSafe } from '@/hooks/useVocabsSafe';
 import { VocabColumn } from '@/services/types/vocab';
+import { useAuth } from '@clerk/nextjs';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface RoadmapSectionProps {
   roadmap: Roadmap;
@@ -84,6 +85,11 @@ export default function LearnVocabularyPage() {
   const { getVocabs, loading: vocabsLoading, error: vocabsError } = useVocabsSafe();
   const [loadingTopics, setLoadingTopics] = useState<Record<string, boolean>>({});
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  
+  // Clerk authentication hooks
+  const { isLoaded, isSignedIn, getToken } = useAuth();
+  const { userRole, isRoleLoading } = useUserRole();
 
   // Get all topics from Redux outside of the render loop
   const allTopicsByRoadmap = useSelector((state: RootState) => state.topic.topicsByRoadmap);
@@ -91,23 +97,21 @@ export default function LearnVocabularyPage() {
   // Debug: Get vocab state for logging
   const vocabState = useSelector((state: RootState) => state.vocab);
   
-  // Check authentication status
+  // Client-side hydration check
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setAuthError("Please log in to access vocabulary learning features");
-    } else {
-      setAuthError(null);
-    }
+    setIsClient(true);
   }, []);
   
+  // Check authentication status - wait for Clerk to load
   useEffect(() => {
-    console.log('=== VOCAB STATE DEBUG ===');
-    console.log('Vocab State:', vocabState);
-    console.log('Total vocabs:', vocabState.vocabs.length);
-    console.log('Vocabs by topic:', vocabState.vocabsByTopic);
-    console.log('Sample vocabs:', vocabState.vocabs.slice(0, 3));
-  }, [vocabState]);
+    if (isClient && isLoaded) {
+      if (!isSignedIn) {
+        setAuthError("Please log in to access vocabulary learning features");
+      } else {
+        setAuthError(null);
+      }
+    }
+  }, [isClient, isLoaded, isSignedIn]);
 
   // Memoize roadmap IDs to avoid unnecessary re-computation
   const roadmapIds = useMemo(() => roadmaps.map(r => r.id), [roadmaps]);
@@ -115,7 +119,9 @@ export default function LearnVocabularyPage() {
   // Load topics for all roadmaps và vocabularies
   useEffect(() => {
     const loadAllData = async () => {
-      if (roadmaps.length > 0) {
+      // Only proceed if Clerk is loaded and user is signed in
+      if (roadmaps.length > 0 && isClient && isLoaded && isSignedIn) {
+        
         // Set loading state for topics
         const newLoadingState: Record<string, boolean> = {};
         roadmaps.forEach((roadmap) => {
@@ -132,11 +138,8 @@ export default function LearnVocabularyPage() {
 
           await Promise.all(topicsPromises);
           
-          // After topics are loaded, load vocabularies
-          console.log('Topics loaded, now loading vocabularies...');
-          
-          // Check authentication before loading vocabs
-          const token = localStorage.getItem("token");
+          // Get token from Clerk
+          const token = await getToken();        
           if (token) {
             const result = await getVocabs({
               page: 1,
@@ -153,7 +156,7 @@ export default function LearnVocabularyPage() {
               console.log('Vocabularies loaded successfully:', result);
             }
           } else {
-            console.log('No auth token found, skipping vocab load');
+            console.log('No Clerk token found, skipping vocab load');
           }
           
         } catch (error) {
@@ -168,7 +171,6 @@ export default function LearnVocabularyPage() {
             console.error('Error details:', errorDetails);
             
             if ((error as any).response?.status === 403) {
-              console.error('Authentication failed - user might need to login again');
               setAuthError("Authentication failed. Please log in again.");
             }
           }
@@ -180,11 +182,19 @@ export default function LearnVocabularyPage() {
           });
           setLoadingTopics(newLoadingState);
         }
+      } else {
+        console.log('Not loading data yet - waiting for:', {
+          roadmapsLoaded: roadmaps.length > 0,
+          isClient,
+          clerkIsLoaded: isLoaded,
+          userIsSignedIn: isSignedIn
+        });
       }
     };
 
     loadAllData();
-  }, [roadmapIds, getTopicsByRoadmap, getVocabs]); // Combined dependencies
+  }, [roadmapIds, getTopicsByRoadmap, getVocabs, isClient, isLoaded, isSignedIn, getToken]); // Added Clerk dependencies
+
 
   if (isLoading) {
     return (
@@ -235,39 +245,39 @@ export default function LearnVocabularyPage() {
   }
 
   // Show authentication error if user is not logged in
-  if (authError) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md">
-          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg
-              className="w-8 h-8 text-yellow-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            Authentication Required
-          </h2>
-          <p className="text-gray-600 mb-6">{authError}</p>
-          <Link
-            href="/sign-in"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-block"
-          >
-            Go to Login
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // if (authError) {
+  //   return (
+  //     <div className="flex h-screen w-full items-center justify-center bg-gray-50">
+  //       <div className="text-center max-w-md">
+  //         <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+  //           <svg
+  //             className="w-8 h-8 text-yellow-500"
+  //             fill="none"
+  //             stroke="currentColor"
+  //             viewBox="0 0 24 24"
+  //           >
+  //             <path
+  //               strokeLinecap="round"
+  //               strokeLinejoin="round"
+  //               strokeWidth={2}
+  //               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+  //             />
+  //           </svg>
+  //         </div>
+  //         <h2 className="text-xl font-semibold text-gray-800 mb-2">
+  //           Authentication Required
+  //         </h2>
+  //         <p className="text-gray-600 mb-6">{authError}</p>
+  //         <Link
+  //           href="/sign-in"
+  //           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-block"
+  //         >
+  //           Go to Login
+  //         </Link>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50">
