@@ -36,7 +36,7 @@ interface AdminSidebarProps {
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ isExpanded, onToggle }) => {
   return (
-    <aside className={`bg-black text-white h-screen flex flex-col border border-gray-700  transition-all duration-300 ${isExpanded ? 'w-64' : 'w-20'}`}>
+    <aside className={`bg-black text-white min-h-screen flex flex-col border border-gray-700 transition-all duration-300 ${isExpanded ? 'w-64' : 'w-20'}`}>
       <div className="p-4 flex items-center justify-between">
         <Logo />
         <button onClick={onToggle} className="p-2 rounded-full hover:bg-gray-800">

@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { ExerciseData, ExercisePayload } from '@/services/types/exercise';
-import { createQuiz, getAllExercises, getExerciseById, updateExercise } from '@/services/exercise';
+import { createQuiz, getAllExercises, getExerciseById, updateExercise, deleteExercise } from '@/services/exercise';
 
 // State interface
 interface ExerciseState {
@@ -80,6 +80,21 @@ export const updateExerciseById = createAsyncThunk(
       return exercise;
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to update exercise');
+    }
+  }
+);
+
+export const deleteExerciseById = createAsyncThunk(
+  'exercise/deleteExercise',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const success = await deleteExercise(id);
+      if (!success) {
+        return rejectWithValue('Failed to delete exercise');
+      }
+      return id;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to delete exercise');
     }
   }
 );
@@ -218,6 +233,34 @@ const exerciseSlice = createSlice({
         state.updateLoading = false;
         state.error = action.payload as string;
       });
+
+    // Delete exercise
+    builder
+      .addCase(deleteExerciseById.pending, (state) => {
+        state.deleteLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteExerciseById.fulfilled, (state, action) => {
+        state.deleteLoading = false;
+        const deletedId = action.payload;
+        
+        // Remove from exercises array
+        state.exercises = state.exercises.filter(ex => ex.id !== deletedId);
+        
+        // Remove from exercisesByTopic
+        Object.keys(state.exercisesByTopic).forEach(topicId => {
+          state.exercisesByTopic[topicId] = state.exercisesByTopic[topicId].filter(ex => ex.id !== deletedId);
+        });
+        
+        // Clear current exercise if it's the deleted one
+        if (state.currentExercise?.id === deletedId) {
+          state.currentExercise = null;
+        }
+      })
+      .addCase(deleteExerciseById.rejected, (state, action) => {
+        state.deleteLoading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 
@@ -239,6 +282,7 @@ export const selectExerciseLoading = (state: { exercise: ExerciseState }) => sta
 export const selectExerciseError = (state: { exercise: ExerciseState }) => state.exercise.error;
 export const selectExerciseCreateLoading = (state: { exercise: ExerciseState }) => state.exercise.createLoading;
 export const selectExerciseUpdateLoading = (state: { exercise: ExerciseState }) => state.exercise.updateLoading;
+export const selectExerciseDeleteLoading = (state: { exercise: ExerciseState }) => state.exercise.deleteLoading;
 
 // Export reducer
 export default exerciseSlice.reducer;

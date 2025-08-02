@@ -262,7 +262,7 @@ const TopicCard: React.FC<{
           }}
         >
           <div className="flex items-center justify-center gap-2">
-            <span>Do exercise</span>
+            <span>Quiz</span>
             {isCompleted || progress === 100 ? (
               <span className="text-xs bg-green-400 px-2 py-1 rounded">✓</span>
             ) : (
@@ -352,6 +352,11 @@ export const TopicModal: React.FC<TopicModalProps> = ({
   const handleDoExercise = (topicId: string) => {
     onClose();
     router.push(`/learn-vocabulary/exercise/${topicId}/quiz`);
+  };
+
+  const handleTypeAnswer = (topicId: string) => {
+    onClose();
+    router.push(`/learn-vocabulary/exercise/${topicId}/type-answer`);
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {

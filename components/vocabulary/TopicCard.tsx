@@ -7,7 +7,7 @@ import { selectVocabsByTopic } from '@/store/slices/vocabSlice';
 import { VocabLearningModal } from './VocabLearningModal';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getFullPathFile } from '@/utils/expections';
+import { getCmsAssetUrl } from '@/utils/index';
 import useVocabsSafe from '@/hooks/useVocabsSafe';
 import { VocabColumn } from '@/services/types/vocab';
 
@@ -82,7 +82,7 @@ export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
         <img
           src={
             topic.coverImage
-              ? getFullPathFile(topic.coverImage)
+              ? getCmsAssetUrl(topic.coverImage)
               : DEFAULT_TOPIC_IMAGE
           }
           alt={topic.title}

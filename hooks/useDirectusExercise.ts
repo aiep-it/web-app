@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { 
   createExerciseInDirectus, 
   updateExerciseInDirectus, 
@@ -10,8 +10,8 @@ import {
 } from '@/services/cms/exercise';
 
 export interface UseDirectusExerciseResult {
-  createExercise: (payload: ExerciseCreatePayload, imageFile?: File) => Promise<DirectusExercise | null>;
-  updateExercise: (payload: ExerciseUpdatePayload, imageFile?: File) => Promise<DirectusExercise | null>;
+  createExercise: (payload: ExerciseCreatePayload, file?: File) => Promise<DirectusExercise | null>;
+  updateExercise: (payload: ExerciseUpdatePayload, file?: File) => Promise<DirectusExercise | null>;
   getExercises: () => Promise<DirectusExercise[]>;
   isCreating: boolean;
   isUpdating: boolean;
@@ -23,18 +23,26 @@ export const useDirectusExercise = (): UseDirectusExerciseResult => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
 
-  const createExercise = async (
+  const createExercise = useCallback(async (
     payload: ExerciseCreatePayload,
-    imageFile?: File
+    file?: File
   ): Promise<DirectusExercise | null> => {
     setIsCreating(true);
     try {
       let finalPayload = { ...payload };
 
-      if (imageFile) {
-        const imageUuid = await uploadFileToDirectus(imageFile);
-        if (imageUuid) {
-          finalPayload.exerciseImage = imageUuid;
+      if (file) {
+        // Determine folder based on file type
+        const folder = file.type.startsWith('image/') ? 'images' : 'audio';
+        const fileUuid = await uploadFileToDirectus(file, folder);
+        
+        if (fileUuid) {
+          // Set the appropriate field based on exercise type
+          if (payload.type === 'image') {
+            finalPayload.exerciseImage = fileUuid;
+          } else if (payload.type === 'audio') {
+            finalPayload.audio = fileUuid;
+          }
         }
       }
 
@@ -45,20 +53,28 @@ export const useDirectusExercise = (): UseDirectusExerciseResult => {
     } finally {
       setIsCreating(false);
     }
-  };
+  }, []);
 
-  const updateExercise = async (
+  const updateExercise = useCallback(async (
     payload: ExerciseUpdatePayload,
-    imageFile?: File
+    file?: File
   ): Promise<DirectusExercise | null> => {
     setIsUpdating(true);
     try {
       let finalPayload = { ...payload };
 
-      if (imageFile) {
-        const imageUuid = await uploadFileToDirectus(imageFile);
-        if (imageUuid) {
-          finalPayload.exerciseImage = imageUuid;
+      if (file) {
+        // Determine folder based on file type
+        const folder = file.type.startsWith('image/') ? 'images' : 'audio';
+        const fileUuid = await uploadFileToDirectus(file, folder);
+        
+        if (fileUuid) {
+          // Set the appropriate field based on exercise type
+          if (payload.type === 'image') {
+            finalPayload.exerciseImage = fileUuid;
+          } else if (payload.type === 'audio') {
+            finalPayload.audio = fileUuid;
+          }
         }
       }
 
@@ -69,9 +85,9 @@ export const useDirectusExercise = (): UseDirectusExerciseResult => {
     } finally {
       setIsUpdating(false);
     }
-  };
+  }, []);
 
-  const getExercises = async (): Promise<DirectusExercise[]> => {
+  const getExercises = useCallback(async (): Promise<DirectusExercise[]> => {
     setIsFetching(true);
     try {
       return await getExercisesFromDirectus();
@@ -81,7 +97,7 @@ export const useDirectusExercise = (): UseDirectusExerciseResult => {
     } finally {
       setIsFetching(false);
     }
-  };
+  }, []);
 
   return {
     createExercise,

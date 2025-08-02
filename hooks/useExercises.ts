@@ -7,6 +7,7 @@ import {
   fetchExerciseById,
   createExercise,
   updateExerciseById,
+  deleteExerciseById,
   clearError,
   clearCurrentExercise,
   setCurrentExercise,
@@ -19,6 +20,7 @@ import {
   selectExerciseError,
   selectExerciseCreateLoading,
   selectExerciseUpdateLoading,
+  selectExerciseDeleteLoading,
 } from '@/store/slices/exerciseSlice';
 import { ExercisePayload } from '@/services/types/exercise';
 
@@ -32,6 +34,7 @@ export function useExercises() {
   const error = useAppSelector(selectExerciseError);
   const isCreateLoading = useAppSelector(selectExerciseCreateLoading);
   const isUpdateLoading = useAppSelector(selectExerciseUpdateLoading);
+  const isDeleteLoading = useAppSelector(selectExerciseDeleteLoading);
 
   // Actions
   const getAllExercises = useCallback(async () => {
@@ -74,6 +77,16 @@ export function useExercises() {
     }
   }, [dispatch]);
 
+  const deleteExercise = useCallback(async (id: string) => {
+    try {
+      await dispatch(deleteExerciseById(id)).unwrap();
+      return true;
+    } catch (error) {
+      console.error('Error deleting exercise:', error);
+      throw error;
+    }
+  }, [dispatch]);
+
   const getExercisesByTopic = useCallback((topicId: string) => {
     return useAppSelector(state => selectExercisesByTopic(state, topicId));
   }, []);
@@ -107,6 +120,7 @@ export function useExercises() {
     isLoading,
     isCreateLoading,
     isUpdateLoading,
+    isDeleteLoading,
     
     // Error
     error,
@@ -116,6 +130,7 @@ export function useExercises() {
     getExerciseById,
     createNewExercise,
     updateExercise,
+    deleteExercise,
     getExercisesByTopic,
     
     // Utility actions

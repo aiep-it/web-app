@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
-import { Card, CardBody, CardHeader, Button, Chip, Spinner } from '@heroui/react';
+import React, { useState } from 'react';
+import { Card, CardBody, CardHeader, Button, Chip, Spinner, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { ExerciseData } from '@/services/types/exercise';
+import { CustomButton } from '@/shared/components';
 
 interface TypeAnswerListProps {
   exercises: ExerciseData[];
@@ -11,6 +12,7 @@ interface TypeAnswerListProps {
   error?: string | null;
   onExerciseSelect: (exercise: ExerciseData) => void;
   onExerciseEdit: (exercise: ExerciseData) => void;
+  onExerciseDelete?: (exercise: ExerciseData) => void;
   selectedExerciseId?: string;
 }
 
@@ -20,8 +22,36 @@ export function TypeAnswerList({
   error, 
   onExerciseSelect, 
   onExerciseEdit,
+  onExerciseDelete,
   selectedExerciseId 
 }: TypeAnswerListProps) {
+  const [exerciseToDelete, setExerciseToDelete] = useState<ExerciseData | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+  const handleDeleteClick = (exercise: ExerciseData) => {
+    setExerciseToDelete(exercise);
+    onOpen();
+  };
+
+  const handleEditClick = (exercise: ExerciseData) => {
+    onExerciseEdit(exercise);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!exerciseToDelete || !onExerciseDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await onExerciseDelete(exerciseToDelete);
+      onOpenChange();
+      setExerciseToDelete(null);
+    } catch (error) {
+      console.error('Error deleting exercise:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'beginner': return 'success';
@@ -70,9 +100,9 @@ export function TypeAnswerList({
             <Icon icon="mdi:alert-circle" className="text-red-500 text-6xl mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Exercises</h3>
             <p className="text-gray-500 mb-4">{error}</p>
-            <Button color="primary" variant="light">
+            <CustomButton preset="outline">
               Try Again
-            </Button>
+            </CustomButton>
           </div>
         </CardBody>
       </Card>
@@ -89,7 +119,7 @@ export function TypeAnswerList({
         </div>
       </CardHeader>
 
-      <CardBody className="p-0">
+      <CardBody className="p-0 h-[calc(75vh-100px)] overflow-y-auto">
         {exercises.length === 0 ? (
           <div className="text-center py-12 px-6">
             <Icon icon="mdi:image-plus" className="text-gray-300 text-6xl mx-auto mb-4" />
@@ -139,19 +169,32 @@ export function TypeAnswerList({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    <Button
+                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <CustomButton
                       isIconOnly
                       size="sm"
-                      variant="light"
-                      onPress={(e) => {
-                        (e as any).stopPropagation();
-                        onExerciseEdit(exercise);
-                      }}
-                      className="text-gray-400 hover:text-purple-600"
+                      preset="ghost"
+                      icon="mdi:pencil"
+                      iconSize={16}
+                      onPress={() => handleEditClick(exercise)}
+                      className="text-gray-400 hover:text-purple-600 min-w-8 h-8"
                     >
-                      <Icon icon="mdi:pencil" />
-                    </Button>
+                      <span className="sr-only">Edit</span>
+                    </CustomButton>
+                    
+                    {onExerciseDelete && (
+                      <CustomButton
+                        isIconOnly
+                        size="sm"
+                        preset="ghost"
+                        icon="mdi:delete"
+                        iconSize={16}
+                        onPress={() => handleDeleteClick(exercise)}
+                        className="text-gray-400 hover:text-red-600 min-w-8 h-8"
+                      >
+                        <span className="sr-only">Delete</span>
+                      </CustomButton>
+                    )}
                   </div>
                 </div>
               </div>
@@ -159,6 +202,57 @@ export function TypeAnswerList({
           </div>
         )}
       </CardBody>
+
+      {/* Delete Confirmation Modal */}
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <Icon icon="mdi:delete" className="text-red-500 text-xl" />
+                  <span>Delete Exercise</span>
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-gray-600">
+                  Are you sure you want to delete this exercise? This action cannot be undone.
+                </p>
+                {exerciseToDelete && (
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Icon 
+                        icon={getTypeIcon(exerciseToDelete.type)} 
+                        className={`text-lg ${getTypeColor(exerciseToDelete.type)}`}
+                      />
+                      <span className="font-medium">
+                        {exerciseToDelete.content || 'No content'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </ModalBody>
+              <ModalFooter>
+                <CustomButton
+                  preset="ghost"
+                  onPress={onClose}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </CustomButton>
+                <CustomButton
+                  preset="danger"
+                  loading={isDeleting}
+                  loadingText="Deleting..."
+                  onPress={handleConfirmDelete}
+                >
+                  Delete
+                </CustomButton>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </Card>
   );
 }

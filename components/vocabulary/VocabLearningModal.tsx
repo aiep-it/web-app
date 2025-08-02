@@ -380,7 +380,7 @@ export function VocabLearningModal({
                 router.push(`/learn-vocabulary/exercise/${topic.id}/quiz`);
               }}
             >
-              Do exercise
+              Quiz
               {progress.percentage === 100 ? (
                 <Chip size="sm" color="success" variant="flat" className="ml-2">
                   ✓
@@ -390,6 +390,19 @@ export function VocabLearningModal({
                   TEST
                 </Chip>
               )}
+            </CustomButton>
+          )}
+          {/* Type Answer Button */}
+          {topicVocabs.length > 0 && (
+            <CustomButton
+              preset="primary"
+              icon="material-symbols:edit"
+              onPress={() => {
+                onClose();
+                router.push(`/learn-vocabulary/exercise/${topic.id}/type-answer`);
+              }}
+            >
+              Type Answer
             </CustomButton>
           )}
           {progress.percentage === 100 && (

@@ -10,7 +10,7 @@ import { getCmsAssetUrl } from '@/utils';
 
 interface TypeAnswerEditorProps {
   exercise?: ExerciseData;
-  onSave: (exerciseData: Partial<ExerciseData>, imageFile?: File) => void;
+  onSave: (exerciseData: Partial<ExerciseData>, imageFile?: File, audioFile?: File) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
@@ -26,6 +26,7 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [selectedAudioFile, setSelectedAudioFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (exercise) {
@@ -50,8 +51,9 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
       newErrors.correctAnswer = 'Correct answer is required';
     }
 
-    if (!formData.assetId.trim() && !selectedImageFile) {
-      newErrors.assetId = `${formData.type === 'image' ? 'Image' : 'Audio'} asset is required`;
+    // Only require asset for image type exercises, audio is optional
+    if (formData.type === 'image' && !formData.assetId.trim() && !selectedImageFile) {
+      newErrors.assetId = 'Image asset is required';
     }
 
     setErrors(newErrors);
@@ -70,7 +72,8 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
       options: [], // Type answer exercises don't have options
     };
 
-    onSave(exerciseData, selectedImageFile || undefined);
+    // Pass both image and audio files
+    onSave(exerciseData, selectedImageFile || undefined, selectedAudioFile || undefined);
   };
 
   const handleAssetUpload = (assetId: string) => {
@@ -82,6 +85,13 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
 
   const handleFileSelect = (file: File) => {
     setSelectedImageFile(file);
+    if (errors.assetId) {
+      setErrors(prev => ({ ...prev, assetId: '' }));
+    }
+  };
+
+  const handleAudioFileSelect = (file: File) => {
+    setSelectedAudioFile(file);
     if (errors.assetId) {
       setErrors(prev => ({ ...prev, assetId: '' }));
     }
@@ -163,11 +173,12 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
 
         {formData.type === 'audio' && (
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Audio *</label>
+            <label className="text-sm font-medium text-gray-700">Audio (Optional)</label>
             <TypeAnswerAudioUpload
               onAudioUploaded={handleAssetUpload}
-              currentAudioUrl={formData.assetId}
-              placeholder="Upload an audio file for the exercise"
+              onFileSelect={handleAudioFileSelect}
+              currentAudioUrl={exercise?.audioUrl || (formData.assetId ? getCmsAssetUrl(formData.assetId) : undefined)}
+              placeholder="Upload an audio file for the exercise (optional)"
             />
             {errors.assetId && (
               <p className="text-sm text-red-500">{errors.assetId}</p>

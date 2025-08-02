@@ -14,6 +14,7 @@ import { TypeAnswerEditor } from '@/components/TypeAnswer/TypeAnswerEditor';
 import { TypeAnswerList } from '@/components/TypeAnswer/TypeAnswerList';
 import { mergeExercisesWithDirectusData } from '@/utils/exerciseHelper';
 import { ExerciseData } from '@/services/types/exercise';
+import { CustomButton } from '@/shared/components';
 
 export default function TypeAnswerExercisePage() {
   const params = useParams();
@@ -24,8 +25,10 @@ export default function TypeAnswerExercisePage() {
     getAllExercises,
     createNewExercise, 
     updateExercise,
+    deleteExercise,
     isCreateLoading,
-    isUpdateLoading 
+    isUpdateLoading,
+    isDeleteLoading
   } = useExercises();
   
   // Directus Exercise hooks
@@ -74,6 +77,7 @@ export default function TypeAnswerExercisePage() {
   const [previewAnswer, setPreviewAnswer] = useState('');
   const [showPreviewResult, setShowPreviewResult] = useState(false);
   const [mergedExercises, setMergedExercises] = useState<ExerciseData[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Filter exercises for this topic that are image or audio type
   const typeAnswerExercises = mergedExercises.filter(exercise => 
@@ -130,15 +134,28 @@ export default function TypeAnswerExercisePage() {
         userIsSignedIn: isSignedIn
       });
     }
-  }, [topicId, getAllExercises, router, isClient, isLoaded, isSignedIn, getToken]);
+  }, [topicId, router, isClient, isLoaded, isSignedIn, getToken]); // Removed getAllExercises
 
   // Merge exercises with Directus data when exercises change
   useEffect(() => {
     const mergeWithDirectusData = async () => {
+      console.log('Merging exercises with Directus data...', { 
+        exercisesCount: exercises?.length || 0, 
+        refreshTrigger 
+      });
+      
       if (exercises && exercises.length > 0) {
         try {
           const directusExercises = await getDirectusExercises();
+          console.log('Directus exercises fetched:', directusExercises.length);
+          
           const merged = mergeExercisesWithDirectusData(exercises, directusExercises);
+          console.log('Merged exercises:', { 
+            originalCount: exercises.length, 
+            directusCount: directusExercises.length,
+            mergedCount: merged.length 
+          });
+          
           setMergedExercises(merged);
         } catch (error) {
           console.error('Error merging with Directus data:', error);
@@ -146,14 +163,15 @@ export default function TypeAnswerExercisePage() {
           setMergedExercises(exercises);
         }
       } else {
+        console.log('No exercises to merge, setting empty array');
         setMergedExercises([]);
       }
     };
 
     mergeWithDirectusData();
-  }, [exercises]);
+  }, [exercises, refreshTrigger]); // Added refreshTrigger to force refresh
 
-  const handleCreateExercise = async (exerciseData: Partial<ExerciseData>, imageFile?: File) => {
+  const handleCreateExercise = async (exerciseData: Partial<ExerciseData>, imageFile?: File, audioFile?: File) => {
     if (!topicId || !currentUser) {
       addToast({
         title: "Error",
@@ -188,16 +206,18 @@ export default function TypeAnswerExercisePage() {
         userId: currentUser.id
       } as any);
       
-      // If main API creation is successful and this is an image type exercise
-      if (exerciseData.type === 'image') {
-        // Create in Directus CMS for image type exercises
+      // Create in Directus CMS for both image and audio type exercises
+      if (exerciseData.type === 'image' || exerciseData.type === 'audio') {
         const directusPayload = {
           exerciseId: mainApiResult?.id || topicId, // Use the created exercise ID or topicId as fallback
           type: exerciseData.type,
-          exerciseImage: exerciseData.assetId, // Use the assetId if available
+          exerciseImage: exerciseData.type === 'image' ? exerciseData.assetId : undefined, // Use the assetId if available for image
+          audio: exerciseData.type === 'audio' ? exerciseData.assetId : undefined, // Use the assetId if available for audio
         };
         
-        await createDirectusExercise(directusPayload, imageFile);
+        // Pass the appropriate file based on exercise type
+        const fileToUpload = exerciseData.type === 'image' ? imageFile : audioFile;
+        await createDirectusExercise(directusPayload, fileToUpload);
       }
       
       addToast({
@@ -207,8 +227,16 @@ export default function TypeAnswerExercisePage() {
       });
       
       setCurrentView('list');
+      
       // Refresh exercises after creation
+      console.log('Refreshing exercises after creation...');
       await getAllExercises();
+      
+      // Small delay to ensure Directus has processed the creation
+      setTimeout(() => {
+        console.log('Triggering merge refresh...');
+        setRefreshTrigger(prev => prev + 1);
+      }, 500);
     } catch (error) {
       console.error('Error creating exercise:', error);
       
@@ -241,7 +269,7 @@ export default function TypeAnswerExercisePage() {
     }
   };
 
-  const handleUpdateExercise = async (exerciseData: Partial<ExerciseData>, imageFile?: File) => {
+  const handleUpdateExercise = async (exerciseData: Partial<ExerciseData>, imageFile?: File, audioFile?: File) => {
     if (!selectedExercise || !topicId || !currentUser) {
       console.error('Missing required data for update:', { 
         selectedExercise: !!selectedExercise, 
@@ -277,17 +305,18 @@ export default function TypeAnswerExercisePage() {
       // First update exercise in your main API
       const mainApiResult = await updateExercise(selectedExercise.id.toString(), updatePayload as any);
       
-      // If main API update is successful and this is an image type exercise
-      if (exerciseData.type === 'image') {
-        // Update in Directus CMS for image type exercises
+      // Update in Directus CMS for both image and audio type exercises
+      if (exerciseData.type === 'image' || exerciseData.type === 'audio') {
         const directusPayload = {
-          id: selectedExercise.directusId || selectedExercise.id, // Assume we store directus ID
           exerciseId: selectedExercise.id,
           type: exerciseData.type,
-          exerciseImage: exerciseData.assetId, // Use the assetId if available
+          exerciseImage: exerciseData.type === 'image' ? exerciseData.assetId : undefined, // Use the assetId if available for image
+          audio: exerciseData.type === 'audio' ? exerciseData.assetId : undefined, // Use the assetId if available for audio
         };
         
-        await updateDirectusExercise(directusPayload, imageFile);
+        // Pass the appropriate file based on exercise type
+        const fileToUpload = exerciseData.type === 'image' ? imageFile : audioFile;
+        await updateDirectusExercise(directusPayload, fileToUpload);
       }
       
       addToast({
@@ -298,8 +327,14 @@ export default function TypeAnswerExercisePage() {
       
       setCurrentView('list');
       setSelectedExercise(null);
+      
       // Refresh exercises after update
       await getAllExercises();
+      
+      // Small delay to ensure Directus has processed the update
+      setTimeout(() => {
+        setRefreshTrigger(prev => prev + 1);
+      }, 500);
     } catch (error) {
       console.error('Error updating exercise:', error);
       
@@ -359,6 +394,37 @@ export default function TypeAnswerExercisePage() {
     setShowPreviewResult(false);
   };
 
+  const handleDeleteExercise = async (exercise: ExerciseData) => {
+    try {
+      await deleteExercise(exercise.id.toString());
+      
+      addToast({
+        title: "Success",
+        description: "Exercise deleted successfully!",
+        color: "success",
+      });
+      
+      // If the deleted exercise was selected, clear selection
+      if (selectedExercise?.id === exercise.id) {
+        setSelectedExercise(null);
+        setCurrentView('list');
+      }
+      
+      // Refresh exercises after deletion
+      await getAllExercises();
+      
+      // Trigger a refresh of merged exercises
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      console.error('Error deleting exercise:', error);
+      addToast({
+        title: "Error",
+        description: "Failed to delete exercise. Please try again.",
+        color: "danger",
+      });
+    }
+  };
+
   if (!topicId) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -391,12 +457,12 @@ export default function TypeAnswerExercisePage() {
             Authentication Required
           </h2>
           <p className="text-gray-600 mb-6">{authError}</p>
-          <Button
-            color="primary"
+          <CustomButton
+            preset="primary"
             onPress={() => router.push('/sign-in')}
           >
             Go to Login
-          </Button>
+          </CustomButton>
         </div>
       </div>
     );
@@ -409,13 +475,16 @@ export default function TypeAnswerExercisePage() {
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
-              <Button
+              <CustomButton
                 isIconOnly
-                variant="light"
+                preset="ghost"
+                icon="mdi:arrow-left"
+                iconSize={20}
                 onPress={() => router.back()}
+                className="min-w-10 h-10"
               >
-                <Icon icon="mdi:arrow-left" className="text-xl" />
-              </Button>
+                <span className="sr-only">Back</span>
+              </CustomButton>
               
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">Type Answer Exercises</h1>
@@ -424,13 +493,13 @@ export default function TypeAnswerExercisePage() {
             </div>
 
             {currentView === 'list' && (
-              <Button
-                color="primary"
-                startContent={<Icon icon="mdi:plus" />}
+              <CustomButton
+                preset="primary"
+                icon="mdi:plus"
                 onPress={() => setCurrentView('create')}
               >
                 Create Exercise
-              </Button>
+              </CustomButton>
             )}
           </div>
         </div>
@@ -456,14 +525,13 @@ export default function TypeAnswerExercisePage() {
                   <p className="text-gray-500 mb-6">
                     Choose an exercise from the list on the right to view or edit it, or create a new one.
                   </p>
-                  <Button
-                    color="primary"
-                    variant="light"
-                    startContent={<Icon icon="mdi:plus" />}
+                  <CustomButton
+                    preset="outline"
+                    icon="mdi:plus"
                     onPress={() => setCurrentView('create')}
                   >
                     Create Your First Type Answer Exercise
-                  </Button>
+                  </CustomButton>
                 </div>
               </div>
             )}
@@ -488,21 +556,21 @@ export default function TypeAnswerExercisePage() {
             {currentView === 'preview' && selectedExercise && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Button
-                    variant="light"
-                    startContent={<Icon icon="mdi:arrow-left" />}
+                  <CustomButton
+                    preset="ghost"
+                    icon="mdi:arrow-left"
                     onPress={handleBackToList}
                   >
                     Back to List
-                  </Button>
+                  </CustomButton>
                   
-                  <Button
-                    variant="light"
-                    startContent={<Icon icon="mdi:pencil" />}
+                  <CustomButton
+                    preset="ghost"
+                    icon="mdi:pencil"
                     onPress={() => handleEditExercise(selectedExercise)}
                   >
                     Edit Exercise
-                  </Button>
+                  </CustomButton>
                 </div>
                 
                 <TypeAnswerDisplay
@@ -516,15 +584,15 @@ export default function TypeAnswerExercisePage() {
                 
                 {showPreviewResult && (
                   <div className="flex justify-center">
-                    <Button
-                      variant="light"
+                    <CustomButton
+                      preset="ghost"
                       onPress={() => {
                         setPreviewAnswer('');
                         setShowPreviewResult(false);
                       }}
                     >
                       Try Again
-                    </Button>
+                    </CustomButton>
                   </div>
                 )}
               </div>
@@ -539,6 +607,7 @@ export default function TypeAnswerExercisePage() {
               error={error}
               onExerciseSelect={handleExerciseSelect}
               onExerciseEdit={handleEditExercise}
+              onExerciseDelete={handleDeleteExercise}
               selectedExerciseId={selectedExercise?.id}
             />
           </div>
