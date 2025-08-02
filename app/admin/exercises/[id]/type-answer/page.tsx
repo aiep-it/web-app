@@ -8,7 +8,11 @@ import { Icon } from '@iconify/react';
 import { useAuth } from '@clerk/nextjs';
 import { useExercises, useExercisesByTopic } from '@/hooks/useExercises';
 import { useUser } from '@/hooks/useUser';
-import { TypeAnswerEditor, TypeAnswerDisplay, TypeAnswerList } from '@/components/TypeAnswer';
+import { useDirectusExercise } from '@/hooks/useDirectusExercise';
+import { TypeAnswerDisplay } from '@/components/TypeAnswer/TypeAnswerDisplay';
+import { TypeAnswerEditor } from '@/components/TypeAnswer/TypeAnswerEditor';
+import { TypeAnswerList } from '@/components/TypeAnswer/TypeAnswerList';
+import { mergeExercisesWithDirectusData } from '@/utils/exerciseHelper';
 import { ExerciseData } from '@/services/types/exercise';
 
 export default function TypeAnswerExercisePage() {
@@ -23,6 +27,16 @@ export default function TypeAnswerExercisePage() {
     isCreateLoading,
     isUpdateLoading 
   } = useExercises();
+  
+  // Directus Exercise hooks
+  const { 
+    createExercise: createDirectusExercise,
+    updateExercise: updateDirectusExercise,
+    getExercises: getDirectusExercises,
+    isCreating: isCreatingDirectus,
+    isUpdating: isUpdatingDirectus,
+    isFetching: isFetchingDirectus
+  } = useDirectusExercise();
   
   const { currentUser } = useUser();
   const { exercises, isLoading, error } = useExercisesByTopic(topicId);
@@ -59,9 +73,10 @@ export default function TypeAnswerExercisePage() {
   const [selectedExercise, setSelectedExercise] = useState<ExerciseData | null>(null);
   const [previewAnswer, setPreviewAnswer] = useState('');
   const [showPreviewResult, setShowPreviewResult] = useState(false);
+  const [mergedExercises, setMergedExercises] = useState<ExerciseData[]>([]);
 
   // Filter exercises for this topic that are image or audio type
-  const typeAnswerExercises = exercises.filter(exercise => 
+  const typeAnswerExercises = mergedExercises.filter(exercise => 
     exercise.type === 'image' || exercise.type === 'audio'
   );
 
@@ -75,12 +90,10 @@ export default function TypeAnswerExercisePage() {
     if (isClient && isLoaded && isSignedIn) {
       const loadExerciseData = async () => {
         try {
-          console.log('Fetching exercises - authentication confirmed');
-          
           // Get token from Clerk and set it for axios
           const token = await getToken();        
           if (token) {
-            console.log('🔑 CLERK TOKEN FOR TYPE ANSWER EXERCISES:', token);
+            console.log('CLERK TOKEN FOR TYPE ANSWER EXERCISES:', token);
             
             // Import and set the token for axios
             const { setAuthToken } = await import('@/lib/axios');
@@ -88,9 +101,7 @@ export default function TypeAnswerExercisePage() {
             
             // Now fetch exercises with the token set
             await getAllExercises();
-            console.log('Type Answer exercises loaded successfully');
           } else {
-            console.log('No Clerk token found, cannot fetch exercises');
             setAuthError("Authentication failed. Please log in again.");
           }
         } catch (error) {
@@ -121,9 +132,29 @@ export default function TypeAnswerExercisePage() {
     }
   }, [topicId, getAllExercises, router, isClient, isLoaded, isSignedIn, getToken]);
 
-  const handleCreateExercise = async (exerciseData: Partial<ExerciseData>) => {
+  // Merge exercises with Directus data when exercises change
+  useEffect(() => {
+    const mergeWithDirectusData = async () => {
+      if (exercises && exercises.length > 0) {
+        try {
+          const directusExercises = await getDirectusExercises();
+          const merged = mergeExercisesWithDirectusData(exercises, directusExercises);
+          setMergedExercises(merged);
+        } catch (error) {
+          console.error('Error merging with Directus data:', error);
+          // Fallback to original exercises if Directus fetch fails
+          setMergedExercises(exercises);
+        }
+      } else {
+        setMergedExercises([]);
+      }
+    };
+
+    mergeWithDirectusData();
+  }, [exercises]);
+
+  const handleCreateExercise = async (exerciseData: Partial<ExerciseData>, imageFile?: File) => {
     if (!topicId || !currentUser) {
-      console.error('Missing topicId or currentUser:', { topicId, currentUser });
       addToast({
         title: "Error",
         description: "Missing required information to create exercise",
@@ -150,11 +181,24 @@ export default function TypeAnswerExercisePage() {
     });
     
     try {
-      await createNewExercise({
+      // First create exercise in your main API
+      const mainApiResult = await createNewExercise({
         ...exerciseData,
         topicId: topicId, 
         userId: currentUser.id
       } as any);
+      
+      // If main API creation is successful and this is an image type exercise
+      if (exerciseData.type === 'image') {
+        // Create in Directus CMS for image type exercises
+        const directusPayload = {
+          exerciseId: mainApiResult?.id || topicId, // Use the created exercise ID or topicId as fallback
+          type: exerciseData.type,
+          exerciseImage: exerciseData.assetId, // Use the assetId if available
+        };
+        
+        await createDirectusExercise(directusPayload, imageFile);
+      }
       
       addToast({
         title: "Success",
@@ -164,7 +208,7 @@ export default function TypeAnswerExercisePage() {
       
       setCurrentView('list');
       // Refresh exercises after creation
-      getAllExercises();
+      await getAllExercises();
     } catch (error) {
       console.error('Error creating exercise:', error);
       
@@ -197,7 +241,7 @@ export default function TypeAnswerExercisePage() {
     }
   };
 
-  const handleUpdateExercise = async (exerciseData: Partial<ExerciseData>) => {
+  const handleUpdateExercise = async (exerciseData: Partial<ExerciseData>, imageFile?: File) => {
     if (!selectedExercise || !topicId || !currentUser) {
       console.error('Missing required data for update:', { 
         selectedExercise: !!selectedExercise, 
@@ -230,7 +274,21 @@ export default function TypeAnswerExercisePage() {
     };
     
     try {
-      await updateExercise(selectedExercise.id.toString(), updatePayload as any);
+      // First update exercise in your main API
+      const mainApiResult = await updateExercise(selectedExercise.id.toString(), updatePayload as any);
+      
+      // If main API update is successful and this is an image type exercise
+      if (exerciseData.type === 'image') {
+        // Update in Directus CMS for image type exercises
+        const directusPayload = {
+          id: selectedExercise.directusId || selectedExercise.id, // Assume we store directus ID
+          exerciseId: selectedExercise.id,
+          type: exerciseData.type,
+          exerciseImage: exerciseData.assetId, // Use the assetId if available
+        };
+        
+        await updateDirectusExercise(directusPayload, imageFile);
+      }
       
       addToast({
         title: "Success",
@@ -241,7 +299,7 @@ export default function TypeAnswerExercisePage() {
       setCurrentView('list');
       setSelectedExercise(null);
       // Refresh exercises after update
-      getAllExercises();
+      await getAllExercises();
     } catch (error) {
       console.error('Error updating exercise:', error);
       
@@ -477,7 +535,7 @@ export default function TypeAnswerExercisePage() {
           <div className="lg:col-span-1">
             <TypeAnswerList
               exercises={typeAnswerExercises}
-              loading={isLoading}
+              loading={isLoading || isFetchingDirectus}
               error={error}
               onExerciseSelect={handleExerciseSelect}
               onExerciseEdit={handleEditExercise}

@@ -26,9 +26,9 @@ export function TypeAnswerDisplay({
   const [isPlaying, setIsPlaying] = useState(false);
 
   const handleAudioPlay = () => {
-    if (exercise.assetId) {
+    const audioUrl = exercise.audioUrl || (exercise.assetId ? getCmsAssetUrl(exercise.assetId) : null);
+    if (audioUrl) {
       setIsPlaying(true);
-      const audioUrl = getCmsAssetUrl(exercise.assetId);
       const audio = new Audio(audioUrl);
       audio.onended = () => setIsPlaying(false);
       audio.onerror = () => setIsPlaying(false);
@@ -91,12 +91,12 @@ export function TypeAnswerDisplay({
         )}
 
         {/* Media Display */}
-        {exercise.type === 'image' && exercise.assetId && (
+        {exercise.type === 'image' && (exercise.imageUrl || exercise.assetId) && (
           <div className="space-y-2">
             <h4 className="text-md font-medium text-gray-800">Image:</h4>
             <div className="relative rounded-lg overflow-hidden border-2 border-gray-200">
               <img
-                src={getCmsAssetUrl(exercise.assetId)}
+                src={exercise.imageUrl || getCmsAssetUrl(exercise.assetId)}
                 alt="Exercise"
                 className="w-full h-auto max-h-96 object-contain bg-gray-50"
                 onError={(e) => {
@@ -107,7 +107,7 @@ export function TypeAnswerDisplay({
           </div>
         )}
 
-        {exercise.type === 'audio' && exercise.assetId && (
+        {exercise.type === 'audio' && (exercise.audioUrl || exercise.assetId) && (
           <div className="space-y-2">
             <h4 className="text-md font-medium text-gray-800">Audio:</h4>
             <div className="flex items-center justify-center p-8 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border-2 border-dashed border-purple-200">

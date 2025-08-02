@@ -6,10 +6,11 @@ import { Icon } from '@iconify/react';
 import { ExerciseData, Difficulty } from '@/services/types/exercise';
 import { TypeAnswerImageUpload } from './TypeAnswerImageUpload';
 import { TypeAnswerAudioUpload } from './TypeAnswerAudioUpload';
+import { getCmsAssetUrl } from '@/utils';
 
 interface TypeAnswerEditorProps {
   exercise?: ExerciseData;
-  onSave: (exerciseData: Partial<ExerciseData>) => void;
+  onSave: (exerciseData: Partial<ExerciseData>, imageFile?: File) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
@@ -24,6 +25,7 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (exercise) {
@@ -48,7 +50,7 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
       newErrors.correctAnswer = 'Correct answer is required';
     }
 
-    if (!formData.assetId.trim()) {
+    if (!formData.assetId.trim() && !selectedImageFile) {
       newErrors.assetId = `${formData.type === 'image' ? 'Image' : 'Audio'} asset is required`;
     }
 
@@ -68,11 +70,18 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
       options: [], // Type answer exercises don't have options
     };
 
-    onSave(exerciseData);
+    onSave(exerciseData, selectedImageFile || undefined);
   };
 
   const handleAssetUpload = (assetId: string) => {
     setFormData(prev => ({ ...prev, assetId }));
+    if (errors.assetId) {
+      setErrors(prev => ({ ...prev, assetId: '' }));
+    }
+  };
+
+  const handleFileSelect = (file: File) => {
+    setSelectedImageFile(file);
     if (errors.assetId) {
       setErrors(prev => ({ ...prev, assetId: '' }));
     }
@@ -142,7 +151,8 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
             <label className="text-sm font-medium text-gray-700">Image *</label>
             <TypeAnswerImageUpload
               onImageUploaded={handleAssetUpload}
-              currentImageUrl={formData.assetId}
+              onFileSelect={setSelectedImageFile} // Use the new prop for direct file selection
+              currentImageUrl={exercise?.imageUrl || (formData.assetId ? getCmsAssetUrl(formData.assetId) : undefined)}
               placeholder="Upload an image for the exercise"
             />
             {errors.assetId && (
