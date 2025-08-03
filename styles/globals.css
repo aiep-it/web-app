@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Override Tailwind base styles for input and textarea to prevent double borders */
+input, textarea {
+  border: none !important;
+  outline: none !important;
+}
+
 /* Custom animations */
 @keyframes fadeIn {
   from {

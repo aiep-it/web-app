@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/rootReducer';
 import { useAppDispatch } from '@/store/hooks';
@@ -20,27 +20,26 @@ export const useTopics = () => {
     return dispatch(fetchTopicsByRoadmap(roadmapId));
   }, [dispatch]);
   
-  // Helper to get topics by roadmap ID
-  const getTopicsForRoadmap = (roadmapId: string) => {
+  // Helper functions - memoized to prevent recreation
+  const getTopicsForRoadmap = useCallback((roadmapId: string) => {
     return useSelector((state: RootState) => 
       selectTopicsByRoadmap(state, roadmapId)
     );
-  };
+  }, []);
 
-  // Helper to get loading state by roadmap ID
-  const getLoadingForRoadmap = (roadmapId: string) => {
+  const getLoadingForRoadmap = useCallback((roadmapId: string) => {
     return useSelector((state: RootState) => 
       selectTopicLoading(state, roadmapId)
     );
-  };
+  }, []);
   
-  return {
+  return useMemo(() => ({
     error,
     getTopicsByRoadmap,
     getTopicsForRoadmap,
     getLoadingForRoadmap,
     selectTopicsByRoadmap,
-  };
+  }), [error, getTopicsByRoadmap, getTopicsForRoadmap, getLoadingForRoadmap]);
 };
 
 export default useTopics;

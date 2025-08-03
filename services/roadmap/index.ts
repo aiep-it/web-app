@@ -4,60 +4,63 @@ import { Roadmap, RoadmapPayload } from "../types/roadmap";
 
 export async function getRoadmap() {
   try {
-    return await axiosInstance
-      .get(ENDPOINTS.ROAD_MAP.GET_ALL)
-      .then((response) => {
-        if (response.status === 200) {
-          return response.data;
-        }
-        return [];
-      })
-      .catch((e) => {
-        console.error("Error fetching roadmaps:", e);
-        return [];
-      });
+    const response = await axiosInstance.get(ENDPOINTS.ROAD_MAP.GET_ALL);
+    
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error(`Unexpected response status: ${response.status}`);
+    }
   } catch (error) {
     console.error("Error fetching roadmaps:", error);
-    return [];
+    
+    // Re-throw the error so Redux can handle it properly
+    if (error instanceof Error) {
+      throw error;
+    }
+    
+    throw new Error('Failed to fetch roadmaps');
   }
 }
 
-export async function getRoadmapById(id: string):  Promise<Roadmap | null> {
+export async function getRoadmapById(id: string): Promise<Roadmap | null> {
   try {
-    return await axiosInstance
-      .get(ENDPOINTS.ROAD_MAP.GET_BY_ID(id))
-      .then((response) => {
-        if (response.status === 200) {
-          return response.data;
-        }
-        return null;
-      })
-      .catch((e) => {
-        console.error(`Error fetching roadmap by ID ${id}:`, e);
-        return null;
-      });
+    const response = await axiosInstance.get(ENDPOINTS.ROAD_MAP.GET_BY_ID(id));
+    
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error(`Unexpected response status: ${response.status}`);
+    }
   } catch (error) {
     console.error(`Error fetching roadmap by ID ${id}:`, error);
-    return null;
+    
+    // Re-throw the error so Redux can handle it properly
+    if (error instanceof Error) {
+      throw error;
+    }
+    
+    throw new Error(`Failed to fetch roadmap by ID ${id}`);
   }
 }
 
 export async function createRoadmap(payload: RoadmapPayload) {
   try {
-    return await axiosInstance
-      .post(ENDPOINTS.ROAD_MAP.CREATE, payload)
-      .then((response) => {
-        if (response.status === 201) {
-          return response.data;
-        }
-        return null;
-      })
-      .catch((e) => {
-        console.error("Error creating roadmap:", e);
-        return null;
-      });
+    const response = await axiosInstance.post(ENDPOINTS.ROAD_MAP.CREATE, payload);
+    
+    if (response.status === 201) {
+      return response.data;
+    } else {
+      throw new Error(`Unexpected response status: ${response.status}`);
+    }
   } catch (error) {
     console.error("Error creating roadmap:", error);
-    return null;
+    
+    // Re-throw the error so Redux can handle it properly
+    if (error instanceof Error) {
+      throw error;
+    }
+    
+    throw new Error('Failed to create roadmap');
   }
 }

@@ -7,7 +7,9 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-} from '@heroui/modal';
+  Input,
+  Textarea
+} from '@heroui/react';
 
 import { Icon } from '@iconify/react';
 import { CustomButton } from '@/shared/components';
@@ -17,7 +19,6 @@ import {
 } from '@/services/types/workspace';
 import { createTopicWorkspace, getMyWorkspace } from '@/services/wordspace';
 import toast from 'react-hot-toast';
-import { Card, Input, Textarea } from '@heroui/react';
 import { TopicCard } from '@/components/vocabulary/TopicCard';
 
 export default function MyWorkspacePage() {
@@ -106,27 +107,35 @@ export default function MyWorkspacePage() {
           <ModalBody className="py-4">
             <div className="space-y-4">
               {/* Folder Name Input */}
-              <Input
-                label="Folder Name"
-                placeholder="Enter folder name"
-                value={folderName}
-                onValueChange={setFolderName}
-                variant="bordered"
-                size="lg"
-                className="w-full"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Folder Name
+                </label>
+                <Input
+                  placeholder="Enter folder name"
+                  value={folderName}
+                  onValueChange={setFolderName}
+                  variant="bordered"
+                  size="md"
+                  className="w-full"
+                />
+              </div>
 
               {/* Description Input */}
-              <Textarea
-                label="Description"
-                placeholder="Enter folder description (optional)"
-                value={description}
-                onValueChange={setDescription}
-                variant="bordered"
-                size="lg"
-                minRows={3}
-                className="w-full"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <Textarea
+                  placeholder="Enter folder description (optional)"
+                  value={description}
+                  onValueChange={setDescription}
+                  variant="bordered"
+                  size="md"
+                  minRows={3}
+                  className="w-full"
+                />
+              </div>
             </div>
           </ModalBody>
 
