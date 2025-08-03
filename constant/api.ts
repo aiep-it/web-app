@@ -1,6 +1,9 @@
 // For define constant
 
 export const ENDPOINTS = {
+  USER: {
+   TEACHER: "/users/teachers",
+  },
   AUTHEN: {
     ROLE: "/users/update-metadata",
     WITH_CLERK_ID: '/users/with-clerk-id',
@@ -39,5 +42,19 @@ export const ENDPOINTS = {
     DELETE: (id: string) => `/students/${id}`,
     CHANGE_MY_PASSWORD: '/students/me/change-password',
     WITH_CLERK_ID: '/students/with-clerk-id',
+  },
+ CLASS: {
+    GET_ALL: '/class',
+    CREATE: '/class',
+    ADD_ROADMAP: (id: string) => `/class/${id}/roadmaps`,
+    GET_BY_ID: (id: string) => `/class/${id}`,
+    UPDATE: (id: string) => `/class/${id}`,
+    DELETE: (id: string) => `/class/${id}`,
+    ADD_TEACHER: (id: string) => `/class/${id}/add-teacher`,
+    REMOVE_TEACHER: (id: string) => `/class/${id}/remove-teacher`,
+    ADD_STUDENTS: (id: string) => `/class/${id}/add-students`,
+    REMOVE_STUDENT: (id: string, studentId: string) => `/class/${id}/remove-student/${studentId}`,
+    REMOVE_ROADMAP: (id: string) => `/class/${id}/remove-roadmap`,
+
   },
 };

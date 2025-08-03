@@ -2,26 +2,10 @@
 
 import React, { useState } from 'react';
 import {
-  Input,
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  useDisclosure,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Spinner,
-  Tabs,
-  Tab
+  Input, Button, Card, CardBody, CardHeader, Table, TableHeader,
+  TableColumn, TableBody, TableRow, TableCell, useDisclosure,
+  Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
+  Spinner, Tabs, Tab
 } from "@heroui/react";
 import { Icon } from '@iconify/react';
 import * as XLSX from 'xlsx';
@@ -31,7 +15,11 @@ import { studentSchema } from '../schema/studentSchema';
 import { StudentPayload } from '@/services/types/student';
 import { createStudent, importStudentsExcel } from '@/services/student';
 
-const StudentManagementForm: React.FC = () => {
+interface Props {
+  refetchStudents?: () => void;
+}
+
+const StudentManagementForm: React.FC<Props> = ({ refetchStudents }) => {
   const {
     register,
     handleSubmit,
@@ -57,16 +45,17 @@ const StudentManagementForm: React.FC = () => {
     try {
       const result = await createStudent(data);
       if (result) {
-        setSuccessMessage('✅ Tạo học sinh thành công!');
+        setSuccessMessage(' Tạo học sinh thành công!');
         setNewCredentials({ ...result, fullName: data.fullName });
         reset();
         onOpen();
+        refetchStudents?.();
       } else {
         setErrorMessage('❌ Có lỗi xảy ra');
       }
     } catch (err: any) {
-        const msg = err.response?.data?.message || '❌ Lỗi khi tạo học sinh';
-        setErrorMessage(msg);
+      const msg = err.response?.data?.message || '❌ Lỗi khi tạo học sinh';
+      setErrorMessage(msg);
     } finally {
       setLoading(false);
     }
@@ -110,10 +99,11 @@ const StudentManagementForm: React.FC = () => {
         setImportedStudents(result.students);
         setFile(null);
         setPreviewData([]);
+        refetchStudents?.();
       }
     } catch (err: any) {
-        const msg = err.response?.data?.message || '❌ Lỗi khi gửi yêu cầu import file.';
-        setErrorMessage(msg);
+      const msg = err.response?.data?.message || '❌ Lỗi khi gửi yêu cầu import file.';
+      setErrorMessage(msg);
     } finally {
       setLoading(false);
     }
@@ -127,14 +117,12 @@ const StudentManagementForm: React.FC = () => {
         </CardHeader>
         <CardBody>
           <Tabs aria-label="Student Management Options">
-           
             <Tab key="create" title="Tạo Học sinh Mới">
               <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-2 ">
                 <Input
                   label="Họ tên học sinh"
                   placeholder="Nguyễn Văn A"
-                  labelPlacement="outside-top" 
-                 
+                  labelPlacement="outside-top"
                   {...register('fullName')}
                   isInvalid={!!errors.fullName}
                   errorMessage={errors.fullName?.message}
@@ -142,8 +130,7 @@ const StudentManagementForm: React.FC = () => {
                 <Input
                   label="Tên phụ huynh"
                   placeholder="Nguyễn Thị B"
-                  labelPlacement="outside-top" 
-           
+                  labelPlacement="outside-top"
                   {...register('parentName')}
                   isInvalid={!!errors.parentName}
                   errorMessage={errors.parentName?.message}
@@ -151,8 +138,7 @@ const StudentManagementForm: React.FC = () => {
                 <Input
                   label="SĐT phụ huynh"
                   placeholder="09xx xxx xxx"
-                  labelPlacement="outside-top" 
-        
+                  labelPlacement="outside-top"
                   {...register('parentPhone')}
                   isInvalid={!!errors.parentPhone}
                   errorMessage={errors.parentPhone?.message}
@@ -160,8 +146,7 @@ const StudentManagementForm: React.FC = () => {
                 <Input
                   label="Địa chỉ"
                   placeholder="123 Đường ABC, Quận XYZ"
-                  labelPlacement="outside-top" 
-                 
+                  labelPlacement="outside-top"
                   {...register('address')}
                   isInvalid={!!errors.address}
                   errorMessage={errors.address?.message}
@@ -176,7 +161,6 @@ const StudentManagementForm: React.FC = () => {
                 <h3 className="text-lg font-semibold">Tải lên danh sách học sinh từ Excel</h3>
                 <p className="text-sm text-gray-600">
                   Vui lòng đảm bảo file Excel của bạn có các cột: `fullName`, `parentName`, `parentPhone`, `address`.
-                
                 </p>
                 <div className="flex items-center space-x-4">
                   <input

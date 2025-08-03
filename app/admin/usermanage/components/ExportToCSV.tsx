@@ -1,4 +1,5 @@
 'use client';
+import { Icon } from '@iconify/react';
 import React from 'react';
 
 type Props = {
@@ -15,8 +16,8 @@ export default function ExportToCSV({ data }: Props) {
     const csv = [
       ['Họ tên', 'Username', 'SĐT phụ huynh', 'Địa chỉ'],
       ...data.map(row => [
-        row.fullName ?? '',
         row.username ?? '',
+        row.fullName ?? '',       
         row.parentPhone ?? '',
         row.address ?? '',
       ]),
@@ -36,9 +37,10 @@ export default function ExportToCSV({ data }: Props) {
   return (
     <button
       onClick={handleExport}
-      className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded"
+      className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+      title="Export CSV"
     >
-      Export CSV
+      <Icon icon="lucide:file-text" className="text-blue-600 w-5 h-5" />
     </button>
   );
 }
