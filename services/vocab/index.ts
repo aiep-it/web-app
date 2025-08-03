@@ -200,3 +200,50 @@ export async function genByImage(file: File) {
     return null;
   }
 }
+
+export async function getMyVocabs() {
+  try {
+    return await axiosInstance
+      .get(ENDPOINTS.VOCAB.MY_VOCAB)
+      .then((response) => {
+        if (response.status === 200) {
+          return response.data;
+        }
+
+        return null;
+      })
+      .catch((e) => {
+        console.error('Error creating vocabulary:', e);
+
+        return null;
+      });
+  } catch (error) {
+    console.error('Error creating vocabulary:', error);
+
+    return null;
+  }
+}
+
+
+export async function markDone(vocabId: string) {
+  try {
+    return await axiosInstance
+      .put(ENDPOINTS.VOCAB.MARK_DONE(vocabId))
+      .then((response) => {
+        if (response.status === 200) {
+          return response.data;
+        }
+
+        return null;
+      })
+      .catch((e) => {
+        console.error('Error creating vocabulary:', e);
+
+        return null;
+      });
+  } catch (error) {
+    console.error('Error creating vocabulary:', error);
+
+    return null;
+  }
+}

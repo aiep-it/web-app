@@ -31,6 +31,8 @@ export const ENDPOINTS = {
     GET_BY_TOPIC_ID: (topicId: string) => `/vocabs/topic/${topicId}`,
     GET_ALL_BY_TOPIC_ID:  (topicId: string) => `/vocabs/topic/:topicId/all`,
     AI_GENRATE: `/vocabs/ai/gen`,
+    MY_VOCAB: "/vocabs/my-vocabs",
+    MARK_DONE: (id: string) => `/vocabs/mark-done/${id}`,
   },
   STUDENT: {
     GET_ALL: '/students',
@@ -56,5 +58,9 @@ export const ENDPOINTS = {
   },
   AI: {
     GEN_FROM_IMAGE: "/ai/personal-learning",
+  },
+  PERSONAL_LEARNING: {
+    CREATE: "/personal-learning/create",
+    GET_BY_TOPIC:(topicId: string) => `/personal-learning/topic/${topicId}`,
   }
 };

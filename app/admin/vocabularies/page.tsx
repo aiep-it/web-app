@@ -45,11 +45,11 @@ import {
 } from '@/services/vocab';
 import CImageUpload from '@/components/CImageUpload';
 import { uploadFile } from '@/services/cms';
-import { getFullPathFile } from '@/utils/expections';
 import { CModal } from '@/components/CModal';
 import { TopicData } from '@/services/types/topic';
 import { get } from 'http';
 import AudioPlayButton from '@/components/AudioPlayButton';
+import { getCmsAssetUrl } from '@/utils';
 
 interface VocabularyListPageProps {
   topic?: TopicData;
@@ -282,7 +282,7 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
               src={
                 item.imageUrl.startsWith('https')
                   ? item.imageUrl
-                  : getFullPathFile(item.imageUrl)
+                  : getCmsAssetUrl(item.imageUrl)
               }
               alt={item.word}
               className="w-full h-16 object-cover rounded-lg shadow-sm"
@@ -308,7 +308,7 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
     if (key === 'audio') {
       const audioSrc = item.audioUrl?.startsWith('https')
       ? item.audioUrl
-      : getFullPathFile(item.audioUrl);
+      : getCmsAssetUrl(item.audioUrl);
       return (
         <div className="flex">
           {item.audioUrl ? (
@@ -416,12 +416,12 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
       }
       if (imageFile) {
         const res = await uploadFile(imageFile);
-        imageUrl = getFullPathFile(res);
+        imageUrl = getCmsAssetUrl(res);
       }
 
       if (audioFile) {
         const res = await uploadFile(audioFile);
-        audioUrl = getFullPathFile(res);
+        audioUrl = getCmsAssetUrl(res);
       }
       const vocabPayload: VocabPayload = {
         ...formState,

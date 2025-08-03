@@ -22,6 +22,7 @@ export default function LearningPage() {
   const params = useParams();
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
+  const [hasFetched, setHasFetched] = useState(false);
   
   const topicId = params?.topicId as string;
   
@@ -80,7 +81,7 @@ export default function LearningPage() {
         filters: { topicId: topicId }
       }));
     }
-  }, [topicId, topicVocabs.length, dispatch]);
+  }, [topicId, dispatch]);
 
   // Client-side hydration check
   useEffect(() => {
@@ -174,14 +175,14 @@ export default function LearningPage() {
           example: currentWord.example,
           imageUrl: currentWord.imageUrl,
           audioUrl: currentWord.audioUrl,
-          is_know: true,
-          nodeId: currentWord.topicId, // API expects nodeId
+          is_learned: true,
+          topicId: currentWord.topicId, // API expects nodeId
         });
         
         // Update Redux store
         dispatch(updateVocabInStore({
           ...currentWord,
-          is_know: true
+          is_learned: true
         }));
         
         // Show success feedback
@@ -208,7 +209,7 @@ export default function LearningPage() {
 
   // Completion Screen
   if (isComplete) {
-    const knownWordsCount = topicVocabs.filter(word => word.is_know).length;
+    const knownWordsCount = topicVocabs.filter(word => word.is_learned).length;
     const completionRate = Math.round((knownWordsCount / totalWords) * 100);
 
     return (

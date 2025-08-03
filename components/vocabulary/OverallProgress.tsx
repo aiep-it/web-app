@@ -12,7 +12,7 @@ export const OverallProgress: React.FC = () => {
   // Calculate progress from real data
   const progress = useMemo(() => {
     const totalWords = vocabState.pagination?.totalElements || vocabState.vocabs.length;
-    const knownWords = vocabState.vocabs.filter(vocab => vocab.is_know && !vocab.is_deleted).length;
+    const knownWords = vocabState.vocabs.filter(vocab => vocab.is_learned && !vocab.is_deleted).length;
     const percentage = totalWords > 0 ? Math.round((knownWords / totalWords) * 100) : 0;
     
     console.log('OverallProgress - Progress calculation:', {

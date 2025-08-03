@@ -1,5 +1,6 @@
 import { Topic } from "@/types/vocabulary";
 import { TopicData } from "./topic";
+import { VocabData } from "./vocab";
 
 export type WorkspaceCreateTopicPayload = {
   title: string;
@@ -15,4 +16,20 @@ export interface Workspace {
     updatedAt?: Date;
     categoryId?: string;
     topics?: TopicData[];
+}
+
+export interface PersonalLearning {
+  id?: string,
+  title: string,
+  description?: string,
+  image?: string,
+  vocabs?: VocabData[];
+}
+
+export interface PersonalLearningCreatePayload {
+  title: string,
+  description?: string,
+  image?: string,
+  topicId: string,
+  vocabs?: VocabData[];
 }

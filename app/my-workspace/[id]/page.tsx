@@ -12,7 +12,8 @@ import { Tab, Tabs } from '@heroui/react';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import AIGeneratePage from './AI/AIGeneratePage';
+import AIGeneratePage from './AI/PersonalLearningPage';
+import PersonalLearningPage from './AI/PersonalLearningPage';
 
 export default function MyWorkspaceDetailPage() {
   const params = useParams();
@@ -92,7 +93,7 @@ export default function MyWorkspaceDetailPage() {
                 <QuizExercisePage />
               </Tab>
               <Tab key={"AI"} title="AI">
-                <AIGeneratePage topic={topic}/>
+                <PersonalLearningPage topic={topic}/>
               </Tab>
             </Tabs>
           </div>

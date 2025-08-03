@@ -25,7 +25,8 @@ export interface VocabPayload {
   example?: string;
   imageUrl?: string;
   audioUrl?: string;
-  is_know?: boolean;
+  is_know?: boolean; //????
+  is_learned?: boolean;
   topicId?: string; // API expects nodeId for updates
 }
 
@@ -37,7 +38,8 @@ export interface VocabData {
   example: string;
   imageUrl: string;
   audioUrl: string;
-  is_know: boolean;
+  is_know: boolean; //????
+  is_learned?: boolean;
   is_deleted: boolean;
   created_at: string;
   updated_at: string | null;

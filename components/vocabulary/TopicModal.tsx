@@ -329,7 +329,7 @@ export const TopicModal: React.FC<TopicModalProps> = ({
         return { progress: 0, isCompleted: false };
       }
 
-      const knownVocabs = topicVocabs.filter((vocab) => vocab.is_know).length;
+      const knownVocabs = topicVocabs.filter((vocab) => vocab.is_learned).length;
       const progress = Math.round((knownVocabs / topicVocabs.length) * 100);
       const isCompleted = progress === 100;
 

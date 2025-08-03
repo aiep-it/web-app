@@ -1,7 +1,6 @@
 import { TopicStatus } from '@/constant/enums';
 import { TopicData } from '@/services/types/topic';
 import { parseDateTime } from '@/utils/dateTimeUtil';
-import { getFullPathFile } from '@/utils/expections';
 import {
   Avatar,
   Button,
@@ -16,6 +15,7 @@ import { Icon } from '@iconify/react';
 import React from 'react';
 import { TopicContentCMS } from '../edit/types';
 import { useRouter } from 'next/navigation';
+import { getCmsAssetUrl } from '@/utils';
 
 interface TopicDataInfoProps {
   topicData?: TopicData;
@@ -37,7 +37,7 @@ const TopicDataInfo: React.FC<TopicDataInfoProps> = ({
           <Image
             src={
               topicData?.coverImage
-                ? getFullPathFile(topicData?.coverImage)
+                ? getCmsAssetUrl(topicData?.coverImage)
                 : undefined
             }
             className="w-full md:w-64 h-48 md:h-36 text-large"

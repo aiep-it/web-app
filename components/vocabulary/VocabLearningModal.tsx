@@ -23,7 +23,7 @@ import {
 } from '@/store/slices/vocabSlice';
 import { TopicData } from '@/services/types/topic';
 import { VocabData } from '@/services/types/vocab';
-import { getByTopicId, updateVocab } from '@/services/vocab';
+import { getByTopicId, markDone, updateVocab } from '@/services/vocab';
 import { CustomButton } from '@/shared/components/button/CustomButton';
 import { getAllVocabularyWords } from '@/utils/vocabulary/vocabularyUtils';
 import toast from 'react-hot-toast';
@@ -74,7 +74,7 @@ export function VocabLearningModal({
   const progress = useMemo(() => {
     if (topicVocabs.length === 0) return { known: 0, total: 0, percentage: 0 };
 
-    const knownCount = topicVocabs.filter((vocab) => vocab.is_know).length;
+    const knownCount = topicVocabs.filter((vocab) => vocab.is_learned).length;
     const total = topicVocabs.length;
     const percentage = Math.round((knownCount / total) * 100);
 
@@ -83,7 +83,7 @@ export function VocabLearningModal({
 
   // Handle marking vocab as known/unknown
   const handleToggleKnown = async (vocab: VocabData) => {
-    const newKnownStatus = !vocab.is_know;
+    const newKnownStatus = !vocab.is_learned;
     setLoadingVocabs((prev) => ({ ...prev, [vocab.id]: true }));
 
     try {
@@ -95,11 +95,11 @@ export function VocabLearningModal({
         example: vocab.example,
         imageUrl: vocab.imageUrl,
         audioUrl: vocab.audioUrl,
-        is_know: newKnownStatus,
+        is_learned: newKnownStatus,
       };
 
       console.log('Updating vocab with payload:', payload);
-      const result = await updateVocab(vocab.id, payload);
+      const result = await markDone(vocab.id);
       console.log('Update vocab result:', result);
 
       if (result) {
@@ -107,7 +107,7 @@ export function VocabLearningModal({
         dispatch(
           updateVocabInStore({
             id: vocab.id,
-            updates: { is_know: newKnownStatus },
+            updates: { is_learned: newKnownStatus },
           }),
         );
 
@@ -244,7 +244,7 @@ export function VocabLearningModal({
                   className={`
                     transition-all duration-300 border-2
                     ${
-                      vocab.is_know
+                      vocab.is_learned
                         ? 'border-green-200 bg-green-50'
                         : 'border-gray-200 bg-white hover:border-blue-200'
                     }
@@ -276,7 +276,7 @@ export function VocabLearningModal({
                               <h3 className="text-lg font-bold text-gray-800">
                                 {vocab.word}
                               </h3>
-                              {vocab.is_know && (
+                              {vocab.is_learned && (
                                 <Chip
                                   size="sm"
                                   color="success"
@@ -331,16 +331,16 @@ export function VocabLearningModal({
                       <div className="flex-shrink-0">
                         <CustomButton
                           size="sm"
-                          preset={vocab.is_know ? 'ghost' : 'primary'}
+                          preset={vocab.is_learned ? 'ghost' : 'primary'}
                           loading={loadingVocabs[vocab.id]}
                           icon={
-                            vocab.is_know
+                            vocab.is_learned
                               ? 'material-symbols:refresh'
                               : 'material-symbols:check-circle'
                           }
                           onClick={() => handleToggleKnown(vocab)}
                         >
-                          {vocab.is_know
+                          {vocab.is_learned
                             ? 'Mark as Unknown'
                             : 'Already Know This'}
                         </CustomButton>

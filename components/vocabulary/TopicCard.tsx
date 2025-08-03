@@ -71,7 +71,7 @@ export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
   const vocabCount = Array.isArray(topicVocabs) ? topicVocabs.length : 0;
 
   // Calculate progress based on known vocabs
-  const knownVocabs = topicVocabs.filter((vocab) => vocab.is_know).length;
+  const knownVocabs = topicVocabs.filter((vocab) => vocab.is_learned).length;
   const progressPercentage =
     vocabCount > 0 ? Math.round((knownVocabs / vocabCount) * 100) : 0;
 
