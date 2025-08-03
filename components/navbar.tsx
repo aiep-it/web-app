@@ -9,7 +9,6 @@ import {
 import { Button } from '@heroui/button';
 import { Kbd } from '@heroui/kbd';
 import { Link } from '@heroui/link';
-import { Input } from '@heroui/input';
 
 import { siteConfig } from '@/config/site';
 import { ThemeSwitch } from '@/components/theme-switch';
@@ -29,6 +28,7 @@ import {
   SignUpButton,
   UserButton,
 } from '@clerk/nextjs';
+import { Input } from '@heroui/react';
 
 export const Navbar = () => {
   const searchInput = (

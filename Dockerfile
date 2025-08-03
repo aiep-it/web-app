@@ -1,28 +1,47 @@
 # --- Base stage: install dependencies ---
-FROM node:23-alpine AS deps
+# Use the 'slim' variant for better compatibility, especially on Apple Silicon
+FROM node:23-slim AS deps
 
 WORKDIR /app
 
-COPY package.json ./
-COPY tsconfig.json ./
-COPY apps ./apps
-COPY libs ./libs
-RUN npm install --frozen-lockfile
+# Copy package files first to leverage Docker layer caching
+COPY package.json package-lock.json ./
 
-# Install production dependencies and build the application
+# Install dependencies
+RUN npm ci
+
+# --- Builder stage: build the application ---
+FROM node:23-slim AS builder
+
+WORKDIR /app
+
+# Copy dependencies
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+
+# OPTIONAL: reduce memory usage during build
+ENV NODE_OPTIONS=--max_old_space_size=4086
+
+
+# Build the application
 RUN npm run build
 
-# --- Final stage: production-only runtime ---
-FROM node:23-alpine AS runner
+# --- Final stage: production runtime ---
+# Use the 'slim' variant here as well for consistency
+FROM node:23-slim AS runner
 
 WORKDIR /app
 
-# Copy only what's needed for production runtime
+
+# Copy only necessary files for a standalone Next.js server
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
+# The standalone output is the recommended approach for production
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 3000
-CMD ["yarn", "start"]
 
+# The standalone output uses a minimal server.js file
+CMD ["node", "server.js"]

@@ -8,8 +8,7 @@ import {
   ModalBody,
   ModalFooter,
 } from '@heroui/modal';
-import { Input } from '@heroui/input';
-import { Textarea } from '@heroui/input';
+
 import { Icon } from '@iconify/react';
 import { CustomButton } from '@/shared/components';
 import {
@@ -18,9 +17,7 @@ import {
 } from '@/services/types/workspace';
 import { createTopicWorkspace, getMyWorkspace } from '@/services/wordspace';
 import toast from 'react-hot-toast';
-import RoadmapSection from '@/components/RoadmapComponents/RoadmapSection';
-import { Roadmap } from '@/services/types/roadmap';
-import { Card } from '@heroui/react';
+import { Card, Input, Textarea } from '@heroui/react';
 import { TopicCard } from '@/components/vocabulary/TopicCard';
 
 export default function MyWorkspacePage() {

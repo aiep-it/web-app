@@ -11,8 +11,6 @@ import { TopicData } from '@/services/types/topic';
 import { Tab, Tabs } from '@heroui/react';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
-import AIGeneratePage from './AI/PersonalLearningPage';
 import PersonalLearningPage from './AI/PersonalLearningPage';
 
 export default function MyWorkspaceDetailPage() {
