@@ -10,10 +10,7 @@ import { useTopics } from '@/hooks/useTopics';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/rootReducer';
 import { Icon } from '@iconify/react';
-import { useVocabsSafe } from '@/hooks/useVocabsSafe';
-import { VocabColumn } from '@/services/types/vocab';
 import { useAuth } from '@clerk/nextjs';
-import { useUserRole } from '@/hooks/useUserRole';
 
 interface RoadmapSectionProps {
   roadmap: Roadmap;
@@ -82,7 +79,6 @@ function RoadmapSection({ roadmap, topics, isLoading }: RoadmapSectionProps) {
 export default function LearnVocabularyPage() {
   const { roadmaps, isLoading, error, refetch } = useRoadmaps();
   const { getTopicsByRoadmap, error: topicsError } = useTopics();
-  const { getVocabs, loading: vocabsLoading, error: vocabsError } = useVocabsSafe();
   const [loadingTopics, setLoadingTopics] = useState<Record<string, boolean>>({});
   const [authError, setAuthError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -90,7 +86,6 @@ export default function LearnVocabularyPage() {
   
   // Clerk authentication hooks
   const { isLoaded, isSignedIn, getToken } = useAuth();
-  const { userRole, isRoleLoading } = useUserRole();
 
   // Get all topics from Redux outside of the render loop
   const allTopicsByRoadmap = useSelector((state: RootState) => state.topic.topicsByRoadmap);
@@ -163,29 +158,7 @@ export default function LearnVocabularyPage() {
           await Promise.all(topicsPromises);
           console.log('✅ Topics loaded');
           
-          // Get token from Clerk
-          const token = await getToken();        
-          if (token) {
-            console.log('🔑 CLERK TOKEN FOR POSTMAN:', token);
-            
-            console.log('📚 Fetching vocabularies...');
-            const result = await getVocabs({
-              page: 1,
-              size: 50,
-              sort: [
-                {
-                  field: VocabColumn.created_at,
-                  order: "desc",
-                },
-              ],
-            });
-            
-            if (result) {
-              console.log('✅ Vocabularies loaded successfully:', result);
-            }
-          } else {
-            console.log('❌ No Clerk token found, skipping vocab load');
-          }
+          console.log('🔑 Data loading completed successfully');
           
         } catch (error) {
           setIsDataLoaded(false); // Reset flag on error to allow retry

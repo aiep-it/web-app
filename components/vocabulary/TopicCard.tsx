@@ -1,15 +1,10 @@
 import { TopicData } from '@/services/types/topic';
 import { Icon } from '@iconify/react';
 import { Button } from '@heroui/button';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store/rootReducer';
-import { selectVocabsByTopic } from '@/store/slices/vocabSlice';
 import { VocabLearningModal } from './VocabLearningModal';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCmsAssetUrl } from '@/utils/index';
-import useVocabsSafe from '@/hooks/useVocabsSafe';
-import { VocabColumn } from '@/services/types/vocab';
 
 interface TopicCardProps {
   topic: TopicData;
@@ -23,57 +18,6 @@ const DEFAULT_TOPIC_IMAGE =
 export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
-
-  const { getVocabs, loading: vocabLoading } = useVocabsSafe();
-
-  // Get all vocabs from Redux to calculate topic completion
-  const allVocabs = useSelector((state: RootState) => state.vocab.vocabs);
-
-  // Load vocabularies when modal opens (if not already loaded)
-  useEffect(() => {
-    if (allVocabs.length === 0 && !vocabLoading) {
-      getVocabs({
-        page: 1,
-        size: 50,
-        sort: [
-          {
-            field: VocabColumn.created_at,
-            order: 'desc',
-          },
-        ],
-        // filters: topic?.id
-        // ? {
-        //     topicId: topic.id,
-        //   }
-        // : {},
-      });
-    }
-  }, [allVocabs.length, vocabLoading, getVocabs]);
-
-  // Get vocabularies for this topic from Redux
-  const topicVocabs = useSelector((state: RootState) => {
-    try {
-      const vocabs = selectVocabsByTopic(state, topic.id);
-
-      // const vocabs = await getByTopicId(topic.id)
-      console.log(
-        `TopicCard[${topic.id}]: Found ${vocabs.length} vocabs:`,
-        vocabs,
-      );
-      return vocabs;
-    } catch (error) {
-      console.error('Error selecting vocabs for topic:', topic.id, error);
-      return [];
-    }
-  });
-
-  // Calculate vocab count with fallback
-  const vocabCount = Array.isArray(topicVocabs) ? topicVocabs.length : 0;
-
-  // Calculate progress based on known vocabs
-  const knownVocabs = topicVocabs.filter((vocab) => vocab.is_learned).length;
-  const progressPercentage =
-    vocabCount > 0 ? Math.round((knownVocabs / vocabCount) * 100) : 0;
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group">
@@ -160,63 +104,6 @@ export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
             No description for this topic.
           </p>
         )}
-
-        {/* Stats - Horizontal Layout */}
-        <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3 mb-4">
-          <div className="flex items-center gap-2">
-            <Icon
-              icon="material-symbols:book-2"
-              className="text-blue-500 text-lg"
-            />
-            <div>
-              <span className="font-bold text-gray-800 text-sm">
-                {vocabCount}
-              </span>
-              <span className="text-xs text-gray-500 ml-1">Words</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Icon
-              icon="material-symbols:schedule"
-              className="text-purple-500 text-lg"
-            />
-            <div>
-              <span className="font-bold text-gray-800 text-sm">
-                {Math.max(15, vocabCount * 2)}
-              </span>
-              <span className="text-xs text-gray-500 ml-1">mins</span>
-            </div>
-          </div>
-
-          {/* <div className="flex items-center gap-2">
-            <Icon
-              icon="material-symbols:star"
-              className="text-yellow-500 text-lg"
-            />
-            <div>
-              <span className="font-bold text-gray-800 text-sm">
-                {topic.suggestionLevel ? `Level ${topic.suggestionLevel}` : 'Medium'}
-              </span>
-            </div>
-          </div> */}
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-gray-600">Progress</span>
-            <span className="text-xs font-bold text-gray-800">
-              {progressPercentage}%
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
-          </div>
-        </div>
 
         {/* Action Button */}
         <Button
