@@ -6,7 +6,11 @@ export const ENDPOINTS = {
   },
   AUTHEN: {
     ROLE: "/users/update-metadata",
+
     WITH_CLERK_ID: '/users/with-clerk-id',
+
+    GET_USER_BY_CLERK_ID: (clerkId: string) => `/users/${clerkId}`,
+
   },
   CATEGORY: {
     GET_ALL: "/categories",
@@ -32,7 +36,10 @@ export const ENDPOINTS = {
     UPDATE: (id: string) => `/vocabs/${id}`,
     DELETE: (id: string) => `/vocabs/${id}`,
     GET_BY_TOPIC_ID: (topicId: string) => `/vocabs/topic/${topicId}`,
+    GET_ALL_BY_TOPIC_ID:  (topicId: string) => `/vocabs/topic/:topicId/all`,
     AI_GENRATE: `/vocabs/ai/gen`,
+    MY_VOCAB: "/vocabs/my-vocabs",
+    MARK_DONE: (id: string) => `/vocabs/mark-done/${id}`,
   },
   STUDENT: {
     GET_ALL: '/students',
@@ -57,4 +64,26 @@ export const ENDPOINTS = {
     REMOVE_ROADMAP: (id: string) => `/class/${id}/remove-roadmap`,
 
   },
+  EXERCISE: {
+    GET_ALL: "/exercises",
+    CREATE: '/exercises',
+    GET_BY_EXERCISE_ID: (exerciseId: string) => `/exercises/${exerciseId}`,
+    UPDATE: (id: string) => `/exercises/${id}`,
+    DELETE: (id: string) => `/exercises/${id}`,
+  },
+  WORK_SPACE: {
+    GET_ALL: "/workspace",
+    GET_BY_ID: (id: string) => `/workspaces/${id}`,
+    CREATE_TOPIC: "/workspace/topics",
+    UPDATE: (id: string) => `/workspaces/${id}`,
+    DELETE: (id: string) => `/workspaces/${id}`,
+  },
+  AI: {
+    GEN_FROM_IMAGE: "/ai/personal-learning",
+    AI_SUGGEST_QUIZ: "/ai/suggest-quiz",
+  },
+  PERSONAL_LEARNING: {
+    CREATE: "/personal-learning/create",
+    GET_BY_TOPIC:(topicId: string) => `/personal-learning/topic/${topicId}`,
+  }
 };

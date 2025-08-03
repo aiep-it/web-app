@@ -36,7 +36,7 @@ const TopicDetail: React.FC<TopicDetailProps> = ({ id }) => {
       const [topic, contentRes] = await Promise.all([
         getTopicId(id),
         getItems<TopicContentCMS>(COLLECTIONS.NodeContent, {
-          filter: { topicId: { _eq: id } },
+          filter: { nodeId: { _eq: id } },
         }),
       ]);
 

@@ -1,25 +1,25 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { VocabData, VocabSearchPayload, VocabListResponse, VocabColumn } from '@/services/types/vocab';
-import { searchListVocab } from '@/services/vocab';
+import { getMyVocabs, searchListVocab } from '@/services/vocab';
 
 // Async thunk to fetch vocabularies
 export const fetchVocabs = createAsyncThunk(
   'vocab/fetchVocabs',
   async (payload: VocabSearchPayload | undefined = undefined, { rejectWithValue }) => {
     try {
-      const defaultPayload: VocabSearchPayload = {
-        page: 1,
-        size: 50,
-        sort: [
-          {
-            field: VocabColumn.created_at,
-            order: "desc",
-          }
-        ],
-        ...(payload || {})
-      };
+      // const defaultPayload: VocabSearchPayload = {
+      //   page: 1,
+      //   size: 50,
+      //   sort: [
+      //     {
+      //       field: VocabColumn.created_at,
+      //       order: "desc",
+      //     }
+      //   ],
+      //   ...(payload || {})
+      // };
       
-      const res = await searchListVocab(defaultPayload);
+      const res = await getMyVocabs();
       
       if (res && typeof res === "object" && "content" in res) {
         return res as VocabListResponse;

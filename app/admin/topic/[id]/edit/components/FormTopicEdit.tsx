@@ -23,13 +23,14 @@ import CSelector from "@/components/FormProvider/Fields/CSelector";
 
 interface FormTopicEditProps {
   topicId?: string;
+  isMyWorkspace?: boolean;
 }
 const defaultValues: TopicContent = {
   content: "",
   coverImage: undefined,
 };
 
-const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId }) => {
+const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace }) => {
   const [suggestionLevels, setSuggestionLevels] = useState<LookupContent[]>([]);
   const [topicContentCMS, setTopicContentCMS] = useState<TopicContentCMS | null>(null);
 
@@ -61,7 +62,7 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId }) => {
       const [topicData, contentRes, lookupRes] = await Promise.all([
         getTopicId(topicId),
         getItems<TopicContentCMS>(COLLECTIONS.NodeContent, {
-          filter: { topicId: { _eq: topicId } },
+          filter: { nodeId: { _eq: topicId } },
         }),
         getItems<LookupContent>(COLLECTIONS.Lookup, {
           filter: { type: { _eq: LOOKUP_KEY.SuggestionLevel } },
@@ -121,7 +122,8 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId }) => {
       title: data.title,
       description: data.description,
       coverImage: coverImage,
-      suggestionLevel: data.suggestionLevel
+      suggestionLevel: data.suggestionLevel,
+      isMyWorkspace: isMyWorkspace
     };
 
     const res = await updateTopic(topicId as string, payload);
@@ -133,8 +135,8 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId }) => {
       }
 
       addToast({
-        title: "Node updated successfully",
-        description: "Your node has been updated successfully.",
+        title: "Topic updated successfully",
+        description: "Your topic has been updated successfully.",
         color: "success",
       });
       methods.reset({

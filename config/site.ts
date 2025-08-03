@@ -13,16 +13,16 @@ export const siteConfig = {
       href: "/learn-vocabulary",
     },
     {
-      label: "Docs",
-      href: "/docs",
+      label: "My Workspace",
+      href: "/my-workspace",
     },
     {
       label: "Pricing",
       href: "/pricing",
     },
     {
-      label: "Blog",
-      href: "/blog",
+      label: "Chat bot",
+      href: "/chat-bot",
     },
     {
       label: "About",

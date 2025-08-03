@@ -20,6 +20,7 @@ const menuItems = [
     { name: "Manage Category", icon: "lucide:chart-bar-stacked", href: "/admin/categories" },
     { name: "Manage Roadmap", icon: "lucide:book-plus", href: "/admin/roadmaps" },
     { name: "Manage Vocabulary", icon: "lucide:whole-word", href: "/admin/vocabularies" },
+    { name: "Manage Exercises", icon: "lucide:notebook-text", href: "/admin/exercises" },
     { name: "Live Courses", icon: "lucide:video", href: "/admin/live-courses" },
   ]},
   { group: "Customization", items: [
@@ -49,6 +50,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isExpanded, onToggle }) => 
 
   return (
     <aside className={`bg-black text-white h-screen flex flex-col border border-gray-700 transition-all duration-300 ${isExpanded ? 'w-64' : 'w-20'}`}>
+
       <div className="p-4 flex items-center justify-between">
         <Logo />
         <button onClick={onToggle} className="p-2 rounded-full hover:bg-gray-800">

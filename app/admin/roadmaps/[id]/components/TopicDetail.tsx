@@ -5,7 +5,8 @@ import { getItems } from "@/services/cms";
 import { getTopicId } from "@/services/topic";
 import { TopicData } from "@/services/types/topic";
 import { NodeContent } from "@/types/Node";
-import { getFullPathFile } from "@/utils/expections";
+import { getCmsAssetUrl } from "@/utils";
+
 import {
   Avatar,
   AvatarGroup,
@@ -127,11 +128,11 @@ const NodeDetail: React.FC<TopicDetailProps> = ({
             // variant='bordered'
             onPress={() => {
               if (topic?.id && topicId) {
-                router.push(`/admin/node/${topic.id}/edit`);
+                router.push(`/admin/topic/${topic.id}/edit`);
               }
             }}
           >
-            Edit Node
+            Edit Topic
           </Button>
         </div>
         <div className="flex gap-1 items-center">
@@ -191,7 +192,7 @@ const NodeDetail: React.FC<TopicDetailProps> = ({
                 alt="Event image"
                 className="aspect-square w-full hover:scale-110"
                 height={300}
-                src={topic.coverImage ? getFullPathFile(topic.coverImage) : "https://placehold.co/600x400"}
+                src={topic.coverImage ? getCmsAssetUrl(topic.coverImage) : "https://placehold.co/600x400"}
               />
             </div>
             <div className="flex flex-col gap-2 py-4">

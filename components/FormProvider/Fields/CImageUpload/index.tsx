@@ -1,4 +1,5 @@
-import { getFullPathFile } from "@/utils/expections";
+
+import { getCmsAssetUrl } from "@/utils";
 import { Button, Image, Input, InputProps } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { on } from "events";
@@ -35,7 +36,7 @@ const CImageUpload = forwardRef<HTMLInputElement, Props>(
               {value ? (
                 <Image
                   src={
-                    value instanceof File ? URL.createObjectURL(value) : (isBlobUrl(value) ? value : getFullPathFile(value))
+                    value instanceof File ? URL.createObjectURL(value) : (isBlobUrl(value) ? value : getCmsAssetUrl(value))
                   }
                   width={240}
                   alt="Background"
@@ -71,7 +72,7 @@ const CImageUpload = forwardRef<HTMLInputElement, Props>(
                   id="background-upload"
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
+                  onChange={(e: any) => {
                     const file = e.target.files?.[0] || null;
                     onChange(file);
                   }}

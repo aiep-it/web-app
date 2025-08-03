@@ -11,3 +11,10 @@ export const getApiUrl = () => {
 
   return baseUrl;
 };
+
+export function getCmsAssetUrl(id?: string | null): string {
+  if (!id) return '';
+  // Add cache busting parameter to prevent browser caching
+  const timestamp = Date.now();
+  return `${process.env.NEXT_PUBLIC_CMS_BASE_URL}/assets/${id}?t=${timestamp}`;
+}

@@ -1,7 +1,6 @@
 import { TopicStatus } from '@/constant/enums';
 import { TopicData } from '@/services/types/topic';
 import { parseDateTime } from '@/utils/dateTimeUtil';
-import { getFullPathFile } from '@/utils/expections';
 import {
   Avatar,
   Button,
@@ -15,15 +14,22 @@ import {
 import { Icon } from '@iconify/react';
 import React from 'react';
 import { TopicContentCMS } from '../edit/types';
+import { useRouter } from 'next/navigation';
+import { getCmsAssetUrl } from '@/utils';
 
 interface TopicDataInfoProps {
   topicData?: TopicData;
   topicContent?: TopicContentCMS | null;
+  isWorkspace?: boolean
 }
 const TopicDataInfo: React.FC<TopicDataInfoProps> = ({
   topicData,
   topicContent,
+  isWorkspace = false
 }) => {
+  const router = useRouter();
+
+  const editLink = `${isWorkspace ? '/my-workspace' : '/admin/topic'}/${topicData?.id}/edit`
   return (
     <div className="w-full mx-auto p-4 space-y-6">
       <Card>
@@ -31,7 +37,7 @@ const TopicDataInfo: React.FC<TopicDataInfoProps> = ({
           <Image
             src={
               topicData?.coverImage
-                ? getFullPathFile(topicData?.coverImage)
+                ? getCmsAssetUrl(topicData?.coverImage)
                 : undefined
             }
             className="w-full md:w-64 h-48 md:h-36 text-large"
@@ -87,7 +93,9 @@ const TopicDataInfo: React.FC<TopicDataInfoProps> = ({
           </div>
           <Divider />
           <div className="flex justify-between items-center">
-            <Button color="primary" variant='bordered'>
+            <Button color="primary" variant='bordered' onPress={() => {
+              router.push(editLink)
+            }}>
               Edit
             </Button>
             <div className="flex gap-2">

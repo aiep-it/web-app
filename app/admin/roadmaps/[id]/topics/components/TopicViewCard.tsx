@@ -1,7 +1,7 @@
 import { TopicStatus } from '@/constant/enums';
 import { TopicData } from '@/services/types/topic';
+import { getCmsAssetUrl } from '@/utils';
 import { parseDateTime } from '@/utils/dateTimeUtil';
-import { getFullPathFile } from '@/utils/expections';
 import {
   Alert,
   Avatar,
@@ -32,7 +32,7 @@ const TopicViewCard: React.FC<IProps> = ({ topicData }) => {
             className="z-0 w-full h-[200px] scale-125 -translate-y-6 object-cover"
             alt={topicData.title}
             src={
-              getFullPathFile(topicData.coverImage) ||
+              getCmsAssetUrl(topicData.coverImage) ||
               'https://placehold.co/600x400'
             }
           />

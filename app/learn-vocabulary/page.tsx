@@ -41,10 +41,10 @@ function RoadmapSection({ roadmap, topics, isLoading }: RoadmapSectionProps) {
       </div>
 
       {/* Topics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {isLoading ? (
           // Loading skeleton
-          Array.from({ length: 6 }).map((_, index) => (
+          Array.from({ length: 8 }).map((_, index) => (
             <div
               key={index}
               className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate-pulse"
@@ -94,9 +94,6 @@ export default function LearnVocabularyPage() {
   // Get all topics from Redux outside of the render loop
   const allTopicsByRoadmap = useSelector((state: RootState) => state.topic.topicsByRoadmap);
   
-  // Debug: Get vocab state for logging
-  const vocabState = useSelector((state: RootState) => state.vocab);
-  
   // Client-side hydration check
   useEffect(() => {
     setIsClient(true);
@@ -141,6 +138,8 @@ export default function LearnVocabularyPage() {
           // Get token from Clerk
           const token = await getToken();        
           if (token) {
+            console.log('🔑 CLERK TOKEN FOR POSTMAN:', token);
+            
             const result = await getVocabs({
               page: 1,
               size: 50,
@@ -280,10 +279,10 @@ export default function LearnVocabularyPage() {
   // }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 w-full">
       {/* Header Section - Enhanced but Simple */}
       <div className="bg-gradient-to-r from-blue-50 via-white to-purple-50 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="w-full px-6 py-12">
           <div className="text-center">
             {/* Icon and Title */}
             <div className="flex items-center justify-center gap-4 mb-4">
@@ -322,13 +321,13 @@ export default function LearnVocabularyPage() {
 
       {/* Overall Progress Section - Compact and Elegant */}
       <div className="bg-white shadow-sm border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="w-full px-6 py-6">
           <OverallProgress />
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 pb-8">
+      <div className="w-full px-6 pb-8">
         <div className="space-y-6">
           <div className="mb-6 text-center mt-4">
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
@@ -358,7 +357,7 @@ export default function LearnVocabularyPage() {
 
           {/* Empty State */}
           {roadmaps.length === 0 && (
-            <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+            <div className="text-center py-12 bg-white rounded-lg border border-gray-200 max-w-2xl mx-auto">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg
                   className="w-8 h-8 text-gray-400"

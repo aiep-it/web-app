@@ -3,28 +3,22 @@ import {
   NavbarContent,
   NavbarMenu,
   NavbarMenuToggle,
-  NavbarBrand,
   NavbarItem,
   NavbarMenuItem,
-} from "@heroui/navbar";
-import { Button } from "@heroui/button";
-import { Kbd } from "@heroui/kbd";
-import { Link } from "@heroui/link";
-import { Input } from "@heroui/input";
-import { link as linkStyles } from "@heroui/theme";
-import NextLink from "next/link";
-import clsx from "clsx";
+} from '@heroui/navbar';
+import { Button } from '@heroui/button';
+import { Kbd } from '@heroui/kbd';
+import { Link } from '@heroui/link';
 
-import { siteConfig } from "@/config/site";
-import { ThemeSwitch } from "@/components/theme-switch";
+import { siteConfig } from '@/config/site';
+import { ThemeSwitch } from '@/components/theme-switch';
 import {
   TwitterIcon,
   GithubIcon,
   DiscordIcon,
   HeartFilledIcon,
   SearchIcon,
-  Logo,
-} from "@/components/icons";
+} from '@/components/icons';
 
 // Clerk imports
 import {
@@ -33,18 +27,19 @@ import {
   SignInButton,
   SignUpButton,
   UserButton,
-} from "@clerk/nextjs";
+} from '@clerk/nextjs';
+import { Input } from '@heroui/react';
 
 export const Navbar = () => {
   const searchInput = (
     <Input
       aria-label="Search"
       classNames={{
-        inputWrapper: "bg-default-100",
-        input: "text-sm",
+        inputWrapper: 'bg-default-100',
+        input: 'text-sm',
       }}
       endContent={
-        <Kbd className="hidden lg:inline-block" keys={["command"]}>
+        <Kbd className="hidden lg:inline-block" keys={['command']}>
           K
         </Kbd>
       }
@@ -59,31 +54,6 @@ export const Navbar = () => {
 
   return (
     <HeroUINavbar maxWidth="xl" position="sticky">
-      <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
-        <NavbarBrand as="li" className="gap-3 max-w-fit">
-          <NextLink className="flex justify-start items-center gap-1" href="/">
-            <Logo />
-            <p className="font-bold text-inherit">AIEP-IT</p>
-          </NextLink>
-        </NavbarBrand>
-        <ul className="hidden lg:flex gap-4 justify-start ml-2">
-          {siteConfig.navItems.map((item) => (
-            <NavbarItem key={item.href}>
-              <NextLink
-                className={clsx(
-                  linkStyles({ color: "foreground" }),
-                  "data-[active=true]:text-primary data-[active=true]:font-medium",
-                )}
-                color="foreground"
-                href={item.href}
-              >
-                {item.label}
-              </NextLink>
-            </NavbarItem>
-          ))}
-        </ul>
-      </NavbarContent>
-
       <NavbarContent
         className="hidden sm:flex basis-1/5 sm:basis-full"
         justify="end"
@@ -117,10 +87,14 @@ export const Navbar = () => {
         <NavbarItem>
           <SignedOut>
             <SignInButton mode="modal">
-              <Button variant="flat" className="mx-1">Đăng nhập</Button>
+              <Button variant="flat" className="mx-1">
+                Đăng nhập
+              </Button>
             </SignInButton>
             <SignUpButton mode="modal">
-              <Button variant="flat" className="mx-1">Đăng ký</Button>
+              <Button variant="flat" className="mx-1">
+                Đăng ký
+              </Button>
             </SignUpButton>
           </SignedOut>
           <SignedIn>
@@ -145,19 +119,38 @@ export const Navbar = () => {
               <Link
                 color={
                   index === 2
-                    ? "primary"
+                    ? 'primary'
                     : index === siteConfig.navMenuItems.length - 1
-                      ? "danger"
-                      : "foreground"
+                      ? 'danger'
+                      : 'foreground'
                 }
                 href={item.href}
                 size="lg"
               >
                 {item.label}
               </Link>
+              {/* Clerk Auth Buttons */}
+              
             </NavbarMenuItem>
           ))}
         </div>
+        <NavbarItem>
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <Button variant="flat" className="mx-1">
+                      Đăng nhập
+                    </Button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <Button variant="flat" className="mx-1">
+                      Đăng ký
+                    </Button>
+                  </SignUpButton>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/" />
+                </SignedIn>
+              </NavbarItem>
       </NavbarMenu>
     </HeroUINavbar>
   );

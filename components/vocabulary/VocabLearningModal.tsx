@@ -1,27 +1,32 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { 
-  Modal, 
-  ModalContent, 
-  ModalHeader, 
-  ModalBody, 
+import React, { useState, useMemo, useEffect } from 'react';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
   ModalFooter,
-  Button,
   Card,
   CardBody,
   Chip,
-  Progress
+  Progress,
 } from '@heroui/react';
 import { addToast } from '@heroui/toast';
 import { Icon } from '@iconify/react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { RootState } from '@/store/rootReducer';
-import { selectVocabsByTopic, updateVocabInStore } from '@/store/slices/vocabSlice';
+import {
+  selectVocabsByTopic,
+  updateVocabInStore,
+} from '@/store/slices/vocabSlice';
 import { TopicData } from '@/services/types/topic';
 import { VocabData } from '@/services/types/vocab';
-import { updateVocab } from '@/services/vocab';
+import { getByTopicId, markDone, updateVocab } from '@/services/vocab';
+import { CustomButton } from '@/shared/components/button/CustomButton';
+import { getAllVocabularyWords } from '@/utils/vocabulary/vocabularyUtils';
+import toast from 'react-hot-toast';
 
 interface VocabLearningModalProps {
   isOpen: boolean;
@@ -29,31 +34,57 @@ interface VocabLearningModalProps {
   topic: TopicData;
 }
 
-export function VocabLearningModal({ isOpen, onClose, topic }: VocabLearningModalProps) {
+export function VocabLearningModal({
+  isOpen,
+  onClose,
+  topic,
+}: VocabLearningModalProps) {
   const dispatch = useDispatch();
   const router = useRouter();
-  const [loadingVocabs, setLoadingVocabs] = useState<Record<string, boolean>>({});
-  
+  const [loadingVocabs, setLoadingVocabs] = useState<Record<string, boolean>>(
+    {},
+  );
+
+  // const [topicVocabs, setTopicVocabs] = useState<VocabData[]>([]);
+
   // Get vocabularies for this topic from Redux
-  const topicVocabs = useSelector((state: RootState) => 
+  const topicVocabs = useSelector((state: RootState) =>
     selectVocabsByTopic(state, topic.id)
   );
+
+  // console.log("topic", topic)
+
+  // useEffect(() => {
+
+  //   console.log("sada", topic)
+  //   const loadTopicByVocab = async () => {
+  //     const res = await getByTopicId(topic.id);
+
+  //     if (res) {
+  //       setTopicVocabs(res);
+  //     } else {
+  //       toast.error('Errors');
+  //     }
+  //   };
+
+  //   loadTopicByVocab();
+  // }, [topic]);
 
   // Calculate progress
   const progress = useMemo(() => {
     if (topicVocabs.length === 0) return { known: 0, total: 0, percentage: 0 };
-    
-    const knownCount = topicVocabs.filter(vocab => vocab.is_know).length;
+
+    const knownCount = topicVocabs.filter((vocab) => vocab.is_learned).length;
     const total = topicVocabs.length;
     const percentage = Math.round((knownCount / total) * 100);
-    
+
     return { known: knownCount, total, percentage };
   }, [topicVocabs]);
 
   // Handle marking vocab as known/unknown
   const handleToggleKnown = async (vocab: VocabData) => {
-    const newKnownStatus = !vocab.is_know;
-    setLoadingVocabs(prev => ({ ...prev, [vocab.id]: true }));
+    const newKnownStatus = !vocab.is_learned;
+    setLoadingVocabs((prev) => ({ ...prev, [vocab.id]: true }));
 
     try {
       // Call API to update vocab - include all required fields
@@ -64,68 +95,72 @@ export function VocabLearningModal({ isOpen, onClose, topic }: VocabLearningModa
         example: vocab.example,
         imageUrl: vocab.imageUrl,
         audioUrl: vocab.audioUrl,
-        is_know: newKnownStatus
+        is_learned: newKnownStatus,
       };
-      
+
       console.log('Updating vocab with payload:', payload);
-      const result = await updateVocab(vocab.id, payload);
+      const result = await markDone(vocab.id);
       console.log('Update vocab result:', result);
 
       if (result) {
         // Update Redux store
-        dispatch(updateVocabInStore({
-          id: vocab.id,
-          updates: { is_know: newKnownStatus }
-        }));
-        
+        dispatch(
+          updateVocabInStore({
+            id: vocab.id,
+            updates: { is_learned: newKnownStatus },
+          }),
+        );
+
         // Show success toast
         addToast({
-          title: newKnownStatus ? "Word Marked as Known" : "Word Marked as Unknown",
-          description: newKnownStatus 
+          title: newKnownStatus
+            ? 'Word Marked as Known'
+            : 'Word Marked as Unknown',
+          description: newKnownStatus
             ? `"${vocab.word}" has been marked as known!`
             : `"${vocab.word}" has been marked as unknown`,
-          color: "success",
+          color: 'success',
         });
       } else {
         // Show error toast when no result
         addToast({
-          title: "Update Failed",
+          title: 'Update Failed',
           description: `Failed to update "${vocab.word}". Please try again.`,
-          color: "danger",
+          color: 'danger',
         });
         console.error('Failed to update vocab on server - no result returned');
       }
     } catch (error: any) {
       console.error('Error updating vocab:', error);
-      
+
       // Determine error message based on error details
-      let title = "Update Error";
+      let title = 'Update Error';
       let description = `Failed to update "${vocab.word}"`;
-      
+
       if (error?.response?.status) {
         switch (error.response.status) {
           case 400:
-            title = "Invalid Request";
+            title = 'Invalid Request';
             description = `Invalid request for "${vocab.word}"`;
             break;
           case 401:
-            title = "Authentication Required";
+            title = 'Authentication Required';
             description = `Please log in to update "${vocab.word}"`;
             break;
           case 403:
-            title = "Permission Denied";
+            title = 'Permission Denied';
             description = `You don't have permission to update "${vocab.word}"`;
             break;
           case 404:
-            title = "Vocab Not Found";
+            title = 'Vocab Not Found';
             description = `Vocabulary "${vocab.word}" was not found`;
             break;
           case 500:
-            title = "Server Error";
+            title = 'Server Error';
             description = `Server error occurred while updating "${vocab.word}"`;
             break;
           default:
-            title = "Update Failed";
+            title = 'Update Failed';
             description = `Failed to update "${vocab.word}" (Error ${error.response.status})`;
         }
       } else if (error?.message) {
@@ -133,33 +168,34 @@ export function VocabLearningModal({ isOpen, onClose, topic }: VocabLearningModa
       } else if (error?.response?.data?.message) {
         description = error.response.data.message;
       }
-      
+
       // Show error toast
       addToast({
         title,
         description,
-        color: "danger",
+        color: 'danger',
       });
     } finally {
-      setLoadingVocabs(prev => ({ ...prev, [vocab.id]: false }));
+      setLoadingVocabs((prev) => ({ ...prev, [vocab.id]: false }));
     }
   };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
+    <Modal
+      isOpen={isOpen}
       onClose={onClose}
       size="2xl"
       scrollBehavior="inside"
       classNames={{
-        backdrop: "bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20"
+        backdrop:
+          'bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20',
       }}
     >
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1">
           <div className="flex items-center gap-3">
-            <Icon 
-              icon="material-symbols:quiz" 
+            <Icon
+              icon="material-symbols:quiz"
               className="text-2xl text-blue-500"
             />
             <div>
@@ -169,17 +205,19 @@ export function VocabLearningModal({ isOpen, onClose, topic }: VocabLearningModa
               </p>
             </div>
           </div>
-          
+
           {/* Progress */}
           <div className="mt-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-700">Progress</span>
+              <span className="text-sm font-medium text-gray-700">
+                Progress
+              </span>
               <span className="text-sm font-bold text-blue-600">
                 {progress.known}/{progress.total} ({progress.percentage}%)
               </span>
             </div>
-            <Progress 
-              value={progress.percentage} 
+            <Progress
+              value={progress.percentage}
               className="max-w-full"
               color="primary"
               size="sm"
@@ -190,22 +228,25 @@ export function VocabLearningModal({ isOpen, onClose, topic }: VocabLearningModa
         <ModalBody>
           {topicVocabs.length === 0 ? (
             <div className="text-center py-8">
-              <Icon 
-                icon="material-symbols:quiz-outline" 
+              <Icon
+                icon="material-symbols:quiz-outline"
                 className="text-4xl text-gray-300 mb-4 mx-auto"
               />
-              <p className="text-gray-500">No vocabulary found for this topic</p>
+              <p className="text-gray-500">
+                No vocabulary found for this topic
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
               {topicVocabs.map((vocab) => (
-                <Card 
+                <Card
                   key={vocab.id}
                   className={`
                     transition-all duration-300 border-2
-                    ${vocab.is_know 
-                      ? 'border-green-200 bg-green-50' 
-                      : 'border-gray-200 bg-white hover:border-blue-200'
+                    ${
+                      vocab.is_learned
+                        ? 'border-green-200 bg-green-50'
+                        : 'border-gray-200 bg-white hover:border-blue-200'
                     }
                   `}
                 >
@@ -217,8 +258,8 @@ export function VocabLearningModal({ isOpen, onClose, topic }: VocabLearningModa
                           {/* Image */}
                           {vocab.imageUrl && (
                             <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                              <img 
-                                src={vocab.imageUrl} 
+                              <img
+                                src={vocab.imageUrl}
                                 alt={vocab.word}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
@@ -228,17 +269,17 @@ export function VocabLearningModal({ isOpen, onClose, topic }: VocabLearningModa
                               />
                             </div>
                           )}
-                          
+
                           {/* Text Content */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
                               <h3 className="text-lg font-bold text-gray-800">
                                 {vocab.word}
                               </h3>
-                              {vocab.is_know && (
-                                <Chip 
-                                  size="sm" 
-                                  color="success" 
+                              {vocab.is_learned && (
+                                <Chip
+                                  size="sm"
+                                  color="success"
                                   variant="flat"
                                   startContent={
                                     <Icon icon="material-symbols:check-circle" />
@@ -248,63 +289,61 @@ export function VocabLearningModal({ isOpen, onClose, topic }: VocabLearningModa
                                 </Chip>
                               )}
                             </div>
-                            
+
                             <p className="text-gray-600 font-medium mb-2">
                               {vocab.meaning}
                             </p>
-                            
+
                             {vocab.example && (
                               <p className="text-sm text-gray-500 italic">
                                 "{vocab.example}"
                               </p>
                             )}
-                            
+
                             {/* Audio */}
                             {vocab.audioUrl && (
                               <div className="mt-2">
-                                <Button
+                                <CustomButton
                                   size="sm"
-                                  variant="light"
-                                  startContent={
-                                    <Icon icon="material-symbols:volume-up" />
-                                  }
+                                  preset="ghost"
+                                  icon="material-symbols:volume-up"
                                   onClick={() => {
                                     const audio = new Audio(vocab.audioUrl);
-                                    audio.play().catch(e => 
-                                      console.error('Error playing audio:', e)
-                                    );
+                                    audio
+                                      .play()
+                                      .catch((e) =>
+                                        console.error(
+                                          'Error playing audio:',
+                                          e,
+                                        ),
+                                      );
                                   }}
                                 >
                                   Listen
-                                </Button>
+                                </CustomButton>
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Action Button */}
                       <div className="flex-shrink-0">
-                        <Button
+                        <CustomButton
                           size="sm"
-                          color={vocab.is_know ? "default" : "primary"}
-                          variant={vocab.is_know ? "light" : "solid"}
-                          isLoading={loadingVocabs[vocab.id]}
-                          disabled={loadingVocabs[vocab.id]}
-                          startContent={
-                            !loadingVocabs[vocab.id] && (
-                              <Icon 
-                                icon={vocab.is_know 
-                                  ? "material-symbols:refresh" 
-                                  : "material-symbols:check-circle"
-                                } 
-                              />
-                            )
+                          preset={vocab.is_learned ? 'ghost' : 'primary'}
+                          loading={loadingVocabs[vocab.id]}
+                          icon={
+                            vocab.is_learned
+                              ? 'material-symbols:refresh'
+                              : 'material-symbols:check-circle'
                           }
                           onClick={() => handleToggleKnown(vocab)}
                         >
-                          {vocab.is_know ? "Mark as Unknown" : "Already Know This"}
-                        </Button>
+                          {vocab.is_learned
+                            ? 'Mark as Unknown'
+                            : 'Already Know This'}
+                        </CustomButton>
                       </div>
                     </div>
                   </CardBody>
@@ -315,27 +354,61 @@ export function VocabLearningModal({ isOpen, onClose, topic }: VocabLearningModa
         </ModalBody>
 
         <ModalFooter>
-          <Button color="danger" variant="light" onPress={onClose}>
+          <CustomButton preset="danger" onPress={onClose}>
             Close
-          </Button>
+          </CustomButton>
           {topicVocabs.length > 0 && (
-            <Button 
-              color="primary" 
-              variant="solid"
+            <CustomButton
+              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-sm"
+              size="md"
+              icon="material-symbols:play-arrow"
               onPress={() => {
                 onClose();
                 router.push(`/learn-vocabulary/${topic.id}`);
               }}
-              startContent={<Icon icon="material-symbols:play-arrow" />}
             >
               Start Learning
-            </Button>
+            </CustomButton>
+          )}
+          {/* Exercise Button - Always show for testing */}
+          {topicVocabs.length > 0 && (
+            <CustomButton
+              preset="primary"
+              icon="material-symbols:quiz"
+              onPress={() => {
+                onClose();
+                router.push(`/learn-vocabulary/exercise/${topic.id}/quiz`);
+              }}
+            >
+              Quiz
+              {progress.percentage === 100 ? (
+                <Chip size="sm" color="success" variant="flat" className="ml-2">
+                  ✓
+                </Chip>
+              ) : (
+                <Chip size="sm" color="warning" variant="flat" className="ml-2">
+                  TEST
+                </Chip>
+              )}
+            </CustomButton>
+          )}
+          {/* Type Answer Button */}
+          {topicVocabs.length > 0 && (
+            <CustomButton
+              preset="primary"
+              icon="material-symbols:edit"
+              onPress={() => {
+                onClose();
+                router.push(`/learn-vocabulary/exercise/${topic.id}/type-answer`);
+              }}
+            >
+              Type Answer
+            </CustomButton>
           )}
           {progress.percentage === 100 && (
-            <Button color="success" variant="solid">
-              <Icon icon="material-symbols:celebration" className="mr-1" />
+            <CustomButton preset="success" icon="material-symbols:celebration">
               Completed!
-            </Button>
+            </CustomButton>
           )}
         </ModalFooter>
       </ModalContent>
