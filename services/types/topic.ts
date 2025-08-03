@@ -25,6 +25,7 @@ export type TopicUpdatePayload = {
   description?: string;
   coverImage?: string;
   suggestionLevel?: string;
+  isMyWorkspace?: boolean;
 };
 
 export type NodeViewCMS = {

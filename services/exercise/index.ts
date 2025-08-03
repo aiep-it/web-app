@@ -2,6 +2,7 @@ import { ExerciseData, ExercisePayload } from "../types/exercise";
 import { ENDPOINTS } from "@/constant/api";
 import axiosInstance from "@/lib/axios";
 import { getAudioByExerciseId, getExerciseByIdFromDirectus } from "../cms/exercise";
+import {  AI_suggestQuizPayload } from "../types/aiSuggest";
 
 export async function createQuiz(payload: ExercisePayload): Promise<ExerciseData | null> {
     try{
@@ -89,6 +90,26 @@ export async function getExerciseFromDirectus(exerciseId: string) {
         return await getExerciseByIdFromDirectus(exerciseId);
     } catch (error) {
         console.error("Error getting exercise from Directus:", error);
+        return null;
+    }
+}
+
+export async function suggestQuizz(payload: AI_suggestQuizPayload): Promise<ExerciseData | null> {
+    try {
+        return await axiosInstance
+            .post(ENDPOINTS.AI.AI_SUGGEST_QUIZ, payload)
+            .then((response) => {
+                if (response.status === 200) {
+                    return response.data?.data as ExerciseData | null;
+                }
+                return null;
+            })
+            .catch((e) => {
+                console.error("Error suggesting quizzes:", e);
+                return null;
+            });
+    } catch (error) {
+        console.error("Error suggesting quizzes:", error);
         return null;
     }
 }

@@ -58,6 +58,7 @@ export const ENDPOINTS = {
   },
   AI: {
     GEN_FROM_IMAGE: "/ai/personal-learning",
+    AI_SUGGEST_QUIZ: "/ai/suggest-quiz",
   },
   PERSONAL_LEARNING: {
     CREATE: "/personal-learning/create",

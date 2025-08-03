@@ -126,6 +126,7 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
                 className="text-gray-400" 
               />
             }
+            aria-label='Exercise Type'
           >
             <SelectItem key="image" startContent={<Icon icon="mdi:image" />}>
               Image Exercise
@@ -152,6 +153,7 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
             maxRows={5}
             isInvalid={!!errors.content}
             errorMessage={errors.content}
+            aria-label='Question Content'
           />
         </div>
 
@@ -201,6 +203,7 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
             startContent={<Icon icon="mdi:check-circle" className="text-green-500" />}
             isInvalid={!!errors.correctAnswer}
             errorMessage={errors.correctAnswer}
+            aria-label='Correct Answer'
           />
         </div>
 
@@ -208,6 +211,7 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700">Difficulty Level</label>
           <Select
+            aria-label="Difficulty Level"
             selectedKeys={[formData.difficulty]}
             onSelectionChange={(keys) => {
               const difficulty = Array.from(keys)[0] as Difficulty;
