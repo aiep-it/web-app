@@ -33,7 +33,7 @@ FROM node:23-slim AS runner
 
 WORKDIR /app
 
-
+ENV NODE_ENV=production
 # Copy only necessary files for a standalone Next.js server
 COPY --from=builder /app/public ./public
 # The standalone output is the recommended approach for production
