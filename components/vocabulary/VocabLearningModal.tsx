@@ -11,6 +11,7 @@ import {
   CardBody,
   Chip,
   Progress,
+  Spinner,
 } from '@heroui/react';
 import { addToast } from '@heroui/toast';
 import { Icon } from '@iconify/react';
@@ -20,13 +21,13 @@ import { RootState } from '@/store/rootReducer';
 import {
   selectVocabsByTopic,
   updateVocabInStore,
+  setVocabsForTopic,
 } from '@/store/slices/vocabSlice';
 import { TopicData } from '@/services/types/topic';
-import { VocabData } from '@/services/types/vocab';
-import { getByTopicId, markDone, updateVocab } from '@/services/vocab';
+import { VocabData, VocabSearchPayload, VocabColumn } from '@/services/types/vocab';
+import { getByTopicId, markDone, updateVocab, fetchVocabsByTopicId } from '@/services/vocab';
 import { CustomButton } from '@/shared/components/button/CustomButton';
 import { getAllVocabularyWords } from '@/utils/vocabulary/vocabularyUtils';
-import toast from 'react-hot-toast';
 
 interface VocabLearningModalProps {
   isOpen: boolean;
@@ -44,31 +45,55 @@ export function VocabLearningModal({
   const [loadingVocabs, setLoadingVocabs] = useState<Record<string, boolean>>(
     {},
   );
-
-  // const [topicVocabs, setTopicVocabs] = useState<VocabData[]>([]);
+  const [isLoadingTopicVocabs, setIsLoadingTopicVocabs] = useState(false);
 
   // Get vocabularies for this topic from Redux
   const topicVocabs = useSelector((state: RootState) =>
     selectVocabsByTopic(state, topic.id)
   );
 
-  // console.log("topic", topic)
+  // Load vocabularies when modal opens
+  useEffect(() => {
+    if (isOpen && topic.id) {
+      const loadTopicVocabs = async () => {
+        setIsLoadingTopicVocabs(true);
+        try {
+          const payload: VocabSearchPayload = {
+            page: 1,
+            size: 100, // Load all vocabs for the topic
+            sort: [{ field: VocabColumn.created_at, order: 'desc' }]
+          };
 
-  // useEffect(() => {
+          const response = await fetchVocabsByTopicId(topic.id, payload);
+          
+          if (response && !Array.isArray(response) && 'content' in response) {
+            // Response is VocabListResponse
+            dispatch(setVocabsForTopic({
+              topicId: topic.id,
+              vocabs: response.content
+            }));
+          } else if (response && Array.isArray(response)) {
+            // Response is direct array (fallback case)
+            dispatch(setVocabsForTopic({
+              topicId: topic.id,
+              vocabs: response
+            }));
+          }
+        } catch (error) {
+          console.error('Error loading topic vocabularies:', error);
+          addToast({
+            title: 'Error Loading Vocabularies',
+            description: 'Failed to load vocabularies for this topic',
+            color: 'danger',
+          });
+        } finally {
+          setIsLoadingTopicVocabs(false);
+        }
+      };
 
-  //   console.log("sada", topic)
-  //   const loadTopicByVocab = async () => {
-  //     const res = await getByTopicId(topic.id);
-
-  //     if (res) {
-  //       setTopicVocabs(res);
-  //     } else {
-  //       toast.error('Errors');
-  //     }
-  //   };
-
-  //   loadTopicByVocab();
-  // }, [topic]);
+      loadTopicVocabs();
+    }
+  }, [isOpen, topic.id, dispatch]);
 
   // Calculate progress
   const progress = useMemo(() => {
@@ -121,6 +146,34 @@ export function VocabLearningModal({
             : `"${vocab.word}" has been marked as unknown`,
           color: 'success',
         });
+
+        // Optionally refresh the vocab list to ensure consistency
+        // This helps maintain data integrity after server updates
+        setTimeout(async () => {
+          try {
+            const payload: VocabSearchPayload = {
+              page: 1,
+              size: 100,
+              sort: [{ field: VocabColumn.created_at, order: 'desc' }]
+            };
+
+            const response = await fetchVocabsByTopicId(topic.id, payload);
+            
+            if (response && !Array.isArray(response) && 'content' in response) {
+              dispatch(setVocabsForTopic({
+                topicId: topic.id,
+                vocabs: response.content
+              }));
+            } else if (response && Array.isArray(response)) {
+              dispatch(setVocabsForTopic({
+                topicId: topic.id,
+                vocabs: response
+              }));
+            }
+          } catch (error) {
+            console.error('Error refreshing vocabularies:', error);
+          }
+        }, 500); // Small delay to ensure server has processed the update
       } else {
         // Show error toast when no result
         addToast({
@@ -226,7 +279,12 @@ export function VocabLearningModal({
         </ModalHeader>
 
         <ModalBody>
-          {topicVocabs.length === 0 ? (
+          {isLoadingTopicVocabs ? (
+            <div className="text-center py-8">
+              <Spinner size="md" />
+              <p className="text-gray-500">Loading...</p>
+            </div>
+          ) : topicVocabs.length === 0 ? (
             <div className="text-center py-8">
               <Icon
                 icon="material-symbols:quiz-outline"

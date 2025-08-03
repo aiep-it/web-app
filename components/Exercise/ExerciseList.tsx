@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ExerciseData } from '@/services/types/exercise';
-import { Card, CardBody, CardHeader, Button, Spinner, Chip } from '@heroui/react';
+import { Card, CardBody, CardHeader, Button, Spinner, Chip, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
 import { Icon } from '@iconify/react';
 
 interface ExerciseListProps {
@@ -11,6 +11,7 @@ interface ExerciseListProps {
   error: string | null;
   onExerciseSelect: (exercise: ExerciseData) => void;
   onExerciseEdit?: (exercise: ExerciseData) => void;
+  onExerciseDelete?: (exercise: ExerciseData) => void;
   selectedExerciseId?: string | number;
 }
 
@@ -20,8 +21,32 @@ export function ExerciseList({
   error, 
   onExerciseSelect, 
   onExerciseEdit,
+  onExerciseDelete,
   selectedExerciseId 
 }: ExerciseListProps) {
+  const [exerciseToDelete, setExerciseToDelete] = useState<ExerciseData | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+  const handleDeleteClick = (exercise: ExerciseData) => {
+    setExerciseToDelete(exercise);
+    onOpen();
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!exerciseToDelete || !onExerciseDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await onExerciseDelete(exerciseToDelete);
+      onOpenChange();
+      setExerciseToDelete(null);
+    } catch (error) {
+      console.error('Error deleting exercise:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
   
   if (loading) {
     return (
@@ -118,19 +143,35 @@ export function ExerciseList({
                       </Chip>
                     </div>
                     
-                    {onExerciseEdit && (
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="light"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onExerciseEdit(exercise);
-                        }}
-                      >
-                        <Icon icon="mdi:pencil" className="text-gray-500" />
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {onExerciseEdit && (
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="light"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onExerciseEdit(exercise);
+                          }}
+                        >
+                          <Icon icon="mdi:pencil" className="text-gray-500" />
+                        </Button>
+                      )}
+                      
+                      {onExerciseDelete && (
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="light"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(exercise);
+                          }}
+                        >
+                          <Icon icon="mdi:delete" className="text-gray-500 hover:text-red-500" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="mb-2">
@@ -159,6 +200,56 @@ export function ExerciseList({
           </div>
         )}
       </CardBody>
+
+      {/* Delete Confirmation Modal */}
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <Icon icon="mdi:delete" className="text-red-500 text-xl" />
+                  <span>Delete Exercise</span>
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-gray-600">
+                  Are you sure you want to delete this exercise? This action cannot be undone.
+                </p>
+                {exerciseToDelete && (
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Icon icon="mdi:help-circle-outline" className="text-gray-600" />
+                      <span className="font-medium">
+                        {exerciseToDelete.content || 'No content'}
+                      </span>
+                    </div>
+                    <div className="mt-2 text-xs text-gray-500">
+                      Type: {exerciseToDelete.type} | Difficulty: {exerciseToDelete.difficulty}
+                    </div>
+                  </div>
+                )}
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  variant="light"
+                  onPress={onClose}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  color="danger"
+                  isLoading={isDeleting}
+                  onPress={handleConfirmDelete}
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete'}
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </Card>
   );
 }

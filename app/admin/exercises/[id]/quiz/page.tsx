@@ -40,8 +40,10 @@ export default function QuizExercisePage({ myTopicId }: QuizExercisePageProps) {
     getAllExercises,
     createNewExercise,
     updateExercise,
+    deleteExercise,
     isCreateLoading,
     isUpdateLoading,
+    isDeleteLoading,
   } = useExercises();
 
   const { currentUser } = useUser();
@@ -291,6 +293,44 @@ export default function QuizExercisePage({ myTopicId }: QuizExercisePageProps) {
     setCurrentView('edit');
   };
 
+  const handleDeleteExercise = async (exercise: ExerciseData) => {
+    if (!exercise.id) {
+      addToast({
+        title: 'Error',
+        description: 'Exercise ID is missing',
+        color: 'danger',
+      });
+      return;
+    }
+
+    try {
+      await deleteExercise(exercise.id);
+      
+      addToast({
+        title: 'Success',
+        description: 'Exercise deleted successfully!',
+        color: 'success',
+      });
+
+      // Clear selected exercise if it was the one being deleted
+      if (selectedExercise?.id === exercise.id) {
+        setSelectedExercise(null);
+        setCurrentView('list');
+      }
+
+      // Refresh exercises list
+      getAllExercises();
+    } catch (error) {
+      console.error('Error deleting exercise:', error);
+      
+      addToast({
+        title: 'Error',
+        description: 'Failed to delete exercise. Please try again.',
+        color: 'danger',
+      });
+    }
+  };
+
   const handlePreviewAnswer = (answer: string) => {
     setPreviewAnswer(answer);
     setShowPreviewResult(true);
@@ -527,6 +567,7 @@ export default function QuizExercisePage({ myTopicId }: QuizExercisePageProps) {
               error={error}
               onExerciseSelect={handleExerciseSelect}
               onExerciseEdit={handleEditExercise}
+              onExerciseDelete={handleDeleteExercise}
               selectedExerciseId={selectedExercise?.id}
             />
           </div>

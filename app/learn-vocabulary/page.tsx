@@ -11,6 +11,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store/rootReducer';
 import { Icon } from '@iconify/react';
 import { useAuth } from '@clerk/nextjs';
+import { Spinner } from '@heroui/react';
 
 interface RoadmapSectionProps {
   roadmap: Roadmap;
@@ -122,22 +123,13 @@ export default function LearnVocabularyPage() {
   // Load topics for all roadmaps và vocabularies
   useEffect(() => {
     const loadAllData = async () => {
-      console.log('🔄 loadAllData called with:', {
-        roadmapsLength: roadmaps.length,
-        isClient,
-        isLoaded,
-        isSignedIn,
-        isDataLoaded,
-        hasRoadmapsError: !!error
-      });
-      
       // Only proceed if:
       // 1. We have roadmaps (no error from useRoadmaps)
       // 2. Clerk is loaded and user is signed in
       // 3. Data hasn't been loaded yet
       if (roadmaps.length > 0 && !error && isClient && isLoaded && isSignedIn && !isDataLoaded) {
         
-        console.log('✅ Starting data load...');
+        console.log('Starting data load...');
         setIsDataLoaded(true); // Prevent multiple calls
         
         // Set loading state for topics
@@ -149,16 +141,16 @@ export default function LearnVocabularyPage() {
 
         try {
           // Fetch topics for all roadmaps first
-          console.log('📊 Fetching topics for roadmaps...');
+          console.log('Fetching topics for roadmaps...');
           const topicsPromises = roadmaps.map(async (roadmap) => {
             await getTopicsByRoadmap(roadmap.id);
             return roadmap.id;
           });
 
           await Promise.all(topicsPromises);
-          console.log('✅ Topics loaded');
+          console.log('Topics loaded');
           
-          console.log('🔑 Data loading completed successfully');
+          console.log('Data loading completed successfully');
           
         } catch (error) {
           setIsDataLoaded(false); // Reset flag on error to allow retry
@@ -218,10 +210,7 @@ export default function LearnVocabularyPage() {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-6"></div>
-          <h2 className="text-xl font-medium text-gray-700">
-            Loading your courses...
-          </h2>
+          <Spinner variant="wave" color="primary" size="lg" label="Loading..." labelColor="primary"/>
           <p className="text-gray-500 mt-2">Please wait a moment</p>
         </div>
       </div>
