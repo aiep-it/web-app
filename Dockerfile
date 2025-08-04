@@ -43,9 +43,6 @@ COPY --from=builder /app/apps/pickleball-admin/.next/standalone ./
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Copy tailwind & ts config base nếu cần cho runtime theming
-COPY tailwind.config.base.js ./tailwind.config.base.js
-COPY tsconfig.base.json ./tsconfig.base.json
 
 EXPOSE 3000
 
