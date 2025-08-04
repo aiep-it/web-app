@@ -9,7 +9,7 @@ import { toast } from 'react-hot-toast';
 
 import { RootState } from '@/store';
 import { selectVocabsByTopic, updateVocabInStore, fetchVocabs } from '@/store/slices/vocabSlice';
-import { updateVocab } from '@/services/vocab';
+import { markDone, updateVocab } from '@/services/vocab';
 import type { AppDispatch } from '@/store';
 
 interface LearningPageProps {
@@ -169,21 +169,23 @@ export default function LearningPage() {
       setIsUpdating(true);
       try {
         // Update via API - use nodeId (which maps to topicId)
-        await updateVocab(currentWord.id, {
-          word: currentWord.word,
-          meaning: currentWord.meaning,
-          example: currentWord.example,
-          imageUrl: currentWord.imageUrl,
-          audioUrl: currentWord.audioUrl,
-          is_learned: true,
-          topicId: currentWord.topicId, // API expects nodeId
-        });
+        // await updateVocab(currentWord.id, {
+        //   word: currentWord.word,
+        //   meaning: currentWord.meaning,
+        //   example: currentWord.example,
+        //   imageUrl: currentWord.imageUrl,
+        //   audioUrl: currentWord.audioUrl,
+        //   is_learned: true,
+        //   topicId: currentWord.topicId, // API expects nodeId
+        // });
         
-        // Update Redux store
-        dispatch(updateVocabInStore({
-          ...currentWord,
-          is_learned: true
-        }));
+        // // Update Redux store
+        // dispatch(updateVocabInStore({
+        //   ...currentWord,
+        //   is_learned: true
+        // }));
+
+        await markDone(currentWord.id);
         
         // Show success feedback
         toast.success("Marked as known!");

@@ -115,19 +115,19 @@ export function VocabLearningModal({
 
     try {
       // Call API to update vocab - include all required fields
-      const payload = {
-        word: vocab.word,
-        meaning: vocab.meaning,
-        nodeId: vocab.topicId, // API expects nodeId, not topicId
-        example: vocab.example,
-        imageUrl: vocab.imageUrl,
-        audioUrl: vocab.audioUrl,
-        is_learned: newKnownStatus,
-      };
+      // const payload = {
+      //   word: vocab.word,
+      //   meaning: vocab.meaning,
+      //   nodeId: vocab.topicId, // API expects nodeId, not topicId
+      //   example: vocab.example,
+      //   imageUrl: vocab.imageUrl,
+      //   audioUrl: vocab.audioUrl,
+      //   is_learned: newKnownStatus,
+      // };
 
-      console.log('Updating vocab with payload:', payload);
+      // console.log('Updating vocab with payload:', payload);
       const result = await markDone(vocab.id);
-      console.log('Update vocab result:', result);
+      // console.log('Update vocab result:', result);
 
       if (result) {
         // Update Redux store

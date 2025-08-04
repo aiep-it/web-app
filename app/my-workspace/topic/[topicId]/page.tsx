@@ -9,7 +9,7 @@ import { toast } from 'react-hot-toast';
 
 import { RootState } from '@/store';
 import { selectVocabsByTopic, updateVocabInStore, setVocabsForTopic } from '@/store/slices/vocabSlice';
-import { updateVocab, fetchVocabsByTopicId } from '@/services/vocab';
+import { updateVocab, fetchVocabsByTopicId, markDone } from '@/services/vocab';
 import { getTopicId } from '@/services/topic';
 import { VocabSearchPayload, VocabColumn } from '@/services/types/vocab';
 import type { AppDispatch } from '@/store';
@@ -188,21 +188,22 @@ export default function LearnWorkspaceVocab() {
       setIsUpdating(true);
       try {
         // Update via API
-        await updateVocab(currentWord.id, {
-          word: currentWord.word,
-          meaning: currentWord.meaning,
-          example: currentWord.example,
-          imageUrl: currentWord.imageUrl,
-          audioUrl: currentWord.audioUrl,
-          is_learned: true,
-          topicId: currentWord.topicId,
-        });
+        // await updateVocab(currentWord.id, {
+        //   word: currentWord.word,
+        //   meaning: currentWord.meaning,
+        //   example: currentWord.example,
+        //   imageUrl: currentWord.imageUrl,
+        //   audioUrl: currentWord.audioUrl,
+        //   is_learned: true,
+        //   topicId: currentWord.topicId,
+        // });
         
-        // Update Redux store
-        dispatch(updateVocabInStore({
-          ...currentWord,
-          is_learned: true
-        }));
+        // // Update Redux store
+        // dispatch(updateVocabInStore({
+        //   ...currentWord,
+        //   is_learned: true
+        // }));
+        await markDone(currentWord.id);
         
         // Show success feedback
         toast.success("Marked as known!");
