@@ -116,13 +116,13 @@ export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
         </Button>
         {isWorkspace && (
           <Button
-            className="w-full  transition-all duration-300 shadow-sm mt-3"
+            className="w-full transition-all duration-300 shadow-sm mt-3 h-8"
             size="sm"
             color="primary"
-            variant="faded"
+            variant="bordered"
             onPress={() => router.push(`/my-workspace/${topic.id}`)}
           >
-            {/* <Icon icon="material-symbols:play-arrow" className="mr-1" /> */}
+            <Icon icon="material-symbols:info-outline" className="mr-1 text-sm" />
             Detail
           </Button>
         )}
@@ -133,6 +133,7 @@ export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         topic={topic}
+        isWorkspace={isWorkspace}
       />
     </div>
   );

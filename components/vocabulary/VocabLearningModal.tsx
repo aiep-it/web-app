@@ -33,12 +33,14 @@ interface VocabLearningModalProps {
   isOpen: boolean;
   onClose: () => void;
   topic: TopicData;
+  isWorkspace?: boolean;
 }
 
 export function VocabLearningModal({
   isOpen,
   onClose,
   topic,
+  isWorkspace = false,
 }: VocabLearningModalProps) {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -422,10 +424,14 @@ export function VocabLearningModal({
               icon="material-symbols:play-arrow"
               onPress={() => {
                 onClose();
-                router.push(`/learn-vocabulary/${topic.id}`);
+                if (isWorkspace) {
+                  router.push(`/my-workspace/topic/${topic.id}`);
+                } else {
+                  router.push(`/learn-vocabulary/${topic.id}`);
+                }
               }}
             >
-              Start Learning
+              {isWorkspace ? "Learning my vocabularies" : "Start Learning"}
             </CustomButton>
           )}
           {/* Exercise Button - Always show for testing */}

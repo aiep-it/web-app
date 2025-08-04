@@ -164,7 +164,7 @@ export default function MyWorkspacePage() {
               Your Topics
             </h2>
             <p className="text-gray-600">
-              Select a category to view available topics and start learning.
+              Select topic and start learning.
             </p>
           </div>
 

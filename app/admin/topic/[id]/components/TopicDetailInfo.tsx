@@ -20,37 +20,48 @@ import { getCmsAssetUrl } from '@/utils';
 interface TopicDataInfoProps {
   topicData?: TopicData;
   topicContent?: TopicContentCMS | null;
-  isWorkspace?: boolean
+  isWorkspace?: boolean;
 }
 const TopicDataInfo: React.FC<TopicDataInfoProps> = ({
   topicData,
   topicContent,
-  isWorkspace = false
+  isWorkspace = false,
 }) => {
   const router = useRouter();
 
-  const editLink = `${isWorkspace ? '/my-workspace' : '/admin/topic'}/${topicData?.id}/edit`
+  const editLink = `${isWorkspace ? '/my-workspace' : '/admin/topic'}/${topicData?.id}/edit`;
   return (
     <div className="w-full mx-auto p-4 space-y-6">
       <Card>
         <CardHeader className="flex flex-col md:flex-row gap-4">
-          <Image
-            src={
-              topicData?.coverImage
-                ? getCmsAssetUrl(topicData?.coverImage)
-                : undefined
-            }
-            className="w-full md:w-64 h-48 md:h-36 text-large"
-          />
+          {topicData?.coverImage ? (
+            <Image
+              src={
+                topicData?.coverImage
+                  ? getCmsAssetUrl(topicData?.coverImage)
+                  : undefined
+              }
+              className="w-full md:w-64 h-48 md:h-36 text-large"
+            />
+          ) : (
+            <div className="w-full rounded-md md:w-64 h-48 md:h-36 text-large bg-gray-200 flex items-center justify-center">
+              <p className="text-gray-500">No Cover Image</p>
+            </div>
+          )}
+
           <div className="flex-grow space-y-2">
             <h1 className="text-2xl font-bold">{topicData?.title}</h1>
-            <p className="text-default-500">{topicData?.description}</p>
+            <p className="text-default-500 italic">{topicData?.description}</p>
             <div className="flex flex-wrap gap-2">
               <Chip color="primary" variant="flat">
-                {topicData?.roadmap?.name}
+                {topicData?.roadmap?.name
+                  ? topicData?.roadmap?.name
+                  : 'No Roadmap'}
               </Chip>
               <Chip color="secondary" variant="flat">
-                {topicData?.suggestionLevel}
+                {topicData?.suggestionLevel
+                  ? topicData?.suggestionLevel
+                  : 'No Suggestion Level'}
               </Chip>
               <Chip
                 color={
@@ -79,13 +90,15 @@ const TopicDataInfo: React.FC<TopicDataInfoProps> = ({
           </div>
           <Divider />
           <div>
-            <h2 className="text-xl font-semibold mb-2">About this Node</h2>
+            <h2 className="text-xl font-semibold mb-2">About this Topic</h2>
             <p>{topicData?.description}</p>
-            <Divider className='my-3'/>
+            <Divider className="my-3" />
             {topicContent?.content ? (
               <div
                 className="prose max-w-none"
-                dangerouslySetInnerHTML={{ __html: topicContent?.content || '' }}
+                dangerouslySetInnerHTML={{
+                  __html: topicContent?.content || '',
+                }}
               />
             ) : (
               <p className="text-default-500">No Content to show</p>
@@ -93,19 +106,23 @@ const TopicDataInfo: React.FC<TopicDataInfoProps> = ({
           </div>
           <Divider />
           <div className="flex justify-between items-center">
-            <Button color="primary" variant='bordered' onPress={() => {
-              router.push(editLink)
-            }}>
+            <Button
+              color="primary"
+              variant="bordered"
+              onPress={() => {
+                router.push(editLink);
+              }}
+            >
               Edit
             </Button>
-            <div className="flex gap-2">
+            {/* <div className="flex gap-2">
               <Button isIconOnly variant="light" aria-label="Previous node">
                 <Icon icon="lucide:chevron-left" className="text-xl" />
               </Button>
               <Button isIconOnly variant="light" aria-label="Next node">
                 <Icon icon="lucide:chevron-right" className="text-xl" />
               </Button>
-            </div>
+            </div> */}
           </div>
         </CardBody>
       </Card>
