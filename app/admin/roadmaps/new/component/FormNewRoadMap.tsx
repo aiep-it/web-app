@@ -69,7 +69,7 @@ const FormNewRoadMap = () => {
             name="name"
             isRequired
             label="name"
-            labelPlacement="outside"
+            labelPlacement="outside-top"
             placeholder="Enter your name of road map"
           />
         </div>
@@ -96,7 +96,7 @@ const FormNewRoadMap = () => {
             name="description"
             placeholder="Description"
             label="Description"
-            labelPlacement="outside"
+            labelPlacement="outside-top"
           />
         </div>
       </div>

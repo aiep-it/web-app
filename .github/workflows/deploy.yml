@@ -1,9 +1,9 @@
-name: Build and Deploy to EC2
+name: Build and Deploy to EC2 using Docker
 
 on:
   push:
     branches:
-      - main
+      - release
 
 jobs:
   build-and-deploy:
@@ -13,33 +13,23 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
         with:
-          node-version: 23
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Build and push Docker image
+        run: |
+          docker buildx create --use
+          docker buildx build \
+            --platform linux/amd64 \
+            --tag ${{ secrets.DOCKER_USERNAME }}/aiep:latest \
+            --push .
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Environment setup
-        run: echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
-
-      - name: Build project
-        run: npm run build
-
-      - name: Zip build output
-        run: zip -r build.zip .next .env
-
-      - name: Upload to EC2 via SCP
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "build.zip"
-          target: "/tmp/"
-     
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -47,18 +37,14 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm use 23 || nvm install 23
+            docker pull ${{ secrets.DOCKER_USERNAME }}/aiep:latest
 
-            mkdir -p /home/ubuntu/aiep-it/web-app
-            mv /tmp/build.zip /home/ubuntu/aiep-it/web-app/
+            docker stop aiep || true
+            docker rm aiep || true
 
-            cd /home/ubuntu/aiep-it/web-app
-            unzip -o build.zip
-            npm install
-
-            export PATH="$PATH:$HOME/.npm-global/bin"
-            pm2 restart fe || pm2 start "npm run start" --name "fe"
-            rm build.zip
-     
+            docker run -d \
+              --name aiep \
+              --restart always \
+              -p 3000:3000 \
+              -e NODE_ENV=production \
+              ${{ secrets.DOCKER_USERNAME }}/aiep:latest
