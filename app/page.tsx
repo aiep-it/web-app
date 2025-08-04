@@ -1,3 +1,4 @@
+"use client";
 import { Container } from "@/components/landing/Container";
 import { Hero } from "@/components/landing/Hero";
 import { SectionTitle } from "@/components/landing/SectionTitle";
