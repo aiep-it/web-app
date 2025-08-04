@@ -36,13 +36,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 # Copy only necessary files for a standalone Next.js server
 COPY --from=builder /app/public ./public
-
-# Copy built standalone app INCLUDING package.json, node_modules
-COPY --from=builder /app/apps/pickleball-admin/.next/standalone ./
 # The standalone output is the recommended approach for production
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-
+COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 3000
 
