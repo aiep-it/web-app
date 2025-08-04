@@ -39,10 +39,11 @@ jobs:
           script: |
             docker pull ${{ secrets.DOCKER_USERNAME }}/aiep:latest
 
-            docker stop ${{ secrets.DOCKER_USERNAME }}/aiep || true
-            docker rm ${{ secrets.DOCKER_USERNAME }}/aiep || true
+            docker stop aiep || true
+            docker rm aiep || true
 
             docker run -d \
+              --name aiep \
               --restart always \
               -p 3000:3000 \
               -e NODE_ENV=production \
