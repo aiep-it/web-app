@@ -24,6 +24,7 @@ import { ClassResponse, ClassLevel } from '@/services/types/class';
 import { Student } from '@/services/types/student';
 import StudentTable from '@/app/admin/usermanage/components/StudentTable';
 import DeleteConfirmationModal from '@/app/admin/classmanage/components/DeleteConfirmationModal';
+import { Teacher } from '@/services/types/user';
 
 export default function ClassDetailPage() {
   const { id } = useParams();
@@ -98,7 +99,10 @@ export default function ClassDetailPage() {
 
   const fetchAllTeachers = async () => {
     const data = await getAllTeachers();
-    setAllTeachers(data);
+    setAllTeachers(data.map((teacher: Teacher) => ({
+      id: teacher.id,
+      fullName: teacher.fullName || '', // Default to empty string if undefined
+    })));
   };
 
   const fetchAvailableRoadmaps = async () => {

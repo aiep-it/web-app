@@ -73,7 +73,10 @@ export default function CreateClassForm() {
     async function fetchData() {
       const teacherList = await getAllTeachers();
       const roadmapList = await getRoadmap();
-      setTeachers(teacherList);
+      setTeachers(teacherList.map(teacher => ({
+        id: teacher.id,
+        fullName: teacher.fullName || '', // Provide a default value if fullName is undefined
+      })));
       setRoadmaps(roadmapList);
     }
     fetchData();

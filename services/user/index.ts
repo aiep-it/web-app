@@ -2,7 +2,7 @@
 import { ENDPOINTS } from "@/constant/api";
 import axiosInstance from "@/lib/axios";
 
-import { UpdateRoleRequest, Teacher} from "../types/user";
+import { UpdateRoleRequest, Teacher, UserData} from "../types/user";
 
 
 export async function updateRole(payload: UpdateRoleRequest)  {
