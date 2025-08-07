@@ -8,7 +8,7 @@ import {
   ModalBody,
   ModalFooter,
   Input,
-  Textarea
+  Textarea,
 } from '@heroui/react';
 
 import { Icon } from '@iconify/react';
@@ -108,11 +108,9 @@ export default function MyWorkspacePage() {
             <div className="space-y-4">
               {/* Folder Name Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Folder Name
-                </label>
                 <Input
                   placeholder="Enter folder name"
+                  label="Folder Name"
                   value={folderName}
                   onValueChange={setFolderName}
                   variant="bordered"
@@ -123,11 +121,9 @@ export default function MyWorkspacePage() {
 
               {/* Description Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
-                </label>
                 <Textarea
                   placeholder="Enter folder description (optional)"
+                  label="Description"
                   value={description}
                   onValueChange={setDescription}
                   variant="bordered"
@@ -163,9 +159,7 @@ export default function MyWorkspacePage() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
               Your Topics
             </h2>
-            <p className="text-gray-600">
-              Select topic and start learning.
-            </p>
+            <p className="text-gray-600">Select topic and start learning.</p>
           </div>
 
           <div className="space-y-8">

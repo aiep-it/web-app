@@ -157,12 +157,11 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace })
         <div className="flex flex-col sm:flex-row gap-4 w-full pt-2">
           <div className="flex-1">
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-foreground">
-                Title <span className="text-danger">*</span>
-              </label>
               <CTextField
                 title="Topic Title"
                 disabled={Boolean(topicId)}
+                isRequired
+                label="Title"
                 name="title"
                 placeholder="Enter your title of topic"
                 variant="bordered"
@@ -171,12 +170,10 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace })
           </div>
           <div className="flex-1">
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-foreground">
-                Description
-              </label>
               <CTextField
                 name="description"
                 placeholder="Description"
+                label="Description"
                 variant="bordered"
               />
             </div>
