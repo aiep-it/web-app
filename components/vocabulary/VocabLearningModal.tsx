@@ -25,9 +25,8 @@ import {
 } from '@/store/slices/vocabSlice';
 import { TopicData } from '@/services/types/topic';
 import { VocabData, VocabSearchPayload, VocabColumn } from '@/services/types/vocab';
-import { getByTopicId, markDone, updateVocab, fetchVocabsByTopicId } from '@/services/vocab';
+import { getByTopicId, markDone, fetchVocabsByTopicId } from '@/services/vocab';
 import { CustomButton } from '@/shared/components/button/CustomButton';
-import { getAllVocabularyWords } from '@/utils/vocabulary/vocabularyUtils';
 
 interface VocabLearningModalProps {
   isOpen: boolean;
@@ -457,7 +456,7 @@ export function VocabLearningModal({
             </CustomButton>
           )}
           {/* Type Answer Button */}
-          {topicVocabs.length > 0 && (
+          {topicVocabs.length > 0 && !isWorkspace ? (
             <CustomButton
               preset="primary"
               icon="material-symbols:edit"
@@ -468,7 +467,7 @@ export function VocabLearningModal({
             >
               Type Answer
             </CustomButton>
-          )}
+          ) : null}
           {progress.percentage === 100 && (
             <CustomButton preset="success" icon="material-symbols:celebration">
               Completed!

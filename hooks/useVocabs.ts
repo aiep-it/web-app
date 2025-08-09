@@ -11,6 +11,7 @@ import {
   selectVocabPagination
 } from '@/store/slices/vocabSlice';
 import { VocabSearchPayload } from '@/services/types/vocab';
+import { getByTopicId } from '@/services/vocab';
 
 export const useVocabs = () => {
   const dispatch = useAppDispatch();
@@ -26,12 +27,30 @@ export const useVocabs = () => {
     return dispatch(fetchVocabs(payload));
   }, [dispatch]);
   
-  // Helper to get vocabs by topic ID
+  // Helper to get vocabs by topic ID from Redux
   const getVocabsForTopic = (topicId: string) => {
     return useSelector((state: RootState) => 
       selectVocabsByTopic(state, topicId)
     );
   };
+
+  // Helper to fetch vocabs directly from API by topic ID
+  const fetchVocabsByTopicId = useCallback(async (topicId: string) => {
+    try {
+      const vocabsData = await getByTopicId(topicId);
+      
+      if (vocabsData && Array.isArray(vocabsData)) {
+        return vocabsData;
+      } else if (vocabsData && vocabsData.content && Array.isArray(vocabsData.content)) {
+        return vocabsData.content;
+      } else {
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching vocabs by topic:', error);
+      return [];
+    }
+  }, []);
   
   // Helper to count vocabularies by topic ID
   const getVocabCountForTopic = useCallback((topicId: string, currentState: RootState) => {
@@ -46,6 +65,7 @@ export const useVocabs = () => {
     pagination,
     getVocabs,
     getVocabsForTopic,
+    fetchVocabsByTopicId, // New method for direct API fetch
     getVocabCountForTopic,
     selectVocabsByTopic, // Export selector to use in components
   };

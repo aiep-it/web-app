@@ -13,6 +13,7 @@ import {
 
 import { Icon } from '@iconify/react';
 import { CustomButton } from '@/shared/components';
+import { LoadingSpinner } from '@/shared/components/spinner/CustomSpinner';
 import {
   Workspace,
   WorkspaceCreateTopicPayload,
@@ -26,6 +27,8 @@ export default function MyWorkspacePage() {
   const [folderName, setFolderName] = useState('');
   const [description, setDescription] = useState('');
   const [myWorkspace, setMyWorkspace] = useState<Workspace | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingTopic, setIsCreatingTopic] = useState(false);
 
   const handleClose = () => {
     setIsModalOpen(false);
@@ -34,36 +37,54 @@ export default function MyWorkspacePage() {
   };
 
   const handleCreateTopic = async () => {
-    const payload: WorkspaceCreateTopicPayload = {
-      title: folderName,
-      description: description,
-    };
+    if (!folderName.trim()) {
+      toast.error('Folder name is required');
+      return;
+    }
 
-    const res = await createTopicWorkspace(payload);
+    setIsCreatingTopic(true);
+    try {
+      const payload: WorkspaceCreateTopicPayload = {
+        title: folderName,
+        description: description,
+      };
 
-    if (res) {
-      // Optionally, you can add a success message or redirect
-      toast.success('Folder created successfully!');
-      setIsModalOpen(false);
+      const res = await createTopicWorkspace(payload);
+
+      if (res) {
+        // Optionally, you can add a success message or redirect
+        toast.success('Folder created successfully!');
+        setIsModalOpen(false);
+        // Reload workspace data after creating topic
+        loadWorkspace();
+      }
+    } catch (error) {
+      toast.error('Failed to create folder');
+    } finally {
+      setIsCreatingTopic(false);
       setFolderName('');
       setDescription('');
-      loadWorkspace(); // Reload topics after creation
-    } else {
-      // Handle error case
-      toast.error('Failed to create folder. Please try again.');
     }
   };
 
   const loadWorkspace = async () => {
-    const workspace = await getMyWorkspace();
-    if (workspace) {
-      setMyWorkspace(workspace);
+    setIsLoading(true);
+    try {
+      const workspace = await getMyWorkspace();
+      if (workspace) {
+        setMyWorkspace(workspace);
+      }
+    } catch (error) {
+      toast.error('Failed to load workspace');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     loadWorkspace();
   }, []);
+
   return (
     <div className="w-full p-6">
       <div className="mb-8">
@@ -136,17 +157,25 @@ export default function MyWorkspacePage() {
           </ModalBody>
 
           <ModalFooter className="pt-4">
-            <CustomButton preset="ghost" onPress={handleClose}>
+            <CustomButton preset="ghost" onPress={handleClose} disabled={isCreatingTopic}>
               Cancel
             </CustomButton>
             <CustomButton
               preset="primary"
-              icon="lucide:folder-plus"
+              icon={isCreatingTopic ? undefined : "lucide:folder-plus"}
               iconSize={16}
               onPress={handleCreateTopic}
+              disabled={isCreatingTopic}
               className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-sm"
             >
-              Create Folder
+              {isCreatingTopic ? (
+                <>
+                  <LoadingSpinner.Button />
+                  Creating...
+                </>
+              ) : (
+                'Create Folder'
+              )}
             </CustomButton>
           </ModalFooter>
         </ModalContent>
@@ -163,24 +192,29 @@ export default function MyWorkspacePage() {
           </div>
 
           <div className="space-y-8">
-            {/* Topics Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {myWorkspace?.topics?.length ? (
-                myWorkspace?.topics?.map((topic) => (
-                  <TopicCard key={topic.id} topic={topic} isWorkspace={true} />
-                ))
-              ) : (
-                <div className="col-span-full text-center py-12">
-                  <Icon
-                    icon="material-symbols:quiz-outline"
-                    className="text-gray-300 text-6xl mb-4 mx-auto"
-                  />
-                  <p className="text-gray-500">
-                    No topics available in this category
-                  </p>
-                </div>
-              )}
-            </div>
+            {isLoading ? (
+              <LoadingSpinner.Page 
+                label="Loading your workspace..."
+              />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {myWorkspace?.topics?.length ? (
+                  myWorkspace?.topics?.map((topic) => (
+                    <TopicCard key={topic.id} topic={topic} isWorkspace={true} />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-12">
+                    <Icon
+                      icon="material-symbols:quiz-outline"
+                      className="text-gray-300 text-6xl mb-4 mx-auto"
+                    />
+                    <p className="text-gray-500">
+                      No topics available in this category
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

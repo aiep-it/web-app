@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Icon } from "@iconify/react";
 import { Logo } from '@/components/icons';
 
@@ -22,18 +23,7 @@ const menuItems = [
     { name: "Manage Vocabulary", icon: "lucide:whole-word", href: "/admin/vocabularies" },
     { name: "Manage Exercises", icon: "lucide:notebook-text", href: "/admin/exercises" },
     { name: "Live Courses", icon: "lucide:video", href: "/admin/live-courses" },
-  ]},
-  { group: "Customization", items: [
-    { name: "////", icon: "lucide:layout", href: "/admin/hero" },
-    { name: "////", icon: "lucide:help-circle", href: "/admin/faq" },
-    { name: "////", icon: "lucide:tag", href: "/admin/categories" },
-  ]},
-  { group: "Controllers", items: [
-    { name: "////", icon: "lucide:users", href: "/admin/manage-team" },
-  ]},
-  { group: "Analytics", items: [
-    { name: "/////", icon: "lucide:bar-chart", href: "/admin/reports" },
-  ]},
+  ]}
 ];
 
 interface AdminSidebarProps {
@@ -43,65 +33,105 @@ interface AdminSidebarProps {
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ isExpanded, onToggle }) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const pathname = usePathname();
 
   const toggleDropdown = (itemName: string) => {
     setOpenDropdown(prev => (prev === itemName ? null : itemName));
   };
 
-  return (
-    <aside className={`bg-black text-white h-screen flex flex-col border border-gray-700 transition-all duration-300 ${isExpanded ? 'w-64' : 'w-20'}`}>
+  const isActiveLink = (href: string) => {
+    if (href === '/admin') {
+      return pathname === '/admin';
+    }
+    return pathname.startsWith(href);
+  };
 
-      <div className="p-4 flex items-center justify-between">
-        <Logo />
-        <button onClick={onToggle} className="p-2 rounded-full hover:bg-gray-800">
-          <Icon icon={isExpanded ? "lucide:chevron-left" : "lucide:chevron-right"} width={24} />
+  return (
+    <aside className={`sticky top-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white h-screen flex flex-col transition-all duration-300 ${isExpanded ? 'w-64' : 'w-20'}`}>
+
+      {/* Header and Logo */}
+      <div className="p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2">
+          <Logo />
+          {isExpanded && (
+            <span className="font-bold text-inherit">ADMIN</span>
+          )}
+        </div>
+        <button onClick={onToggle} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+          <Icon icon={isExpanded ? "lucide:chevron-left" : "lucide:chevron-right"} width={20} />
         </button>
       </div>
 
-      <nav className="flex-grow overflow-y-auto">
+      {/* Navigation Menu */}
+      <nav className="flex-grow overflow-y-auto p-4">
         {menuItems.map((group, index) => (
-          <div key={index} className="mb-4">
+          <div key={index} className="mb-6">
             {isExpanded && (
-              <h2 className="px-4 py-2 text-sm font-semibold text-gray-400">{group.group}</h2>
+              <h2 className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{group.group}</h2>
             )}
-            <ul>
+            <div className="space-y-2">
               {group.items.map((item, itemIndex) => (
-                <li key={itemIndex}>
+                <div key={itemIndex}>
                   {!item.children ? (
-                    <Link href={item.href} className={`flex items-center px-4 py-2 text-gray-300 hover:bg-gray-800 ${isExpanded ? '' : 'justify-center'}`}>
-                      <Icon icon={item.icon} width={24} />
-                      {isExpanded && <span className="ml-3">{item.name}</span>}
+                    <Link 
+                      href={item.href} 
+                      className={`flex items-center transition-colors text-base font-medium rounded-lg ${
+                        isExpanded 
+                          ? 'px-4 py-3' 
+                          : 'px-3 py-4 justify-center'
+                      } ${
+                        isActiveLink(item.href)
+                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-r-4 border-blue-500' 
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      <Icon 
+                        icon={item.icon} 
+                        width={isExpanded ? 24 : 28} 
+                        className={isActiveLink(item.href) ? 'text-blue-600 dark:text-blue-400' : ''}
+                      />
+                      {isExpanded && <span className="ml-4">{item.name}</span>}
                     </Link>
                   ) : (
                     <>
                       <button
                         onClick={() => toggleDropdown(item.name)}
-                        className={`flex items-center w-full px-4 py-2 text-gray-300 hover:bg-gray-800 ${isExpanded ? 'justify-start' : 'justify-center'}`}
+                        className={`flex items-center w-full transition-colors text-base font-medium rounded-lg ${
+                          isExpanded 
+                            ? 'px-4 py-3' 
+                            : 'px-3 py-4 justify-center'
+                        } text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800`}
                       >
-                        <Icon icon={item.icon} width={24} />
+                        <Icon icon={item.icon} width={isExpanded ? 24 : 28} />
                         {isExpanded && (
                           <>
-                            <span className="ml-3 flex-1 text-left">{item.name}</span>
+                            <span className="ml-4 flex-1 text-left">{item.name}</span>
                             <Icon icon={openDropdown === item.name ? "lucide:chevron-up" : "lucide:chevron-down"} width={18} />
                           </>
                         )}
                       </button>
                       {openDropdown === item.name && isExpanded && (
-                        <ul className="ml-10 text-sm">
+                        <div className="ml-8 mt-2 space-y-1">
                           {item.children.map((subItem, subIndex) => (
-                            <li key={subIndex}>
-                              <Link href={subItem.href} className="block px-2 py-1 text-gray-300 hover:text-white hover:bg-gray-700 rounded">
-                                {subItem.name}
-                              </Link>
-                            </li>
+                            <Link 
+                              key={subIndex}
+                              href={subItem.href} 
+                              className={`block px-4 py-2 text-sm rounded-lg transition-colors ${
+                                isActiveLink(subItem.href)
+                                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
+                                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200'
+                              }`}
+                            >
+                              {subItem.name}
+                            </Link>
                           ))}
-                        </ul>
+                        </div>
                       )}
                     </>
                   )}
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         ))}
       </nav>

@@ -1,16 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
-import { Button, Card, CardBody, CardHeader, Progress } from "@heroui/react";
-import { useSelector, useDispatch } from 'react-redux';
+import { Button } from "@heroui/react";
 import { toast } from 'react-hot-toast';
 
-import { RootState } from '@/store';
-import { selectVocabsByTopic, updateVocabInStore, fetchVocabs } from '@/store/slices/vocabSlice';
-import { markDone, updateVocab } from '@/services/vocab';
-import type { AppDispatch } from '@/store';
+import { useLearningPage } from '@/hooks/useLearningPage';
+import { LoadingSpinner } from '@/shared/components/spinner';
 
 interface LearningPageProps {
   params: {
@@ -21,114 +18,62 @@ interface LearningPageProps {
 export default function LearningPage() {
   const params = useParams();
   const router = useRouter();
-  const dispatch = useDispatch<AppDispatch>();
-  const [hasFetched, setHasFetched] = useState(false);
-  
   const topicId = params?.topicId as string;
   
-  // Get topic and vocab data from Redux
-  const topicState = useSelector((state: RootState) => state.topic);
-  const vocabState = useSelector((state: RootState) => state.vocab);
-  const topicVocabs = useSelector((state: RootState) => 
-    selectVocabsByTopic(state, topicId)
-  );
-  
-  // Find topic from Redux state
-  const topic = useMemo(() => {
-    const allTopics = Object.values(topicState.topicsByRoadmap).flat();
-    return allTopics.find(t => t.id === topicId);
-  }, [topicState.topicsByRoadmap, topicId]);
-  
-  // Learning state
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [showMeaning, setShowMeaning] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isClient, setIsClient] = useState(false);
+  // Use custom hook for all learning page logic
+  const {
+    topic,
+    topicVocabs,
+    isLoadingTopic,
+    isLoadingVocabs,
+    currentWord,
+    currentWordIndex,
+    totalWords,
+    progress,
+    showMeaning,
+    isComplete,
+    isSpeaking,
+    isUpdating,
+    isClient,
+    knownWordsCount,
+    completionRate,
+    speakWord,
+    handleContinue,
+    handleAlreadyKnow,
+    handleRevealMeaning,
+    handleRestart,
+  } = useLearningPage(topicId);
 
-  // Text-to-Speech function
-  const speakWord = (text: string) => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      // Cancel any ongoing speech
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = 0.8; // Slightly slower for learning
-      utterance.pitch = 1;
-      utterance.volume = 1;
-      
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
-      
-      window.speechSynthesis.speak(utterance);
-    } else {
-      if (isClient) {
-        alert('Your browser does not support text-to-speech feature.');
-      }
-    }
-  };
-
-  // Fetch vocabs if not already loaded
+  // Redirect if topic not found
   useEffect(() => {
-    if (topicId && topicVocabs.length === 0) {
-      // Fetch vocabs with filters for this topic
-      dispatch(fetchVocabs({
-        page: 1,
-        size: 100, // Get a large number to fetch all vocabs for the topic
-        filters: { topicId: topicId }
-      }));
-    }
-  }, [topicId, dispatch]);
-
-  // Client-side hydration check
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    // If topic not found, redirect to main vocabulary page
-    if (!topic && Object.keys(topicState.topicsByRoadmap).length > 0) {
+    if (!isLoadingTopic && !topic && topicId) {
+      toast.error('Topic not found');
       router.push("/learn-vocabulary");
     }
-  }, [topic, topicState.topicsByRoadmap, router]);
-
-  useEffect(() => {
-    // Check if all words are completed
-    if (topicVocabs.length > 0 && currentWordIndex >= topicVocabs.length) {
-      setIsComplete(true);
-    }
-  }, [currentWordIndex, topicVocabs.length]);
-
-  useEffect(() => {
-    // Cleanup speech synthesis when component unmounts
-    return () => {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
+  }, [isLoadingTopic, topic, topicId, router]);
 
   // Don't render until client-side hydration is complete
   if (!isClient) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-700">Loading...</h2>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner.Page label="Initializing..." />;
   }
 
-  if (vocabState.loading || !topicVocabs.length) {
+  // Show loading while fetching topic or vocabs
+  if (isLoadingTopic || isLoadingVocabs) {
+    return isLoadingTopic ? <LoadingSpinner.Topic /> : <LoadingSpinner.Vocabulary />;
+  }
+
+  if (topicVocabs.length === 0) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-700">Loading topic...</h2>
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">No vocabulary found for this topic</h2>
+          <Button
+            onClick={() => router.push("/learn-vocabulary")}
+            color="primary"
+            startContent={<Icon icon="mdi:arrow-left" className="text-lg" />}
+          >
+            Back to Topics
+          </Button>
         </div>
       </div>
     );
@@ -151,69 +96,8 @@ export default function LearningPage() {
     );
   }
 
-  const currentWord = topicVocabs[currentWordIndex];
-  const totalWords = topicVocabs.length;
-  const progress = Math.round(((currentWordIndex) / totalWords) * 100);
-
-  const handleContinue = () => {
-    if (currentWordIndex < totalWords - 1) {
-      setCurrentWordIndex(currentWordIndex + 1);
-      setShowMeaning(false);
-    } else {
-      setIsComplete(true);
-    }
-  };
-
-  const handleAlreadyKnow = async () => {
-    if (currentWord) {
-      setIsUpdating(true);
-      try {
-        // Update via API - use nodeId (which maps to topicId)
-        // await updateVocab(currentWord.id, {
-        //   word: currentWord.word,
-        //   meaning: currentWord.meaning,
-        //   example: currentWord.example,
-        //   imageUrl: currentWord.imageUrl,
-        //   audioUrl: currentWord.audioUrl,
-        //   is_learned: true,
-        //   topicId: currentWord.topicId, // API expects nodeId
-        // });
-        
-        // // Update Redux store
-        // dispatch(updateVocabInStore({
-        //   ...currentWord,
-        //   is_learned: true
-        // }));
-
-        await markDone(currentWord.id);
-        
-        // Show success feedback
-        toast.success("Marked as known!");
-      } catch (error) {
-        console.error('Error updating vocab:', error);
-        toast.error("Failed to update. Please try again.");
-      } finally {
-        setIsUpdating(false);
-      }
-    }
-    handleContinue();
-  };
-
-  const handleRevealMeaning = () => {
-    setShowMeaning(true);
-  };
-
-  const handleRestart = () => {
-    setCurrentWordIndex(0);
-    setShowMeaning(false);
-    setIsComplete(false);
-  };
-
   // Completion Screen
   if (isComplete) {
-    const knownWordsCount = topicVocabs.filter(word => word.is_learned).length;
-    const completionRate = Math.round((knownWordsCount / totalWords) * 100);
-
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
         <div className="max-w-2xl mx-auto px-4 py-8">
