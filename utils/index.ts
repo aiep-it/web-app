@@ -18,3 +18,8 @@ export function getCmsAssetUrl(id?: string | null): string {
   const timestamp = Date.now();
   return `${process.env.NEXT_PUBLIC_CMS_BASE_URL}/assets/${id}?t=${timestamp}`;
 }
+
+export const calculePercentage = (part: number, total: number): number => {
+  if (total === 0) return 0;
+  return Math.round((part / total) * 100);
+};

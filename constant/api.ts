@@ -85,5 +85,12 @@ export const ENDPOINTS = {
   PERSONAL_LEARNING: {
     CREATE: "/personal-learning/create",
     GET_BY_TOPIC:(topicId: string) => `/personal-learning/topic/${topicId}`,
+  },
+  USER_EXCERCISER_RESULT: {
+    POST_RESULT: "/user-exercise-results",
+  },
+  REPORT: {
+    SELF: "/reports/self",
+    COURSER_OVER_VIEW: "/reports/course-overview",
   }
 };

@@ -19,6 +19,8 @@ import { createTopicWorkspace, getMyWorkspace } from '@/services/wordspace';
 import toast from 'react-hot-toast';
 import { Card, Input, Textarea } from '@heroui/react';
 import { TopicCard } from '@/components/vocabulary/TopicCard';
+import { OverallProgress } from '@/components/vocabulary/OverallProgress';
+import { ReportPage } from '@/services/types/report';
 
 export default function MyWorkspacePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -150,6 +152,8 @@ export default function MyWorkspacePage() {
       {/* Main Content */}
       <div className="w-full px-6 pb-8">
         <div className="space-y-6">
+          {/* Header Section */}
+          <OverallProgress page={ReportPage.WORK_SPACE} />
           <div className="mb-6 text-center mt-4">
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
               Your Topics

@@ -25,8 +25,8 @@ export const siteConfig = {
       href: "/chat-bot",
     },
     {
-      label: "About",
-      href: "/about",
+      label: "My Report",
+      href: "/report/me",
     },
   ],
   navMenuItems: [
