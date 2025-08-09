@@ -10,6 +10,7 @@ import { useExercises, useExercisesByTopic } from '@/hooks/useExercises';
 import { useUser } from '@/hooks/useUser';
 import { ExerciseData } from '@/services/types/exercise';
 import { QuizCard, QuizProgress, QuizResults, QuizLoading, QuizError } from '@/components/DoExercise';
+import { postExcerciseResult } from '@/services/userExcerciseResult';
 
 export default function LearnQuizExercisePage() {
   const params = useParams();
@@ -127,7 +128,22 @@ export default function LearnQuizExercisePage() {
     setSelectedAnswer(answer);
   };
 
-  const handleSubmitAnswer = () => {
+  const updateExcerciseResult = async (exercise: ExerciseData, answer: string, isCorrect: boolean) => {
+    try {
+      const userExerciseResultPayload = {
+        exerciseId: exercise.id,
+        answer,
+        isCorrect
+      };
+      
+      const result = await postExcerciseResult(userExerciseResultPayload);
+      console.log('Exercise result submitted:', result);
+    } catch (error) {
+      console.error('Error submitting exercise result:', error);
+    }
+  }
+
+  const handleSubmitAnswer = async () => {
     if (!selectedAnswer) {
       addToast({
         title: "Please select an answer",
@@ -139,16 +155,27 @@ export default function LearnQuizExercisePage() {
 
     const currentQuestion = quizExercises[currentQuestionIndex];
     const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+
+    
     
     if (isCorrect) {
       setScore(score + 1);
     }
+     // Show result
+     console.log('Submitting answer:', {
+      quest: currentQuestion,
+      selectedAnswer,
+      isCorrect,
+      score: score + (isCorrect ? 1 : 0),
+      quizExercises: quizExercises
+    });
+    const res = await updateExcerciseResult(currentQuestion, selectedAnswer, isCorrect);
     
     // Mark question as answered
     const newAnsweredQuestions = [...answeredQuestions];
     newAnsweredQuestions[currentQuestionIndex] = true;
     setAnsweredQuestions(newAnsweredQuestions);
-    
+  
     setShowResult(true);
     
     addToast({
