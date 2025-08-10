@@ -65,6 +65,7 @@ export const ENDPOINTS = {
     REMOVE_ROADMAP: (id: string) => `/class/${id}/remove-roadmap`,
     MY_CLASS: (classId: string) => `/class/my-class-info/${classId}`,
     ALL_MY_CLASSES: '/class/all-my-classes',
+    JOIN_BY_CODE: `/class/join-by-code`,
   },
   EXERCISE: {
     GET_ALL: "/exercises",

@@ -57,7 +57,7 @@ const ClassCard: React.FC<ClassCardProps> = ({
           <div className="flex flex-wrap gap-2">
             {class_.teachers && class_.teachers.length > 0 ? (
               class_.teachers.map((teacher) => (
-                <Chip key={teacher.id} variant="flat" size="lg"  className="pr-2 ">
+                <Chip key={teacher.id} variant="flat" className="pr-2 ">
                   {teacher.fullName}
                 </Chip>
               ))

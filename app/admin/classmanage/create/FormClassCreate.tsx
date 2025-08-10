@@ -10,9 +10,9 @@ import { getRoadmap } from '@/services/roadmap';
 import { createClass } from '@/services/class';
 import { ClassLevel } from '@/services/types/class';
 import { classSchema } from '@/app/admin/classmanage/schema/classSchema';
+import { useRouter } from 'next/navigation';
 interface FormData {
   name: string;
-  code: string;
   description?: string;
   level: ClassLevel;
   teacherIds: string[];
@@ -23,6 +23,7 @@ const FormClassCreate = () => {
     [],
   );
   const [roadmaps, setRoadmaps] = useState<{ id: string; name: string }[]>([]);
+  const router = useRouter();
 
   const {
     register,
@@ -34,7 +35,6 @@ const FormClassCreate = () => {
   } = useForm<FormData>({
     defaultValues: {
       name: '',
-      code: '',
       description: '',
       level: ClassLevel.STARTERS,
       teacherIds: [],
@@ -64,6 +64,7 @@ const FormClassCreate = () => {
       await createClass(data);
       toast.success('Class created successfully!');
       reset();
+      router.push('/admin/classmanage');
     } catch (error) {
       toast.error('An error occurred while creating the class');
     }
@@ -95,12 +96,6 @@ const FormClassCreate = () => {
         {...register('name')}
         isInvalid={!!errors.name}
         errorMessage={errors.name?.message}
-      />
-      <Input
-        label="Class Code"
-        {...register('code')}
-        isInvalid={!!errors.code}
-        errorMessage={errors.code?.message}
       />
       <Textarea label="Description" {...register('description')} />
 

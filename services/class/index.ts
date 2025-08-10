@@ -52,7 +52,7 @@ export async function updateClass(id: string, payload: Partial<ClassPayload>): P
 export async function deleteClass(id: string): Promise<boolean> {
   try {
     const res = await axiosInstance.delete(ENDPOINTS.CLASS.DELETE(id));
-    return res.status === 200;
+    return res.status === 204;
   } catch (error) {
     console.error('Error deleting class:', error);
     return false;
@@ -135,6 +135,16 @@ export async function getMyClasses(): Promise<UserClass[] | null> {
   } catch (error) {
     console.error('Error fetching my classes:', error);
     return null;
+  }
+}
+
+export async function joinClassByCode(classCode: string){
+  try {
+    const res = await axiosInstance.post(ENDPOINTS.CLASS.JOIN_BY_CODE, { classCode });
+    return res.status === 200 || res.status === 201;
+  } catch (error) {
+    console.error('Error joining class by code:', error);
+    return false;
   }
 }
 

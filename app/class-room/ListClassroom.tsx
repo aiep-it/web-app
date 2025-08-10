@@ -1,17 +1,19 @@
 'use client';
 import EmptySection from '@/components/EmptySection';
-import { getMyClasses } from '@/services/class';
-import { ClassResponse, UserClass } from '@/services/types/class';
+import { getMyClasses, joinClassByCode } from '@/services/class';
+import { UserClass } from '@/services/types/class';
 import { CustomButton, LoadingSpinner } from '@/shared/components';
 import React, { useEffect } from 'react';
 import ClassCard from './ClassCard';
 import toast from 'react-hot-toast';
-import { useRouter } from 'next/navigation';
+import { Button, InputOtp, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/react';
 
 const ListClassroom = () => {
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const router = useRouter();
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();
+
+  const [classCode, setClassCode] = React.useState("");
 
   const [classes, setClasses] = React.useState<UserClass[]>([]);
   const fetchAllMyClasses = async () => {
@@ -29,12 +31,33 @@ const ListClassroom = () => {
   useEffect(() => {
     fetchAllMyClasses();
   }, []);
+
+  const handleJoinClass = async (closeModal: () => void) => {
+    console.log('Joining class with code:', classCode);
+    if (!classCode || classCode.length < 8) {
+      toast.error('Please enter a valid class code.');
+      return;
+    }
+    console.log('Joining class with code:', classCode);
+    const res = await joinClassByCode(classCode);
+
+    if (res) {
+      toast.success('Successfully joined the class!');
+      setClassCode("");
+        closeModal();
+      fetchAllMyClasses();
+    } else {
+      toast.error('Failed to join the class. Please check the code and try again.');
+    }
+  }
+
+
   return (
     <div className="w-full p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">My Workspace</h1>
+        <h1 className="text-3xl font-bold mb-4">My Class Room</h1>
         <p className="text-gray-600 mb-6">
-          Manage your vocabulary and learning resources here.
+          Manage your classrom Joined
         </p>
 
         {/* New Folder Button using CustomButton */}
@@ -42,7 +65,7 @@ const ListClassroom = () => {
           preset="primary"
           icon="lucide:square-plus"
           iconSize={20}
-          onPress={() => {}}
+          onPress={onOpen}
           className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-sm"
         >
           Join By Code
@@ -79,6 +102,26 @@ const ListClassroom = () => {
           </div>
         </div>
       </div>
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Join By Class Code</ModalHeader>
+              <ModalBody className='flex items-center justify-center'>
+              <InputOtp length={8} value={classCode} onValueChange={setClassCode} color='primary' variant='bordered'/>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Close
+                </Button>
+                <Button color="primary" onPress={() => handleJoinClass(onClose)}>
+                  Join
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

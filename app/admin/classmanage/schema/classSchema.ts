@@ -3,7 +3,6 @@ import { ClassLevel } from '@/services/types/class';
 
 export const classSchema = yup.object().shape({
   name: yup.string().min(3, 'Tên lớp quá ngắn').required('Tên lớp là bắt buộc'),
-  code: yup.string().min(2, 'Mã lớp quá ngắn').required('Mã lớp là bắt buộc'),
   description: yup.string().optional(),
   level: yup
     .mixed<ClassLevel>()

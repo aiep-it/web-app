@@ -8,7 +8,7 @@ export enum ClassLevel {
 
 export interface ClassPayload {
   name: string;
-  code: string;
+  code?: string;
   level: ClassLevel;
   description?: string;
 }
