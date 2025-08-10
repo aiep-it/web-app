@@ -22,8 +22,7 @@ export function useUserRole() {
       try {
         setIsRoleLoading(true);
         const token = await getToken();
-        // const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
-        const backendUrl = "http://localhost:3001";
+        const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
         const res = await fetch(`${backendUrl}/users/me`, {
           headers: {
             Authorization: `Bearer ${token}`,

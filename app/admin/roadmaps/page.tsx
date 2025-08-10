@@ -79,12 +79,6 @@ const RoadmapListPage = () => {
     return (
       <p className="text-center mt-20 text-red-400">Bạn chưa đăng nhập.</p>
     );
-  if (userRole !== 'admin' && userRole !== 'staff')
-    return (
-      <p className="text-center mt-20 text-yellow-400">
-        Bạn không có quyền truy cập.
-      </p>
-    );
 
   return (
     <div className="min-h-screen dark:bg-black-10 text-foreground p-6">

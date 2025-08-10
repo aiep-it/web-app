@@ -81,14 +81,6 @@ const EditCategoryPage: React.FC = () => {
     );
   }
 
-  if (!isSignedIn || (userRole !== "admin" && userRole !== "staff")) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-white bg-gray-900">
-        <p>Bạn không có quyền truy cập trang này.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6 md:p-8 flex justify-center items-start">
       <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-lg mt-10">
