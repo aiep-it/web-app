@@ -52,14 +52,16 @@ const FormAddCategory = forwardRef<FormAddCategoryRef, FormAddCategoryProps>(
               <CTextField
                 className="my-5"
                 name="name"
-                placeholder="Name"
+                placeholder="Enter category name"
+                variant="bordered"
                 isRequired
                 label="Tên"
               />
               <CTextField
                 name="description"
                 label="Mô Tả"
-                placeholder="description"
+                placeholder="Enter category description"
+                variant="bordered"
               />
             </div>
           </FormProvider>

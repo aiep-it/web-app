@@ -1,79 +1,153 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
-import { Button } from "@heroui/react";
+import { Button, Card, CardBody, CardHeader, Progress } from "@heroui/react";
+import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-hot-toast';
 
-import { useLearningPage } from '@/hooks/useLearningPage';
-import { LoadingSpinner } from '@/shared/components/spinner';
+import { RootState } from '@/store';
+import { selectVocabsByTopic, updateVocabInStore, setVocabsForTopic } from '@/store/slices/vocabSlice';
+import { updateVocab, fetchVocabsByTopicId, markDone } from '@/services/vocab';
+import { getTopicId } from '@/services/topic';
+import { VocabSearchPayload, VocabColumn } from '@/services/types/vocab';
+import type { AppDispatch } from '@/store';
 
-interface LearningPageProps {
-  params: {
-    topicId: string;
-  };
-}
-
-export default function LearningPage() {
+export default function LearnWorkspaceVocab() {
   const params = useParams();
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  
   const topicId = params?.topicId as string;
   
-  // Use custom hook for all learning page logic
-  const {
-    topic,
-    topicVocabs,
-    isLoadingTopic,
-    isLoadingVocabs,
-    currentWord,
-    currentWordIndex,
-    totalWords,
-    progress,
-    showMeaning,
-    isComplete,
-    isSpeaking,
-    isUpdating,
-    isClient,
-    knownWordsCount,
-    completionRate,
-    speakWord,
-    handleContinue,
-    handleAlreadyKnow,
-    handleRevealMeaning,
-    handleRestart,
-  } = useLearningPage(topicId);
+  // Get vocab data from Redux
+  const vocabState = useSelector((state: RootState) => state.vocab);
+  const topicVocabs = useSelector((state: RootState) => 
+    selectVocabsByTopic(state, topicId)
+  );
+  
+  // Topic state
+  const [topic, setTopic] = useState<any>(null);
+  const [isLoadingTopic, setIsLoadingTopic] = useState(true);
+  
+  // Learning state
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [showMeaning, setShowMeaning] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
-  // Redirect if topic not found
-  useEffect(() => {
-    if (!isLoadingTopic && !topic && topicId) {
-      toast.error('Topic not found');
-      router.push("/learn-vocabulary");
+  // Text-to-Speech function
+  const speakWord = (text: string) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.8; // Slightly slower for learning
+      utterance.pitch = 1;
+      utterance.volume = 1;
+      
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      if (isClient) {
+        alert('Your browser does not support text-to-speech feature.');
+      }
     }
-  }, [isLoadingTopic, topic, topicId, router]);
+  };
+
+  // Load topic and vocabs
+  useEffect(() => {
+    if (topicId) {
+      const loadData = async () => {
+        setIsLoadingTopic(true);
+        try {
+          // Load topic data
+          const topicData = await getTopicId(topicId);
+          if (topicData) {
+            setTopic(topicData);
+          }
+
+          // Load vocabularies
+          const payload: VocabSearchPayload = {
+            page: 1,
+            size: 100, // Load all vocabs for the topic
+            sort: [{ field: VocabColumn.created_at, order: 'desc' }]
+          };
+
+          const response = await fetchVocabsByTopicId(topicId, payload);
+          
+          if (response && !Array.isArray(response) && 'content' in response) {
+            // Response is VocabListResponse
+            dispatch(setVocabsForTopic({
+              topicId: topicId,
+              vocabs: response.content
+            }));
+          } else if (response && Array.isArray(response)) {
+            // Response is direct array (fallback case)
+            dispatch(setVocabsForTopic({
+              topicId: topicId,
+              vocabs: response
+            }));
+          }
+        } catch (error) {
+          console.error('Error loading data:', error);
+          toast.error('Failed to load topic data');
+        } finally {
+          setIsLoadingTopic(false);
+        }
+      };
+
+      loadData();
+    }
+  }, [topicId, dispatch]);
+
+  // Client-side hydration check
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    // Check if all words are completed
+    if (topicVocabs.length > 0 && currentWordIndex >= topicVocabs.length) {
+      setIsComplete(true);
+    }
+  }, [currentWordIndex, topicVocabs.length]);
+
+  useEffect(() => {
+    // Cleanup speech synthesis when component unmounts
+    return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   // Don't render until client-side hydration is complete
   if (!isClient) {
-    return <LoadingSpinner.Page label="Initializing..." />;
-  }
-
-  // Show loading while fetching topic or vocabs
-  if (isLoadingTopic || isLoadingVocabs) {
-    return isLoadingTopic ? <LoadingSpinner.Topic /> : <LoadingSpinner.Vocabulary />;
-  }
-
-  if (topicVocabs.length === 0) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">No vocabulary found for this topic</h2>
-          <Button
-            onClick={() => router.push("/learn-vocabulary")}
-            color="primary"
-            startContent={<Icon icon="mdi:arrow-left" className="text-lg" />}
-          >
-            Back to Topics
-          </Button>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700">Loading...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoadingTopic || !topicVocabs.length) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700">Loading workspace vocabulary...</h2>
         </div>
       </div>
     );
@@ -85,19 +159,79 @@ export default function LearningPage() {
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">Topic not found</h2>
           <Button
-            onClick={() => router.push("/learn-vocabulary")}
+            onClick={() => router.push("/my-workspace")}
             color="primary"
             startContent={<Icon icon="mdi:arrow-left" className="text-lg" />}
           >
-            Back to Topics
+            Back to My Workspace
           </Button>
         </div>
       </div>
     );
   }
 
+  const currentWord = topicVocabs[currentWordIndex];
+  const totalWords = topicVocabs.length;
+  const progress = Math.round(((currentWordIndex) / totalWords) * 100);
+
+  const handleContinue = () => {
+    if (currentWordIndex < totalWords - 1) {
+      setCurrentWordIndex(currentWordIndex + 1);
+      setShowMeaning(false);
+    } else {
+      setIsComplete(true);
+    }
+  };
+
+  const handleAlreadyKnow = async () => {
+    if (currentWord) {
+      setIsUpdating(true);
+      try {
+        // Update via API
+        // await updateVocab(currentWord.id, {
+        //   word: currentWord.word,
+        //   meaning: currentWord.meaning,
+        //   example: currentWord.example,
+        //   imageUrl: currentWord.imageUrl,
+        //   audioUrl: currentWord.audioUrl,
+        //   is_learned: true,
+        //   topicId: currentWord.topicId,
+        // });
+        
+        // // Update Redux store
+        // dispatch(updateVocabInStore({
+        //   ...currentWord,
+        //   is_learned: true
+        // }));
+        await markDone(currentWord.id);
+        
+        // Show success feedback
+        toast.success("Marked as known!");
+      } catch (error) {
+        console.error('Error updating vocab:', error);
+        toast.error("Failed to update. Please try again.");
+      } finally {
+        setIsUpdating(false);
+      }
+    }
+    handleContinue();
+  };
+
+  const handleRevealMeaning = () => {
+    setShowMeaning(true);
+  };
+
+  const handleRestart = () => {
+    setCurrentWordIndex(0);
+    setShowMeaning(false);
+    setIsComplete(false);
+  };
+
   // Completion Screen
   if (isComplete) {
+    const knownWordsCount = topicVocabs.filter(word => word.is_learned).length;
+    const completionRate = Math.round((knownWordsCount / totalWords) * 100);
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
         <div className="max-w-2xl mx-auto px-4 py-8">
@@ -109,10 +243,10 @@ export default function LearningPage() {
             </div>
 
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Topic Completed!
+              Workspace Topic Completed!
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              Great job completing "{topic?.title || 'this topic'}"
+              Great job completing "{topic?.title || 'this topic'}" from your workspace
             </p>
 
             {/* Stats */}
@@ -147,14 +281,24 @@ export default function LearningPage() {
                 Study Again
               </Button>
               <Button
-                onClick={() => router.push("/learn-vocabulary")}
+                onClick={() => router.push(`/my-workspace/${topicId}`)}
                 color="default"
                 variant="flat"
                 size="lg"
                 className="w-full max-w-md mx-auto h-12 font-semibold"
                 startContent={<Icon icon="mdi:arrow-left" className="text-xl" />}
               >
-                Back to Categories
+                Back to Topic Detail
+              </Button>
+              <Button
+                onClick={() => router.push("/my-workspace")}
+                color="default"
+                variant="light"
+                size="lg"
+                className="w-full max-w-md mx-auto h-12 font-semibold"
+                startContent={<Icon icon="mdi:home" className="text-xl" />}
+              >
+                Back to My Workspace
               </Button>
             </div>
           </div>
@@ -171,13 +315,13 @@ export default function LearningPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <Button
-              onClick={() => router.push("/learn-vocabulary")}
+              onClick={() => router.push(`/my-workspace/${topicId}`)}
               color="primary"
               variant="light"
               size="sm"
               startContent={<Icon icon="mdi:arrow-left" className="text-lg" />}
             >
-              Back to Topics
+              Back to Topic Detail
             </Button>
             <div className="text-sm text-gray-500">
               {currentWordIndex + 1} of {totalWords}
@@ -192,7 +336,7 @@ export default function LearningPage() {
             />
           </div>
           <div className="text-center text-sm text-gray-600">
-            {progress}% Complete - {topic?.title}
+            {progress}% Complete - {topic?.title} (My Workspace)
           </div>
         </div>
 

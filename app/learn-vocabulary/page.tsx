@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { OverallProgress } from '@/components/vocabulary/OverallProgress';
 import { TopicCard } from '@/components/vocabulary/TopicCard';
 import { Roadmap } from '@/services/types/roadmap';
@@ -10,10 +10,8 @@ import { useTopics } from '@/hooks/useTopics';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/rootReducer';
 import { Icon } from '@iconify/react';
-import { useVocabsSafe } from '@/hooks/useVocabsSafe';
-import { VocabColumn } from '@/services/types/vocab';
 import { useAuth } from '@clerk/nextjs';
-import { useUserRole } from '@/hooks/useUserRole';
+import { Spinner } from '@heroui/react';
 
 interface RoadmapSectionProps {
   roadmap: Roadmap;
@@ -82,14 +80,13 @@ function RoadmapSection({ roadmap, topics, isLoading }: RoadmapSectionProps) {
 export default function LearnVocabularyPage() {
   const { roadmaps, isLoading, error, refetch } = useRoadmaps();
   const { getTopicsByRoadmap, error: topicsError } = useTopics();
-  const { getVocabs, loading: vocabsLoading, error: vocabsError } = useVocabsSafe();
   const [loadingTopics, setLoadingTopics] = useState<Record<string, boolean>>({});
   const [authError, setAuthError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   
   // Clerk authentication hooks
   const { isLoaded, isSignedIn, getToken } = useAuth();
-  const { userRole, isRoleLoading } = useUserRole();
 
   // Get all topics from Redux outside of the render loop
   const allTopicsByRoadmap = useSelector((state: RootState) => state.topic.topicsByRoadmap);
@@ -104,11 +101,21 @@ export default function LearnVocabularyPage() {
     if (isClient && isLoaded) {
       if (!isSignedIn) {
         setAuthError("Please log in to access vocabulary learning features");
+        setIsDataLoaded(false); // Reset data loading flag when user is not signed in
       } else {
         setAuthError(null);
+        // Don't reset isDataLoaded here, let the main effect handle it
       }
     }
   }, [isClient, isLoaded, isSignedIn]);
+  
+  // Reset data loading flag when roadmaps change (e.g., on refetch)
+  useEffect(() => {
+    if (roadmaps.length > 0 && !isDataLoaded) {
+      // Don't automatically set isDataLoaded = false here
+      // Let it be controlled by the main loading effect
+    }
+  }, [roadmaps.length, isDataLoaded]);
 
   // Memoize roadmap IDs to avoid unnecessary re-computation
   const roadmapIds = useMemo(() => roadmaps.map(r => r.id), [roadmaps]);
@@ -116,8 +123,14 @@ export default function LearnVocabularyPage() {
   // Load topics for all roadmaps và vocabularies
   useEffect(() => {
     const loadAllData = async () => {
-      // Only proceed if Clerk is loaded and user is signed in
-      if (roadmaps.length > 0 && isClient && isLoaded && isSignedIn) {
+      // Only proceed if:
+      // 1. We have roadmaps (no error from useRoadmaps)
+      // 2. Clerk is loaded and user is signed in
+      // 3. Data hasn't been loaded yet
+      if (roadmaps.length > 0 && !error && isClient && isLoaded && isSignedIn && !isDataLoaded) {
+        
+        console.log('Starting data load...');
+        setIsDataLoaded(true); // Prevent multiple calls
         
         // Set loading state for topics
         const newLoadingState: Record<string, boolean> = {};
@@ -128,38 +141,20 @@ export default function LearnVocabularyPage() {
 
         try {
           // Fetch topics for all roadmaps first
+          console.log('Fetching topics for roadmaps...');
           const topicsPromises = roadmaps.map(async (roadmap) => {
             await getTopicsByRoadmap(roadmap.id);
             return roadmap.id;
           });
 
           await Promise.all(topicsPromises);
+          console.log('Topics loaded');
           
-          // Get token from Clerk
-          const token = await getToken();        
-          if (token) {
-            console.log('🔑 CLERK TOKEN FOR POSTMAN:', token);
-            
-            const result = await getVocabs({
-              page: 1,
-              size: 50,
-              sort: [
-                {
-                  field: VocabColumn.created_at,
-                  order: "desc",
-                },
-              ],
-            });
-            
-            if (result) {
-              console.log('Vocabularies loaded successfully:', result);
-            }
-          } else {
-            console.log('No Clerk token found, skipping vocab load');
-          }
+          console.log('Data loading completed successfully');
           
         } catch (error) {
-          console.error('Error loading data:', error);
+          setIsDataLoaded(false); // Reset flag on error to allow retry
+          
           if (error && typeof error === 'object') {
             const errorDetails = {
               message: (error as any).message,
@@ -174,6 +169,7 @@ export default function LearnVocabularyPage() {
             }
           }
         } finally {
+          console.log('🏁 Data loading finished, clearing loading states');
           // Clear loading states
           const newLoadingState: Record<string, boolean> = {};
           roadmaps.forEach((roadmap) => {
@@ -182,27 +178,39 @@ export default function LearnVocabularyPage() {
           setLoadingTopics(newLoadingState);
         }
       } else {
-        console.log('Not loading data yet - waiting for:', {
+        console.log('⏸️ Not loading data yet - waiting for:', {
           roadmapsLoaded: roadmaps.length > 0,
+          noRoadmapsError: !error,
           isClient,
           clerkIsLoaded: isLoaded,
-          userIsSignedIn: isSignedIn
+          userIsSignedIn: isSignedIn,
+          isDataLoaded
         });
       }
     };
 
     loadAllData();
-  }, [roadmapIds, getTopicsByRoadmap, getVocabs, isClient, isLoaded, isSignedIn, getToken]); // Added Clerk dependencies
+  }, [roadmaps.length, error, isClient, isLoaded, isSignedIn, isDataLoaded]); // Added error to dependencies
+
+  // Custom refetch function that resets data loading state
+  const handleRefetch = useCallback(() => {
+    setIsDataLoaded(false); // Reset the flag to allow data reload
+    refetch(); // Call the original refetch from useRoadmaps
+  }, [refetch]);
+
+  // Reset data loaded flag when there's an error to allow retry
+  useEffect(() => {
+    if (error) {
+      setIsDataLoaded(false);
+    }
+  }, [error]);
 
 
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-6"></div>
-          <h2 className="text-xl font-medium text-gray-700">
-            Loading your courses...
-          </h2>
+          <Spinner variant="wave" color="primary" size="lg" label="Loading..." labelColor="primary"/>
           <p className="text-gray-500 mt-2">Please wait a moment</p>
         </div>
       </div>
@@ -233,7 +241,7 @@ export default function LearnVocabularyPage() {
           </h2>
           <p className="text-gray-600 mb-6">{error}</p>
           <button
-            onClick={refetch}
+            onClick={handleRefetch}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
             Try Again

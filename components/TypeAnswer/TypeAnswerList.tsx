@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import { Card, CardBody, CardHeader, Button, Chip, Spinner, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { ExerciseData } from '@/services/types/exercise';
@@ -16,7 +16,120 @@ interface TypeAnswerListProps {
   selectedExerciseId?: string;
 }
 
-export function TypeAnswerList({ 
+// Memoized Exercise Item Component to prevent unnecessary re-renders
+const ExerciseItem = memo(({ 
+  exercise, 
+  index, 
+  isSelected, 
+  onSelect, 
+  onEdit, 
+  onDelete 
+}: {
+  exercise: ExerciseData;
+  index: number;
+  isSelected: boolean;
+  onSelect: () => void;
+  onEdit: () => void;
+  onDelete?: () => void;
+}) => {
+  const getDifficultyColor = useCallback((difficulty: string) => {
+    switch (difficulty) {
+      case 'beginner': return 'success';
+      case 'intermediate': return 'warning';
+      case 'advanced': return 'danger';
+      default: return 'default';
+    }
+  }, []);
+
+  const getTypeIcon = useCallback((type: string) => {
+    switch (type) {
+      case 'image': return 'mdi:image';
+      case 'audio': return 'mdi:volume-high';
+      default: return 'mdi:help-circle';
+    }
+  }, []);
+
+  const getTypeColor = useCallback((type: string) => {
+    switch (type) {
+      case 'image': return 'text-purple-600';
+      case 'audio': return 'text-blue-600';
+      default: return 'text-gray-600';
+    }
+  }, []);
+
+  return (
+    <div
+      className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
+        isSelected ? 'bg-purple-50 border-r-4 border-purple-500' : ''
+      }`}
+      onClick={onSelect}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon 
+              icon={getTypeIcon(exercise.type)} 
+              className={`text-lg ${getTypeColor(exercise.type)}`}
+            />
+            <span className="text-sm font-medium text-gray-900">
+              Exercise #{index + 1}
+            </span>
+            {exercise.difficulty && (
+              <Chip
+                color={getDifficultyColor(exercise.difficulty)}
+                size="sm"
+                variant="flat"
+              >
+                {exercise.difficulty}
+              </Chip>
+            )}
+          </div>
+          
+          <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+            {exercise.content || 'No content provided'}
+          </p>
+          
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Icon icon="mdi:check-circle" className="text-green-500" />
+            <span>Answer: {exercise.correctAnswer}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <CustomButton
+            isIconOnly
+            size="sm"
+            preset="ghost"
+            icon="mdi:pencil"
+            iconSize={16}
+            onPress={onEdit}
+            className="text-gray-400 hover:text-purple-600 min-w-8 h-8"
+          >
+            <span className="sr-only">Edit</span>
+          </CustomButton>
+          
+          {onDelete && (
+            <CustomButton
+              isIconOnly
+              size="sm"
+              preset="ghost"
+              icon="mdi:delete"
+              iconSize={16}
+              onPress={onDelete}
+              className="text-gray-400 hover:text-red-600 min-w-8 h-8"
+            >
+              <span className="sr-only">Delete</span>
+            </CustomButton>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+ExerciseItem.displayName = 'ExerciseItem';
+
+export const TypeAnswerList = memo(({ 
   exercises, 
   loading = false, 
   error, 
@@ -24,21 +137,26 @@ export function TypeAnswerList({
   onExerciseEdit,
   onExerciseDelete,
   selectedExerciseId 
-}: TypeAnswerListProps) {
+}: TypeAnswerListProps) => {
   const [exerciseToDelete, setExerciseToDelete] = useState<ExerciseData | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const handleDeleteClick = (exercise: ExerciseData) => {
+  // Memoized handlers to prevent unnecessary re-renders
+  const handleDeleteClick = useCallback((exercise: ExerciseData) => {
     setExerciseToDelete(exercise);
     onOpen();
-  };
+  }, [onOpen]);
 
-  const handleEditClick = (exercise: ExerciseData) => {
+  const handleEditClick = useCallback((exercise: ExerciseData) => {
     onExerciseEdit(exercise);
-  };
+  }, [onExerciseEdit]);
 
-  const handleConfirmDelete = async () => {
+  const handleExerciseSelect = useCallback((exercise: ExerciseData) => {
+    onExerciseSelect(exercise);
+  }, [onExerciseSelect]);
+
+  const handleConfirmDelete = useCallback(async () => {
     if (!exerciseToDelete || !onExerciseDelete) return;
     
     setIsDeleting(true);
@@ -51,31 +169,23 @@ export function TypeAnswerList({
     } finally {
       setIsDeleting(false);
     }
-  };
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'beginner': return 'success';
-      case 'intermediate': return 'warning';
-      case 'advanced': return 'danger';
-      default: return 'default';
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
+  }, [exerciseToDelete, onExerciseDelete, onOpenChange]);
+  
+  const getTypeIcon = useCallback((type: string) => {
     switch (type) {
       case 'image': return 'mdi:image';
       case 'audio': return 'mdi:volume-high';
       default: return 'mdi:help-circle';
     }
-  };
+  }, []);
 
-  const getTypeColor = (type: string) => {
+  const getTypeColor = useCallback((type: string) => {
     switch (type) {
       case 'image': return 'text-purple-600';
       case 'audio': return 'text-blue-600';
       default: return 'text-gray-600';
     }
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -131,73 +241,15 @@ export function TypeAnswerList({
         ) : (
           <div className="divide-y divide-gray-100">
             {exercises.map((exercise, index) => (
-              <div
-                key={exercise.id}
-                className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                  selectedExerciseId === exercise.id ? 'bg-purple-50 border-r-4 border-purple-500' : ''
-                }`}
-                onClick={() => onExerciseSelect(exercise)}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Icon 
-                        icon={getTypeIcon(exercise.type)} 
-                        className={`text-lg ${getTypeColor(exercise.type)}`}
-                      />
-                      <span className="text-sm font-medium text-gray-900">
-                        Exercise #{index + 1}
-                      </span>
-                      {exercise.difficulty && (
-                        <Chip
-                          color={getDifficultyColor(exercise.difficulty)}
-                          size="sm"
-                          variant="flat"
-                        >
-                          {exercise.difficulty}
-                        </Chip>
-                      )}
-                    </div>
-                    
-                    <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                      {exercise.content || 'No content provided'}
-                    </p>
-                    
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <Icon icon="mdi:check-circle" className="text-green-500" />
-                      <span>Answer: {exercise.correctAnswer}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                    <CustomButton
-                      isIconOnly
-                      size="sm"
-                      preset="ghost"
-                      icon="mdi:pencil"
-                      iconSize={16}
-                      onPress={() => handleEditClick(exercise)}
-                      className="text-gray-400 hover:text-purple-600 min-w-8 h-8"
-                    >
-                      <span className="sr-only">Edit</span>
-                    </CustomButton>
-                    
-                    {onExerciseDelete && (
-                      <CustomButton
-                        isIconOnly
-                        size="sm"
-                        preset="ghost"
-                        icon="mdi:delete"
-                        iconSize={16}
-                        onPress={() => handleDeleteClick(exercise)}
-                        className="text-gray-400 hover:text-red-600 min-w-8 h-8"
-                      >
-                        <span className="sr-only">Delete</span>
-                      </CustomButton>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <ExerciseItem
+                key={`${exercise.id}-${exercise.content}-${exercise.correctAnswer}`} // More stable key
+                exercise={exercise}
+                index={index}
+                isSelected={selectedExerciseId === exercise.id}
+                onSelect={() => handleExerciseSelect(exercise)}
+                onEdit={() => handleEditClick(exercise)}
+                onDelete={onExerciseDelete ? () => handleDeleteClick(exercise) : undefined}
+              />
             ))}
           </div>
         )}
@@ -255,4 +307,6 @@ export function TypeAnswerList({
       </Modal>
     </Card>
   );
-}
+});
+
+TypeAnswerList.displayName = 'TypeAnswerList';

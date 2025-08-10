@@ -36,7 +36,7 @@ export const ENDPOINTS = {
     UPDATE: (id: string) => `/vocabs/${id}`,
     DELETE: (id: string) => `/vocabs/${id}`,
     GET_BY_TOPIC_ID: (topicId: string) => `/vocabs/topic/${topicId}`,
-    GET_ALL_BY_TOPIC_ID:  (topicId: string) => `/vocabs/topic/:topicId/all`,
+    GET_ALL_BY_TOPIC_ID:  (topicId: string) => `/vocabs/topic/${topicId}/all`,
     AI_GENRATE: `/vocabs/ai/gen`,
     MY_VOCAB: "/vocabs/my-vocabs",
     MARK_DONE: (id: string) => `/vocabs/mark-done/${id}`,

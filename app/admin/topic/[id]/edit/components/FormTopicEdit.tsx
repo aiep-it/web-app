@@ -145,8 +145,8 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace })
       });
     } else {
       addToast({
-        title: "Error updating node",
-        description: "Failed to update the node. Please try again.",
+        title: "Error updating topic",
+        description: "Failed to update the topic. Please try again.",
         color: "danger",
       });
     }
@@ -156,31 +156,27 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace })
       <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col sm:flex-row gap-4 w-full pt-2">
           <div className="flex-1">
-            <CTextField
-              title="Node Title"
-              disabled={Boolean(topicId)}
-              name="title"
-              label="Title"
-              isRequired
-              placeholder="Enter your title of node"
-              labelPlacement="outside"
-              endContent={
-                <Tooltip
-                  content="Title must be update on the node flow"
-                  color="warning"
-                >
-                  <Icon icon="lucide:info" className="text-warning-500" />
-                </Tooltip>
-              }
-            />
+            <div className="flex flex-col gap-2">
+              <CTextField
+                title="Topic Title"
+                disabled={Boolean(topicId)}
+                isRequired
+                label="Title"
+                name="title"
+                placeholder="Enter your title of topic"
+                variant="bordered"
+              />
+            </div>
           </div>
           <div className="flex-1">
-            <CTextField
-              name="description"
-              placeholder="Description"
-              label="Description"
-              labelPlacement="outside"
-            />
+            <div className="flex flex-col gap-2">
+              <CTextField
+                name="description"
+                placeholder="Description"
+                label="Description"
+                variant="bordered"
+              />
+            </div>
           </div>
         </div>
         <div className="sm:flex-row gap-4 w-full pt-3 mt-4">

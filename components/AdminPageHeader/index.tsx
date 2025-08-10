@@ -9,6 +9,7 @@ import {
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import React, { ReactElement, useCallback, useEffect, useState } from 'react';
+import { CustomButton } from '@/shared/components/button/CustomButton';
 
 interface IProps {
   title: string;
@@ -64,56 +65,64 @@ const AdminPageHeader: React.FC<IProps> = ({
 
         {onChangeView && (
           <ButtonGroup>
-            <Button
+            <CustomButton
               isIconOnly
-              color={isGridView ? 'primary' : 'default'}
+              preset={isGridView ? 'primary' : 'ghost'}
+              icon="lucide:grid"
+              iconSize={18}
               onPress={() => {
                 setIsGridView(true);
                 onChangeView(true);
               }}
             >
-              <Icon icon="lucide:grid" className="text-lg" />
-            </Button>
-            <Button
+              <span className="sr-only">Grid View</span>
+            </CustomButton>
+            <CustomButton
               isIconOnly
-              color={!isGridView ? 'primary' : 'default'}
+              preset={!isGridView ? 'primary' : 'ghost'}
+              icon="lucide:list"
+              iconSize={18}
               onPress={() => {
                 setIsGridView(false);
                 onChangeView(false);
               }}
             >
-              <Icon icon="lucide:list" className="text-lg" />
-            </Button>
+              <span className="sr-only">List View</span>
+            </CustomButton>
           </ButtonGroup>
         )}
       </div>
       <div className="flex justify-between items-center mb-4 flex-col sm:flex-row gap-3">
         <div className="flex gap-2">
           {onRefesh && (
-            <Button
-              color="primary"
-              variant="flat"
-              startContent={<Icon icon="lucide:refresh-cw" />}
+            <CustomButton
+              preset="primary"
               size="sm"
+              icon="lucide:refresh-cw"
+              iconSize={16}
               onPress={onRefesh}
+              className="bg-blue-500 hover:bg-blue-600"
             >
               Làm mới
-            </Button>
+            </CustomButton>
           )}
 
           {onSort && (
             <Dropdown>
               <DropdownTrigger>
-                <Button
-                  variant="flat"
-                  startContent={<Icon icon="lucide:list-filter" />}
-                  endContent={
-                    <Icon icon="lucide:chevron-down" className="text-small" />
-                  }
+                <CustomButton
+                  preset="outline"
                   size="sm"
+                  icon="lucide:list-filter"
+                  iconSize={16}
+                  className="border-gray-300 text-gray-600 hover:bg-gray-50"
                 >
                   Sắp xếp
-                </Button>
+                  <Icon
+                    icon="lucide:chevron-down"
+                    className="text-small ml-1"
+                  />
+                </CustomButton>
               </DropdownTrigger>
               <DropdownMenu
                 aria-label="Sorting Options"
@@ -128,7 +137,7 @@ const AdminPageHeader: React.FC<IProps> = ({
           )}
         </div>
 
-        <div className="w-full sm:w-64 flex justify-between items-center mb-4 flex-col sm:flex-row gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           {onSearch && (
             <Input
               // ref={inputRef}
@@ -137,6 +146,7 @@ const AdminPageHeader: React.FC<IProps> = ({
               value={searchValue}
               onValueChange={handleSearch}
               isClearable
+              className="w-full sm:w-64"
               classNames={{
                 input: 'placeholder:text-default-500',
               }}
@@ -144,13 +154,14 @@ const AdminPageHeader: React.FC<IProps> = ({
           )}
           {addRecord && (
             <Button
-              isIconOnly
-              color={'success'}
+              size="md"
+              startContent={<Icon icon="lucide:plus" width={16} />}
               onPress={() => {
                 addRecord();
               }}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-sm flex-shrink-0"
             >
-              <Icon icon="lucide:plus" className="text-lg" />
+              Create new
             </Button>
           )}
         </div>

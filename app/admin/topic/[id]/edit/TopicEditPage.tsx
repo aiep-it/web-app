@@ -14,9 +14,9 @@ const TopicEditPage: React.FC<TopicEditPageProps> = ({ id }) => {
         <CardHeader className="flex gap-3">
           <Icon icon="lucide:book-open" className="text-primary text-2xl" />
           <div className="flex flex-col">
-            <p className="text-lg font-semibold">Edit Node</p>
+            <p className="text-lg font-semibold">Edit Topic</p>
             <p className="text-small text-default-500">
-              Fill in the details to create your Node
+              Fill in the details to edit your topic
             </p>
           </div>
         </CardHeader>
