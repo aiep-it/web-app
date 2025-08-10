@@ -73,7 +73,16 @@ export default function CreateClassForm() {
     async function fetchData() {
       const teacherList = await getAllTeachers();
       const roadmapList = await getRoadmap();
-      setTeachers(teacherList);
+    setTeachers(
+  teacherList.map((t) => {
+    const fullName = `${t.firstName ?? ''} ${t.lastName ?? ''}`.trim();
+    return {
+      id: t.id,
+      fullName: fullName || 'Giáo viên A'
+    };
+  })
+);
+
       setRoadmaps(roadmapList);
     }
     fetchData();

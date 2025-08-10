@@ -6,7 +6,8 @@ export const ENDPOINTS = {
   },
   AUTHEN: {
     ROLE: "/users/update-metadata",
-
+    GET_USER_ROLE: "/users/me",
+    
     WITH_CLERK_ID: '/users/with-clerk-id',
 
     GET_USER_BY_CLERK_ID: (clerkId: string) => `/users/${clerkId}`,

@@ -47,9 +47,14 @@ const ClassFilters: React.FC<ClassFiltersProps> = ({
           <DropdownTrigger>
             <Button variant="flat">
               {
-                teachers.find(t => t.id === selectedTeacher)?.fullName
-                || "Filter by Teacher"
+                (() => {
+                  const teacher = teachers.find(t => t.id === selectedTeacher);
+                  return teacher
+                    ? `${teacher.firstName ?? ''} ${teacher.lastName ?? ''}`.trim() || "Giáo viên A"
+                    : "Filter by Teacher";
+                })()
               }
+
               <Icon icon="lucide:chevron-down" className="ml-2" />
             </Button>
           </DropdownTrigger>
@@ -67,7 +72,7 @@ const ClassFilters: React.FC<ClassFiltersProps> = ({
             <>
               {teachers.map((teacher) => (
                 <DropdownItem key={teacher.id}>
-                  {teacher.fullName}
+                {teacher.lastName} {teacher.firstName}
                 </DropdownItem>
               ))}
             </>

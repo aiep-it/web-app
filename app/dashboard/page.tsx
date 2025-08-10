@@ -1,18 +1,14 @@
-// web-app/app/dashboard/page.tsx
-import { auth, currentUser } from '@clerk/nextjs/server';
+'use client';
+import React from 'react';
+import { Spinner } from '@heroui/react';
+import { useRoleRedirect } from '../../hooks/useRoleRedirect';
 
-export default async function DashboardPage() {
-  const { userId } = await auth();
-  const user = await currentUser();
-
-  if (!userId) {
-    return <div>Vui lòng đăng nhập để xem trang này</div>;
-  }
-
+export default function DashboardRedirectPage() {
+  useRoleRedirect();
   return (
-    <div className="p-4">
-      <h1>Xin chào, {user?.firstName}</h1>
-      <p>Email: {user?.emailAddresses[0].emailAddress}</p>
+    <div className="flex items-center justify-center min-h-screen">
+      <Spinner size="lg" />
+      <span className="ml-4 text-lg">Redirecting...</span>
     </div>
   );
 }

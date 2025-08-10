@@ -24,6 +24,7 @@ import { ClassResponse, ClassLevel } from '@/services/types/class';
 import { Student } from '@/services/types/student';
 import StudentTable from '@/app/admin/usermanage/components/StudentTable';
 import DeleteConfirmationModal from '@/app/admin/classmanage/components/DeleteConfirmationModal';
+import { Teacher } from '@/services/types/user';
 
 export default function ClassDetailPage() {
   const { id } = useParams();
@@ -40,7 +41,7 @@ export default function ClassDetailPage() {
     level: 'STARTERS',
   });
 
-  const [allTeachers, setAllTeachers] = useState<{ id: string; fullName: string }[]>([]);
+  const [allTeachers, setAllTeachers] = useState<Teacher[]>([]);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
 
   const [availableStudents, setAvailableStudents] = useState<Student[]>([]);
@@ -96,10 +97,11 @@ export default function ClassDetailPage() {
     setLoading(false);
   };
 
-  const fetchAllTeachers = async () => {
-    const data = await getAllTeachers();
-    setAllTeachers(data);
-  };
+ const fetchAllTeachers = async () => {
+  const data = await getAllTeachers(); 
+  setAllTeachers(data);
+};
+
 
   const fetchAvailableRoadmaps = async () => {
     const all = await getRoadmap();
@@ -293,7 +295,10 @@ export default function ClassDetailPage() {
               <div className="flex items-center gap-2 mt-4">
                 <Select label="Thêm giáo viên" selectedKeys={selectedTeacherId ? [selectedTeacherId] : []} onSelectionChange={(keys) => setSelectedTeacherId(Array.from(keys)[0] as string)} className="w-full" size="sm">
                   {allTeachers.filter(t => !classData.teachers.some(ct => ct.id === t.id)).map(t => (
-                    <SelectItem key={t.id}>{t.fullName}</SelectItem>
+                    <SelectItem key={t.id}>
+                      {`${t.firstName ?? ''} ${t.lastName ?? ''}`.trim() || 'Giáo viên A'}
+                    </SelectItem>
+
                   ))}
                 </Select>
                 <Button onPress={handleAddTeacher} color="primary" isIconOnly size="sm">+</Button>
