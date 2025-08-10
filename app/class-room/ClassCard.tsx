@@ -1,40 +1,32 @@
-import { TopicData } from '@/services/types/topic';
-import { Icon } from '@iconify/react';
-import { Button } from '@heroui/button';
-import { VocabLearningModal } from './VocabLearningModal';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { getCmsAssetUrl } from '@/utils/index';
-import useVocabsSafe from '@/hooks/useVocabsSafe';
-import { VocabColumn } from '@/services/types/vocab';
 import { CONTENT } from '@/constant/content';
-
-interface TopicCardProps {
-  topic: TopicData;
-  isWorkspace?: boolean; // Optional prop to indicate if this is for a workspace
+import { UserClass } from '@/services/types/class';
+import { Button } from '@heroui/react';
+import { Icon } from '@iconify/react';
+import { useRouter } from 'next/navigation';
+import React from 'react';
+interface ClassCardProps {
+  classInfo: UserClass;
 }
-
-// Default image for all topic cards
-
-
-export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const ClassCard: React.FC<ClassCardProps> = ({ classInfo }) => {
   const router = useRouter();
 
+  const handleEnterClass = () => {
+    router.push(`/class-room/${classInfo.id}`);
+  };
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group">
       {/* Topic Image */}
       <div className="relative h-32 bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 overflow-hidden">
         <img
           src={
-            topic.coverImage
-              ? getCmsAssetUrl(topic.coverImage)
-              : CONTENT.DEFAULT_TOPIC_IMAGE
+            // topic.coverImage
+            //   ? getCmsAssetUrl(topic.coverImage)
+            //   : CONTENT.DEFAULT_TOPIC_IMAGE
+            CONTENT.CLASS_COVER_IMAGE
           }
-          alt={topic.title}
+          alt={classInfo.name}
           className="w-full h-full object-cover"
           onError={(e) => {
-            // Fallback to gradient if image fails to load
             const target = e.currentTarget;
             target.style.display = 'none';
             const fallback = target.nextElementSibling as HTMLElement;
@@ -53,7 +45,7 @@ export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
               className="text-4xl mb-1 mx-auto opacity-80"
             />
             <div className="text-sm font-semibold opacity-90">
-              {topic.title}
+              {classInfo.name}
             </div>
           </div>
         </div>
@@ -61,19 +53,9 @@ export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
         {/* Status Badge */}
         <div className="absolute top-2 right-2">
           <div
-            className={`px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${
-              topic.status === 'SETTUPED'
-                ? 'bg-green-500/90 text-white'
-                : topic.status === 'INIT'
-                  ? 'bg-yellow-500/90 text-white'
-                  : 'bg-gray-500/90 text-white'
-            }`}
+            className={`px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm bg-green-500/90 text-white`}
           >
-            {topic.status === 'SETTUPED'
-              ? 'ACTIVE'
-              : topic.status === 'INIT'
-                ? 'DRAFT'
-                : 'REMOVED'}
+            {classInfo.level}
           </div>
         </div>
 
@@ -84,7 +66,7 @@ export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
               icon="material-symbols:signal-cellular-alt"
               className="text-orange-300 text-sm"
             />
-            <span>Level {topic.suggestionLevel}</span>
+            <span>Level {classInfo.level}</span>
           </div>
         </div>
       </div>
@@ -93,13 +75,13 @@ export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
       <div className="p-4">
         {/* Title */}
         <h3 className="font-bold text-gray-800 text-medium mb-2 line-clamp-2">
-          {topic.title}
+          {classInfo.name}
         </h3>
 
         {/* Description */}
-        {topic.description ? (
+        {classInfo.description ? (
           <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-            {topic.description}
+            {classInfo.description}
           </p>
         ) : (
           <p className="text-gray-600 text-sm mb-4 line-clamp-3">
@@ -111,32 +93,14 @@ export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
         <Button
           className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-sm"
           size="sm"
-          onPress={() => setIsModalOpen(true)}
+          onPress={() => {handleEnterClass()}}
         >
           <Icon icon="material-symbols:play-arrow" className="mr-1" />
-          Start Learning
+          Enter
         </Button>
-        {isWorkspace && (
-          <Button
-            className="w-full transition-all duration-300 shadow-sm mt-3 h-8"
-            size="sm"
-            color="primary"
-            variant="bordered"
-            onPress={() => router.push(`/my-workspace/${topic.id}`)}
-          >
-            <Icon icon="material-symbols:info-outline" className="mr-1 text-sm" />
-            Detail
-          </Button>
-        )}
       </div>
-
-      {/* Vocab Learning Modal */}
-      <VocabLearningModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        topic={topic}
-        isWorkspace={isWorkspace}
-      />
     </div>
   );
-}
+};
+
+export default ClassCard;

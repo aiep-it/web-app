@@ -2,10 +2,11 @@ import {
   VocabSearchPayload,
   VocabPayload,
   VocabListResponse,
-} from "../types/vocab";
+  VocabData,
+} from '../types/vocab';
 
-import { ENDPOINTS } from "@/constant/api";
-import axiosInstance from "@/lib/axios";
+import { ENDPOINTS } from '@/constant/api';
+import axiosInstance from '@/lib/axios';
 
 export async function searchListVocab(payload: VocabSearchPayload) {
   try {
@@ -19,12 +20,12 @@ export async function searchListVocab(payload: VocabSearchPayload) {
         return [];
       })
       .catch((e) => {
-        console.error("Error fetching vocabs:", e);
+        console.error('Error fetching vocabs:', e);
 
         return [];
       });
   } catch (error) {
-    console.error("Error fetching vocabs:", error);
+    console.error('Error fetching vocabs:', error);
 
     return [];
   }
@@ -42,12 +43,12 @@ export async function createVocab(payload: VocabPayload) {
         return null;
       })
       .catch((e) => {
-        console.error("Error creating vocabulary:", e);
+        console.error('Error creating vocabulary:', e);
 
         return null;
       });
   } catch (error) {
-    console.error("Error creating vocabulary:", error);
+    console.error('Error creating vocabulary:', error);
 
     return null;
   }
@@ -64,12 +65,12 @@ export async function updateVocab(id: string, payload: VocabPayload) {
         return null;
       })
       .catch((e) => {
-        console.error("Error creating vocabulary:", e);
+        console.error('Error creating vocabulary:', e);
 
         return null;
       });
   } catch (error) {
-    console.error("Error creating vocabulary:", error);
+    console.error('Error creating vocabulary:', error);
 
     return null;
   }
@@ -86,18 +87,21 @@ export async function deleteVocab(id: string) {
         return false;
       })
       .catch((e) => {
-        console.error("Error creating vocabulary:", e);
+        console.error('Error creating vocabulary:', e);
 
         return false;
       });
   } catch (error) {
-    console.error("Error creating vocabulary:", error);
+    console.error('Error creating vocabulary:', error);
 
     return false;
   }
 }
 
-export async function fetchVocabsByTopicId(topicId: string, payload: VocabSearchPayload) {
+export async function fetchVocabsByTopicId(
+  topicId: string,
+  payload: VocabSearchPayload,
+) {
   try {
     return await axiosInstance
       .post(ENDPOINTS.VOCAB.GET_BY_TOPIC_ID(topicId), payload)
@@ -109,23 +113,22 @@ export async function fetchVocabsByTopicId(topicId: string, payload: VocabSearch
         return [];
       })
       .catch((e) => {
-        console.error("Error fetching vocabs:", e);
+        console.error('Error fetching vocabs:', e);
 
         return [];
       });
   } catch (error) {
-    console.error("Error fetching vocabs:", error);
+    console.error('Error fetching vocabs:', error);
 
     return [];
   }
 }
 
-
 export async function aiGenerate(topicId: string) {
   try {
     return await axiosInstance
       .post(ENDPOINTS.VOCAB.AI_GENRATE, {
-        topicId
+        topicId,
       })
       .then((response) => {
         if (response.status === 200) {
@@ -135,18 +138,16 @@ export async function aiGenerate(topicId: string) {
         return [];
       })
       .catch((e) => {
-        console.error("Error fetching vocabs:", e);
+        console.error('Error fetching vocabs:', e);
 
         return [];
       });
   } catch (error) {
-    console.error("Error fetching vocabs:", error);
+    console.error('Error fetching vocabs:', error);
 
     return [];
   }
 }
-
-
 
 export async function getByTopicId(topicId: string) {
   try {
@@ -224,11 +225,33 @@ export async function getMyVocabs() {
   }
 }
 
-
 export async function markDone(vocabId: string) {
   try {
     return await axiosInstance
       .put(ENDPOINTS.VOCAB.MARK_DONE(vocabId))
+      .then((response) => {
+        if (response.status === 200) {
+          return response.data;
+        }
+
+        return null;
+      })
+      .catch((e) => {
+        console.error('Error creating vocabulary:', e);
+
+        return null;
+      });
+  } catch (error) {
+    console.error('Error creating vocabulary:', error);
+
+    return null;
+  }
+}
+
+export async function bulkVocabs(payload: VocabData[]) {
+  try {
+    return await axiosInstance
+      .post(ENDPOINTS.VOCAB.BULK, payload)
       .then((response) => {
         if (response.status === 200) {
           return response.data;

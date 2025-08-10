@@ -6,6 +6,7 @@ import {
   ClassResponse,
   AddTeacherPayload,
   AddStudentsPayload,
+  UserClass,
 } from '../types/class';
 
 export async function getAllClasses(query?: { teacherId?: string; search?: string }): Promise<ClassResponse[]> {
@@ -116,3 +117,24 @@ export async function removeRoadmapFromClass(id: string, roadmapId: string): Pro
     return false;
   }
 }
+
+export async function getMyClass(classId: string): Promise<ClassResponse | null> {
+  try {
+    const res = await axiosInstance.get(ENDPOINTS.CLASS.MY_CLASS(classId));
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching my classes:', error);
+    return null;
+  }
+}
+
+export async function getMyClasses(): Promise<UserClass[] | null> {
+  try {
+    const res = await axiosInstance.get(ENDPOINTS.CLASS.ALL_MY_CLASSES);
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching my classes:', error);
+    return null;
+  }
+}
+

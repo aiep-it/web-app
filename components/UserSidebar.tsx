@@ -76,7 +76,7 @@ function getIconForNavItem(label: string): string {
     'Learn Vocabulary': 'lucide:book',
     'My Workspace': 'lucide:folder-open',
     'Pricing': 'lucide:credit-card',
-    'Chat bot': 'lucide:bot',
+    'Class Room': 'lucide:school',
     'My Report': 'lucide:clipboard-minus',
     'Profile': 'lucide:user',
     'Dashboard': 'lucide:layout-dashboard',

@@ -6,12 +6,12 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Button
-} from "@heroui/react";
-import { Icon } from "@iconify/react";
+  Button,
+} from '@heroui/react';
+import { Icon } from '@iconify/react';
 import { Teacher } from '@/services/types/user';
 import Link from 'next/link';
-
+import { useRouter } from 'next/navigation';
 
 interface ClassFiltersProps {
   search: string;
@@ -30,6 +30,7 @@ const ClassFilters: React.FC<ClassFiltersProps> = ({
   teachers,
   onAddNewClass,
 }) => {
+  const router = useRouter();
   return (
     <div className="flex justify-between items-center gap-4 flex-wrap">
       <div className="flex items-center gap-4 flex-grow">
@@ -38,18 +39,17 @@ const ClassFilters: React.FC<ClassFiltersProps> = ({
           placeholder="Search by class name or code"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          startContent={<Icon icon="lucide:search" className="text-default-400" />}
+          startContent={
+            <Icon icon="lucide:search" className="text-default-400" />
+          }
           className="w-full max-w-xs"
         />
-
 
         <Dropdown>
           <DropdownTrigger>
             <Button variant="flat">
-              {
-                teachers.find(t => t.id === selectedTeacher)?.fullName
-                || "Filter by Teacher"
-              }
+              {teachers.find((t) => t.id === selectedTeacher)?.fullName ||
+                'Filter by Teacher'}
               <Icon icon="lucide:chevron-down" className="ml-2" />
             </Button>
           </DropdownTrigger>
@@ -57,30 +57,29 @@ const ClassFilters: React.FC<ClassFiltersProps> = ({
           <DropdownMenu
             aria-label="Teacher filter"
             selectionMode="single"
-            selectedKeys={selectedTeacher ? new Set([selectedTeacher]) : new Set()}
+            selectedKeys={
+              selectedTeacher ? new Set([selectedTeacher]) : new Set()
+            }
             onSelectionChange={(keys) => {
               const selectedKey = Array.from(keys)[0] as string;
-              setSelectedTeacher(selectedKey === "all" ? null : selectedKey);
+              setSelectedTeacher(selectedKey === 'all' ? null : selectedKey);
             }}
           >
             <DropdownItem key="all">All Teachers</DropdownItem>
             <>
               {teachers.map((teacher) => (
-                <DropdownItem key={teacher.id}>
-                  {teacher.fullName}
-                </DropdownItem>
+                <DropdownItem key={teacher.id}>{teacher.fullName}</DropdownItem>
               ))}
             </>
           </DropdownMenu>
         </Dropdown>
       </div>
-
-      {/* Nút thêm lớp mới */}
-     <Link href="/admin/classmanage/create" passHref legacyBehavior>
-  <Button as="a" color="primary">
-    Add New Class
-  </Button>
-</Link>
+      <Button
+        color="primary"
+        onPress={() => router.push(`/admin/classmanage/create`)}
+      >
+        Add New Class
+      </Button>
     </div>
   );
 };

@@ -42,6 +42,7 @@ import {
   deleteVocab,
   updateVocab,
   aiGenerate,
+  bulkVocabs,
 } from '@/services/vocab';
 import CImageUpload from '@/components/CImageUpload';
 import { uploadFile } from '@/services/cms';
@@ -530,8 +531,45 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
     setSelectedKeysAI(new Set<Key>());
   };
 
-  const handleInsertVocabs = async () => {
+  const handleInsertVocabs = async (onCloseModal: () => void) => {
     console.log('Inserting selected AI vocabs:', selectedKeysAI, aiVocabs);
+    let payloadInsert: VocabData[] = [];
+    if(selectedKeysAI === 'all'){
+      payloadInsert =aiVocabs ? [...aiVocabs]: [];
+    }
+    else if (selectedKeysAI.size > 0) {
+      payloadInsert = aiVocabs?.filter((vocab) =>
+        {
+          return selectedKeysAI.has(vocab._index?.toString() as Key)
+        },
+      ) ?? [];
+
+    }
+
+    if (payloadInsert.length !== 0) {
+      const payload = payloadInsert.map(({ _index, ...rest }) => ({
+        ...rest,
+        topicId: topic?.id || '',
+      }));
+
+      const res = await bulkVocabs(payload);
+
+      if (res) {
+        addToast({
+          title: 'Notification',
+          description: `Inserted ${payload.length} vocabularies successfully!`,
+          color: 'success',
+        });
+        fetchListVocabs();
+      } else {
+        addToast({
+          title: 'Error',
+          description: `Failed to insert vocabularies!`,
+          color: 'danger',
+        });
+      }
+      onCloseModal();
+    }
   }
   return (
     <div className="min-h-screen dark:bg-black-10 text-foreground p-6">
@@ -700,8 +738,8 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
                   Clear
                 </Button>
                 <Button color="primary" onPress={() => {
-                  handleInsertVocabs();
-                  // onClose();
+                  handleInsertVocabs(onClose);
+           
                 }}>
                   Add Selected
                 </Button>
