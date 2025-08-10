@@ -90,47 +90,50 @@ const RoadmapListPage = () => {
         onSearch={() => {}}
         addRecord={() => router.push('/admin/roadmaps/new')}
       />
-      <Accordion className="mt-5" defaultExpandedKeys={categories.map(c => c.id)}>
+      
         {categories.length > 0 ? (
-          categories.map((category) => {
-            const filteredRoadmaps = roadmaps.filter(
-              (r) => r.categoryId === category.id,
-            );
-
-            return (
-              <AccordionItem
-                key={category.id}
-                className="mb-8"
-                aria-label={category.name}
-                title={category.name}
-              >
-                {filteredRoadmaps.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                    {filteredRoadmaps.map((r) => (
-                      <BaseCard
-                        key={r.id}
-                        id={r.id}
-                        name={r.name}
-                        description={r.description}
-                        onDelete={handleDelete}
-                        editUrl={`roadmaps/${r.id}/edit`}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-400 text-center py-4">
-                    Không có roadmap trong danh mục này.
-                  </p>
-                )}
-              </AccordionItem>
-            );
-          })
+          <Accordion  className="mt-5" defaultExpandedKeys={categories.map(c => c.id)}>
+            {
+              categories.map((category) => {
+                const filteredRoadmaps = roadmaps.filter(
+                  (r) => r.categoryId === category.id,
+                );
+    
+                return (
+                  <AccordionItem
+                    key={category.id}
+                    className="mb-8"
+                    aria-label={category.name}
+                    title={category.name}
+                  >
+                    {filteredRoadmaps.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                        {filteredRoadmaps.map((r) => (
+                          <BaseCard
+                            key={r.id}
+                            id={r.id}
+                            name={r.name}
+                            description={r.description}
+                            onDelete={handleDelete}
+                            editUrl={`roadmaps/${r.id}/edit`}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 text-center py-4">
+                        Không có roadmap trong danh mục này.
+                      </p>
+                    )}
+                  </AccordionItem>
+                );
+              })
+            }
+          </Accordion>
         ) : (
           <p className="text-white text-center py-8 text-xl">
             Chưa có danh mục lộ trình nào được tạo.
           </p>
         )}
-      </Accordion>
     </div>
   );
 };
