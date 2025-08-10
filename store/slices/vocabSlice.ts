@@ -98,6 +98,16 @@ const vocabSlice = createSlice({
         return acc;
       }, {} as Record<string, VocabData[]>);
     },
+    setVocabsForTopic: (state, action) => {
+      const { topicId, vocabs } = action.payload;
+      state.vocabsByTopic[topicId] = vocabs;
+      
+      // Also update main vocabs array if needed
+      // Remove existing vocabs for this topic from main array
+      state.vocabs = state.vocabs.filter(vocab => vocab.topicId !== topicId);
+      // Add new vocabs to main array
+      state.vocabs.push(...vocabs);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -143,7 +153,7 @@ const vocabSlice = createSlice({
   },
 });
 
-export const { clearError, clearVocabs, updateVocabInStore, groupVocabsByTopic } = vocabSlice.actions;
+export const { clearError, clearVocabs, updateVocabInStore, groupVocabsByTopic, setVocabsForTopic } = vocabSlice.actions;
 
 // Selectors
 export const selectVocabs = (state: { vocab: VocabState }) => state.vocab.vocabs;

@@ -10,6 +10,9 @@ import { getRoadmap } from '@/services/roadmap';
 import { createClass } from '@/services/class';
 import { ClassLevel } from '@/services/types/class';
 import { classSchema } from '@/app/admin/classmanage/schema/classSchema';
+import GuideNewRoadMap from '../../roadmaps/new/component/GuideNewRoadMap';
+import FormClassCreate from './FormClassCreate';
+import GuideNewClass from './GuideNewCreate';
 
 interface FormData {
   name: string;
@@ -62,10 +65,10 @@ export default function CreateClassForm() {
   const onSubmit = async (data: FormData) => {
     try {
       await createClass(data);
-      toast.success('Tạo lớp học thành công!');
+      toast.success('Class created successfully!');
       reset();
     } catch (error) {
-      toast.error('Đã xảy ra lỗi khi tạo lớp học');
+      toast.error('An error occurred while creating the class');
     }
   };
 
@@ -83,71 +86,89 @@ export default function CreateClassForm() {
   }, []);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-3xl mx-auto p-6 bg-white rounded shadow">
-      <h2 className="text-xl font-semibold">Tạo lớp học mới</h2>
+    // <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-3xl mx-auto p-6 rounded shadow">
+    //   <h2 className="text-xl font-semibold">Create New Class</h2>
 
-      <Input
-        label="Tên lớp"
-        {...register('name')}
-        isInvalid={!!errors.name}
-        errorMessage={errors.name?.message}
+    //   <Input
+    //     label="Class Name"
+    //     {...register('name')}
+    //     isInvalid={!!errors.name}
+    //     errorMessage={errors.name?.message}
+    //   />
+    //   <Input
+    //     label="Class Code"
+    //     {...register('code')}
+    //     isInvalid={!!errors.code}
+    //     errorMessage={errors.code?.message}
+    //   />
+    //   <Textarea label="Description" {...register('description')} />
 
-      />
-      <Input
-        label="Mã lớp"
-        {...register('code')}
-        isInvalid={!!errors.code}
-        errorMessage={errors.code?.message}
-      />
-      <Textarea label="Mô tả" {...register('description')} />
+    //   <Select
+    //     name="level"
+    //     selectedKeys={[values.level]}
+    //     onSelectionChange={(keys) => setValue('level', Array.from(keys)[0] as ClassLevel)}
+    //     isInvalid={!!errors.level}
+    //     errorMessage={errors.level?.message}
+    //   >
+    //     <SelectItem key={ClassLevel.STARTERS}>Starters</SelectItem>
+    //     <SelectItem key={ClassLevel.MOVERS}>Movers</SelectItem>
+    //     <SelectItem key={ClassLevel.FLYERS}>Flyers</SelectItem>
+    //   </Select>
 
-      <Select
-      
-        name="level"
-        selectedKeys={[values.level]}
-        onSelectionChange={(keys) => setValue('level', Array.from(keys)[0] as ClassLevel)}
-        isInvalid={!!errors.level}
-        errorMessage={errors.level?.message}
-        
-      >
-        <SelectItem key={ClassLevel.STARTERS}>Starters</SelectItem>
-        <SelectItem key={ClassLevel.MOVERS}>Movers</SelectItem>
-        <SelectItem key={ClassLevel.FLYERS}>Flyers</SelectItem>
-      </Select>
+    //   <Select
+    //     label="Select Teacher"
+    //     name="teacherIds"
+    //     selectionMode="multiple"
+    //     selectedKeys={values.teacherIds}
+    //     onSelectionChange={(keys) => setValue('teacherIds', Array.from(keys) as string[])}
+    //     isInvalid={!!errors.teacherIds}
+    //     errorMessage={errors.teacherIds?.message}
+    //   >
+    //     {teachers.map((t) => (
+    //       <SelectItem key={t.id}>{`${t.fullName} `}</SelectItem>
+    //     ))}
+    //   </Select>
 
-      <Select
-        label="Chọn giáo viên"
-        name="teacherIds"
-        selectionMode="multiple"
-        selectedKeys={values.teacherIds}
-        onSelectionChange={(keys) => setValue('teacherIds', Array.from(keys) as string[])}
-        isInvalid={!!errors.teacherIds}
-        errorMessage={errors.teacherIds?.message}
-      >
-        {teachers.map((t) => (
-          <SelectItem key={t.id}>{`${t.fullName} `}</SelectItem>
-        ))}
-      </Select>
+    //   <Select
+    //     label="Select Roadmap"
+    //     name="roadmapIds"
+    //     selectionMode="multiple"
+    //     selectedKeys={values.roadmapIds}
+    //     onSelectionChange={(keys) => setValue('roadmapIds', Array.from(keys) as string[])}
+    //     isInvalid={!!errors.roadmapIds}
+    //     errorMessage={errors.roadmapIds?.message}
+    //   >
+    //     {roadmaps.map((r) => (
+    //       <SelectItem key={r.id}>{r.name}</SelectItem>
+    //     ))}
+    //   </Select>
 
-      <Select
-        label="Chọn roadmap"
-        name="roadmapIds"
-        selectionMode="multiple"
-        selectedKeys={values.roadmapIds}
-        onSelectionChange={(keys) => setValue('roadmapIds', Array.from(keys) as string[])}
-        isInvalid={!!errors.roadmapIds}
-        errorMessage={errors.roadmapIds?.message}
-      >
-        {roadmaps.map((r) => (
-          <SelectItem key={r.id}>{r.name}</SelectItem>
-        ))}
-      </Select>
+    //   <div className="text-right">
+    //     <Button color="primary" type="submit">
+    //       Create Class
+    //     </Button>
+    //   </div>
+    // </form>
+    <div className="container mx-auto p-4 md:p-6 max-w-7xl">
+    <div className="py-4">
+      <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+        Create New Class
+      </h1>
+      <p className="text-default-500 mt-2">
+        Create a new class to manage your students and resources. Fill in the details below to get started.
+      </p>
+    </div>
 
-      <div className="text-right">
-        <Button color="primary" type="submit">
-          Tạo lớp học
-        </Button>
+    <div className="flex flex-col lg:flex-row gap-8">
+      <div className="lg:flex-1">
+        <GuideNewClass />
       </div>
-    </form>
+
+      <div className="lg:flex-1">
+    
+        <FormClassCreate/>
+      </div>
+    </div>
+  </div>
   );
 }

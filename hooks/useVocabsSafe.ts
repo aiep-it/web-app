@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/rootReducer';
 import { useAppDispatch } from '@/store/hooks';
@@ -49,7 +49,7 @@ export const useVocabsSafe = () => {
     }
   });
   
-  // Actions with error handling like VocabularyListPage
+  // Actions with error handling like VocabularyListPage - memoized for stability
   const getVocabs = useCallback(async (payload?: VocabSearchPayload) => {
     try {
       const result = await dispatch(fetchVocabs(payload));
@@ -68,7 +68,7 @@ export const useVocabsSafe = () => {
     }
   }, [dispatch]);
 
-  // Helper to get vocabs by topic ID with fallback
+  // Helper to get vocabs by topic ID with fallback - memoized for stability
   const getVocabsForTopic = useCallback((topicId: string) => {
     try {
       return useSelector((state: RootState) => 
@@ -80,7 +80,7 @@ export const useVocabsSafe = () => {
     }
   }, []);
   
-  return {
+  return useMemo(() => ({
     vocabs,
     loading,
     error,
@@ -88,7 +88,7 @@ export const useVocabsSafe = () => {
     getVocabs,
     getVocabsForTopic,
     selectVocabsByTopic,
-  };
+  }), [vocabs, loading, error, pagination, getVocabs, getVocabsForTopic]);
 };
 
 export default useVocabsSafe;

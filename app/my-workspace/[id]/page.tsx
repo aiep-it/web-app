@@ -8,13 +8,15 @@ import { COLLECTIONS } from '@/config/cms';
 import { getItems } from '@/services/cms';
 import { getTopicId } from '@/services/topic';
 import { TopicData } from '@/services/types/topic';
-import { Tab, Tabs } from '@heroui/react';
-import { useParams } from 'next/navigation';
+import { Tab, Tabs, Button } from '@heroui/react';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Icon } from '@iconify/react';
 import PersonalLearningPage from './AI/PersonalLearningPage';
 
 export default function MyWorkspaceDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params?.id as string;
   const [topicContentCMS, setTopicContentCMS] =
     useState<TopicContentCMS | null>(null);
@@ -52,6 +54,18 @@ export default function MyWorkspaceDetailPage() {
   return (
     <div className="w-full p-6">
       <div className="mb-8">
+        {/* Back Button */}
+        <div className="mb-4">
+          <Button
+            startContent={<Icon icon="lucide:arrow-left" width={20} />}
+            variant="light"
+            onPress={() => router.push('/my-workspace')}
+            className="text-gray-600 hover:text-gray-800 font-medium"
+          >
+            Back to My Workspace
+          </Button>
+        </div>
+        
         <h1 className="text-3xl font-bold mb-4">My Workspace</h1>
         <p className="text-gray-600 mb-6">
           Manage your vocabulary and learning resources here.
@@ -61,19 +75,19 @@ export default function MyWorkspaceDetailPage() {
       {/* Main Content */}
       <div className="w-full px-6 pb-8">
         <div className="space-y-6">
-          <div className="mb-6 text-center mt-4">
+          {/* <div className="mb-6 mt-4">
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
               {topic?.title}
             </h2>
             <p className="text-gray-600">{topic?.description}</p>
-          </div>
+          </div> */}
 
           <div className="space-y-8">
             {/* managed Grid */}
             <Tabs
               key={'secondary'}
               aria-label="Tabs colors"
-              color={'secondary'}
+              color={'primary'}
               onSelectionChange={(key) => setActiveTab(key as string)}
               radius="full"
             >

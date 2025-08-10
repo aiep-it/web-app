@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button, Spinner } from '@heroui/react';
 import { addToast } from '@heroui/toast';
@@ -140,51 +140,64 @@ export default function TypeAnswerExercisePage() {
     }
   }, [topicId, router, isClient, isLoaded, isSignedIn, getToken]); // Removed getAllExercises
 
-  // Merge exercises with Directus data when exercises change
-  useEffect(() => {
-    if (exercises.length === 0) {
+  // Optimized merge exercises with Directus data
+  const mergeExercisesData = useCallback(async () => {
+    if (!exercises || exercises.length === 0) {
+      console.log('No exercises to merge, setting empty array');
+      setMergedExercises((prev) => (prev.length === 0 ? prev : []));
       return;
     }
-    const mergeWithDirectusData = async () => {
-      if (!exercises || exercises.length === 0) {
-        console.log('No exercises to merge, setting empty array');
-        setMergedExercises((prev) => (prev.length === 0 ? prev : []));
-        return;
-      }
 
-      try {
-        const directusExercises = await getDirectusExercises();
-        const merged = mergeExercisesWithDirectusData(
-          exercises,
-          directusExercises,
-        );
+    try {
+      const directusExercises = await getDirectusExercises();
+      const merged = mergeExercisesWithDirectusData(exercises, directusExercises);
 
-        // So sánh đơn giản, tránh update nếu giống nhau
-        const isSameLength = merged.length === mergedExercises.length;
-        const isSameIds = merged.every(
-          (ex, idx) => ex.id === mergedExercises[idx]?.id,
-        );
-
-        if (!isSameLength || !isSameIds) {
-          setMergedExercises(merged);
-        } else {
-          console.log('Merged data is the same. No state update needed.');
+      // Deep comparison to prevent unnecessary updates
+      setMergedExercises((prev) => {
+        // Check if data has actually changed
+        if (prev.length !== merged.length) {
+          console.log('Exercise count changed, updating merged exercises');
+          return merged;
         }
-      } catch (error) {
-        console.error('Error merging with Directus data:', error);
-        setMergedExercises((prev) =>
-          prev.length === exercises.length &&
-          prev.every((ex, idx) => ex.id === exercises[idx]?.id)
-            ? prev
-            : exercises,
-        );
-      }
-    };
 
-    mergeWithDirectusData();
-  }, [exercises, refreshTrigger]);
+        // Check if any exercise content has changed
+        const hasChanges = merged.some((mergedEx, index) => {
+          const prevEx = prev[index];
+          return !prevEx || 
+            prevEx.id !== mergedEx.id ||
+            prevEx.content !== mergedEx.content ||
+            prevEx.correctAnswer !== mergedEx.correctAnswer ||
+            prevEx.assetId !== mergedEx.assetId ||
+            prevEx.imageUrl !== mergedEx.imageUrl ||
+            prevEx.audioUrl !== mergedEx.audioUrl;
+        });
 
-  const handleCreateExercise = async (
+        if (hasChanges) {
+          console.log('Exercise content changed, updating merged exercises');
+          return merged;
+        }
+
+        console.log('No changes detected, keeping current merged exercises');
+        return prev;
+      });
+    } catch (error) {
+      console.error('Error merging with Directus data:', error);
+      setMergedExercises((prev) => {
+        // Only fallback to exercises if current state is empty or very different
+        if (prev.length === 0 || Math.abs(prev.length - exercises.length) > 5) {
+          return exercises;
+        }
+        return prev;
+      });
+    }
+  }, [exercises, getDirectusExercises]);
+
+  useEffect(() => {
+    mergeExercisesData();
+  }, [mergeExercisesData, refreshTrigger]);
+
+  // Optimize create exercise handler
+  const handleCreateExercise = useCallback(async (
     exerciseData: Partial<ExerciseData>,
     imageFile?: File,
     audioFile?: File,
@@ -248,15 +261,15 @@ export default function TypeAnswerExercisePage() {
 
       setCurrentView('list');
 
-      // Refresh exercises after creation
+      // Optimized refresh: Only trigger refresh once
       console.log('Refreshing exercises after creation...');
       await getAllExercises();
-
-      // Small delay to ensure Directus has processed the creation
+      
+      // Use a single delayed refresh instead of multiple
       setTimeout(() => {
         console.log('Triggering merge refresh...');
         setRefreshTrigger((prev) => prev + 1);
-      }, 500);
+      }, 1000); // Increased delay for better stability
     } catch (error) {
       console.error('Error creating exercise:', error);
 
@@ -287,9 +300,10 @@ export default function TypeAnswerExercisePage() {
         color: 'danger',
       });
     }
-  };
+  }, [topicId, currentUser, isLoaded, isSignedIn, createNewExercise, createDirectusExercise, getAllExercises]);
 
-  const handleUpdateExercise = async (
+  // Optimize update exercise handler
+  const handleUpdateExercise = useCallback(async (
     exerciseData: Partial<ExerciseData>,
     imageFile?: File,
     audioFile?: File,
@@ -358,13 +372,13 @@ export default function TypeAnswerExercisePage() {
       setCurrentView('list');
       setSelectedExercise(null);
 
-      // Refresh exercises after update
+      // Optimized refresh: Only trigger refresh once
       await getAllExercises();
 
-      // Small delay to ensure Directus has processed the update
+      // Use a single delayed refresh instead of multiple
       setTimeout(() => {
         setRefreshTrigger((prev) => prev + 1);
-      }, 500);
+      }, 1000); // Increased delay for better stability
     } catch (error) {
       console.error('Error updating exercise:', error);
 
@@ -395,7 +409,7 @@ export default function TypeAnswerExercisePage() {
         color: 'danger',
       });
     }
-  };
+  }, [selectedExercise, topicId, currentUser, isLoaded, isSignedIn, updateExercise, updateDirectusExercise, getAllExercises]);
 
   const handleExerciseSelect = (exercise: ExerciseData) => {
     setSelectedExercise(exercise);
@@ -424,7 +438,8 @@ export default function TypeAnswerExercisePage() {
     setShowPreviewResult(false);
   };
 
-  const handleDeleteExercise = async (exercise: ExerciseData) => {
+  // Optimize delete exercise handler
+  const handleDeleteExercise = useCallback(async (exercise: ExerciseData) => {
     try {
       await deleteExercise(exercise.id.toString());
 
@@ -440,11 +455,13 @@ export default function TypeAnswerExercisePage() {
         setCurrentView('list');
       }
 
-      // Refresh exercises after deletion
+      // Optimized refresh: Only trigger refresh once
       await getAllExercises();
-
-      // Trigger a refresh of merged exercises
-      setRefreshTrigger((prev) => prev + 1);
+      
+      // Use a single delayed refresh instead of multiple
+      setTimeout(() => {
+        setRefreshTrigger((prev) => prev + 1);
+      }, 1000); // Increased delay for better stability
     } catch (error) {
       console.error('Error deleting exercise:', error);
       addToast({
@@ -453,7 +470,7 @@ export default function TypeAnswerExercisePage() {
         color: 'danger',
       });
     }
-  };
+  }, [deleteExercise, selectedExercise, getAllExercises]);
 
   if (!topicId) {
     return (

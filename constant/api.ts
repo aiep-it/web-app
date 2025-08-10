@@ -33,10 +33,11 @@ export const ENDPOINTS = {
   VOCAB: {
     SEARCH: "/vocabs/search",
     CREATE: "/vocabs",
+    BULK: "/vocabs/bulk",
     UPDATE: (id: string) => `/vocabs/${id}`,
     DELETE: (id: string) => `/vocabs/${id}`,
     GET_BY_TOPIC_ID: (topicId: string) => `/vocabs/topic/${topicId}`,
-    GET_ALL_BY_TOPIC_ID:  (topicId: string) => `/vocabs/topic/:topicId/all`,
+    GET_ALL_BY_TOPIC_ID:  (topicId: string) => `/vocabs/topic/${topicId}/all`,
     AI_GENRATE: `/vocabs/ai/gen`,
     MY_VOCAB: "/vocabs/my-vocabs",
     MARK_DONE: (id: string) => `/vocabs/mark-done/${id}`,
@@ -62,7 +63,8 @@ export const ENDPOINTS = {
     ADD_STUDENTS: (id: string) => `/class/${id}/add-students`,
     REMOVE_STUDENT: (id: string, studentId: string) => `/class/${id}/remove-student/${studentId}`,
     REMOVE_ROADMAP: (id: string) => `/class/${id}/remove-roadmap`,
-
+    MY_CLASS: (classId: string) => `/class/my-class-info/${classId}`,
+    ALL_MY_CLASSES: '/class/all-my-classes',
   },
   EXERCISE: {
     GET_ALL: "/exercises",

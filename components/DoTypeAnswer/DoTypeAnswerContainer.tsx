@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardBody, Spinner, Input } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
-import { useExercisesByTopic } from '@/hooks/useExercises';
+import { useExercisesWithFetch } from '@/hooks/useExercisesWithFetch';
 import { useDirectusExercise } from '@/hooks/useDirectusExercise';
 import { mergeExercisesWithDirectusData } from '@/utils/exerciseHelper';
 import { DoTypeAnswerExercise, DoTypeAnswerState } from './types';
@@ -345,13 +345,15 @@ const DoTypeAnswerResult: React.FC<{
 // Main Container Component
 interface DoTypeAnswerContainerProps {
   topicId: string;
+  isWorkspace?: boolean;
 }
 
 export const DoTypeAnswerContainer: React.FC<DoTypeAnswerContainerProps> = ({
   topicId,
+  isWorkspace = false,
 }) => {
   const router = useRouter();
-  const { exercises, isLoading, error } = useExercisesByTopic(topicId);
+  const { exercises, isLoading, error } = useExercisesWithFetch(topicId);
   const { getExercises: getDirectusExercises } = useDirectusExercise();
   
   const [typeAnswerExercises, setTypeAnswerExercises] = useState<DoTypeAnswerExercise[]>([]);
@@ -452,7 +454,11 @@ export const DoTypeAnswerContainer: React.FC<DoTypeAnswerContainerProps> = ({
   };
 
   const handleBackToTopics = () => {
-    router.push('/learn-vocabulary');
+    if (isWorkspace) {
+      router.push('/my-workspace');
+    } else {
+      router.push('/learn-vocabulary');
+    }
   };
 
   if (isLoading || isLoadingDirectus) {

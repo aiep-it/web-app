@@ -84,9 +84,7 @@ const TopicDetail: React.FC<TopicDetailProps> = ({ id }) => {
           <Tab key="info" title="Node Information">
             <NodeDetailInfo topicData={topic} topicContent={topicContentCMS} />
           </Tab>
-          <Tab key="document" title="Document" >
-            {/* TODO */}
-          </Tab>
+     
           <Tab key="vocab" title="Vocab" >
             <VocabularyListPage topic={topic}/>
           </Tab>

@@ -21,8 +21,8 @@ export const siteConfig = {
       href: "/pricing",
     },
     {
-      label: "Chat bot",
-      href: "/chat-bot",
+      label: "Class Room",
+      href: "/class-room",
     },
     {
       label: "My Report",
