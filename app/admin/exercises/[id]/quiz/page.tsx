@@ -58,7 +58,7 @@ export default function QuizExercisePage({ myTopicId }: QuizExercisePageProps) {
 
   // Debug logging for currentUser
   useEffect(() => {
-    console.log('QuizExercisePage - currentUser:', currentUser);
+    // console.log('QuizExercisePage - currentUser:', currentUser);
   }, [currentUser]);
 
   // Client-side hydration check
@@ -102,14 +102,9 @@ export default function QuizExercisePage({ myTopicId }: QuizExercisePageProps) {
 
     // Only fetch exercises if Clerk is loaded and user is signed in
     if (isClient && isLoaded && isSignedIn) {
-      console.log('Fetching exercises - authentication confirmed');
       getAllExercises();
     } else {
-      console.log('Not fetching exercises yet - waiting for authentication:', {
-        isClient,
-        clerkIsLoaded: isLoaded,
-        userIsSignedIn: isSignedIn,
-      });
+     
     }
   }, [topicId, getAllExercises, router, isClient, isLoaded, isSignedIn]);
 

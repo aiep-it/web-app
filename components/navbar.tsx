@@ -91,11 +91,11 @@ export const Navbar = () => {
                 Đăng nhập
               </Button>
             </SignInButton>
-            <SignUpButton mode="modal">
+            {/* <SignUpButton mode="modal">
               <Button variant="flat" className="mx-1">
                 Đăng ký
               </Button>
-            </SignUpButton>
+            </SignUpButton> */}
           </SignedOut>
           <SignedIn>
             <UserButton afterSignOutUrl="/" />
@@ -141,11 +141,11 @@ export const Navbar = () => {
                       Đăng nhập
                     </Button>
                   </SignInButton>
-                  <SignUpButton mode="modal">
+                  {/* <SignUpButton mode="modal">
                     <Button variant="flat" className="mx-1">
                       Đăng ký
                     </Button>
-                  </SignUpButton>
+                  </SignUpButton> */}
                 </SignedOut>
                 <SignedIn>
                   <UserButton afterSignOutUrl="/" />

@@ -39,7 +39,11 @@ export function Providers({ children, themeProps }: ProvidersProps) {
   };
 
   return (
-    <ClerkProvider>
+    <ClerkProvider appearance={{
+      elements: {
+        footer: "hidden",
+      },
+    }}>
       {isMounted && <AuthTokenSync />}
       <ReduxProvider>
         <HeroUIProvider navigate={router.push}>
