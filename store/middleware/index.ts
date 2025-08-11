@@ -7,13 +7,13 @@ const loggerMiddleware: Middleware = (store) => (next) => (action) => {
   if (process.env.NODE_ENV === 'development') {
     console.group(typedAction.type);
     console.info('dispatching', typedAction);
-    console.log('current state', store.getState());
+   
   }
   
   const result = next(action);
   
   if (process.env.NODE_ENV === 'development') {
-    console.log('next state', store.getState());
+   
     console.groupEnd();
   }
   

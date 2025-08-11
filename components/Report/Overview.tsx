@@ -9,7 +9,7 @@ interface OverviewProps {
 }
 
 const Overview: React.FC<OverviewProps> = ({ data }) => {
-  console.log('data', data);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <Card>

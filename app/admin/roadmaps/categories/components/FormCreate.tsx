@@ -22,7 +22,7 @@ const FormCreate = () => {
   const { handleSubmit, setError } = methods;
 
   const onSubmit = async (data: CategoryCreateForm) => {
-    console.log("data", data);
+  
 
     //TODO call api create
   };

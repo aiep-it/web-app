@@ -64,7 +64,7 @@ export const useAxiosAuth = () => {
     const intervalId = setInterval(updateToken, 5 * 60 * 1000);
     
     const handleTokenExpired = () => {
-      console.log("Token expired event detected, refreshing token...");
+     
       updateToken();
     };
     

@@ -68,6 +68,6 @@ export const uploadFile = async (file: File, folder?: string) => {
   }
   const res = await cms.request(uploadFiles(formData));
 
-  console.log("uploadFile res", res);
+
   return res.id;
 };

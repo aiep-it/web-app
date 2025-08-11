@@ -124,10 +124,9 @@ export function VocabLearningModal({
       //   is_learned: newKnownStatus,
       // };
 
-      // console.log('Updating vocab with payload:', payload);
+      
       const result = await markDone(vocab.id);
-      // console.log('Update vocab result:', result);
-
+     
       if (result) {
         // Update Redux store
         dispatch(

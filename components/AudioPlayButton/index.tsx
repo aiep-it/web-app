@@ -10,7 +10,7 @@ interface AudioPlayButtonProps {
 
 const AudioPlayButton: React.FC<AudioPlayButtonProps> = ({ src }) => {
 
-    console.log("Audio URL:", src);
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handlePlay = () => {

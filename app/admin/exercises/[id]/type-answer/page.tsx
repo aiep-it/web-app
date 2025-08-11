@@ -51,11 +51,7 @@ export default function TypeAnswerExercisePage() {
   const [isClient, setIsClient] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Debug logging for currentUser
-  useEffect(() => {
-    console.log('TypeAnswerExercisePage - currentUser:', currentUser);
-  }, [currentUser]);
-
+  
   // Client-side hydration check
   useEffect(() => {
     setIsClient(true);
@@ -101,7 +97,7 @@ export default function TypeAnswerExercisePage() {
           // Get token from Clerk and set it for axios
           const token = await getToken();
           if (token) {
-            console.log('CLERK TOKEN FOR TYPE ANSWER EXERCISES:', token);
+          
 
             // Import and set the token for axios
             const { setAuthToken } = await import('@/lib/axios');
@@ -132,18 +128,14 @@ export default function TypeAnswerExercisePage() {
 
       loadExerciseData();
     } else {
-      console.log('Not fetching exercises yet - waiting for authentication:', {
-        isClient,
-        clerkIsLoaded: isLoaded,
-        userIsSignedIn: isSignedIn,
-      });
+    
     }
   }, [topicId, router, isClient, isLoaded, isSignedIn, getToken]); // Removed getAllExercises
 
   // Optimized merge exercises with Directus data
   const mergeExercisesData = useCallback(async () => {
     if (!exercises || exercises.length === 0) {
-      console.log('No exercises to merge, setting empty array');
+     
       setMergedExercises((prev) => (prev.length === 0 ? prev : []));
       return;
     }
@@ -156,7 +148,7 @@ export default function TypeAnswerExercisePage() {
       setMergedExercises((prev) => {
         // Check if data has actually changed
         if (prev.length !== merged.length) {
-          console.log('Exercise count changed, updating merged exercises');
+         
           return merged;
         }
 
@@ -173,11 +165,11 @@ export default function TypeAnswerExercisePage() {
         });
 
         if (hasChanges) {
-          console.log('Exercise content changed, updating merged exercises');
+          // console.log('Exercise content changed, updating merged exercises');
           return merged;
         }
 
-        console.log('No changes detected, keeping current merged exercises');
+        // console.log('No changes detected, keeping current merged exercises');
         return prev;
       });
     } catch (error) {
@@ -222,11 +214,7 @@ export default function TypeAnswerExercisePage() {
       return;
     }
 
-    console.log('Creating type answer exercise with payload:', {
-      ...exerciseData,
-      topicId: topicId,
-      userId: currentUser.id,
-    });
+ 
 
     try {
       // First create exercise in your main API
@@ -262,12 +250,12 @@ export default function TypeAnswerExercisePage() {
       setCurrentView('list');
 
       // Optimized refresh: Only trigger refresh once
-      console.log('Refreshing exercises after creation...');
+   
       await getAllExercises();
       
       // Use a single delayed refresh instead of multiple
       setTimeout(() => {
-        console.log('Triggering merge refresh...');
+       
         setRefreshTrigger((prev) => prev + 1);
       }, 1000); // Increased delay for better stability
     } catch (error) {

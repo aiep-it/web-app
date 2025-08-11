@@ -205,7 +205,7 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace })
             previousValidate={async () => {
               const isValid = await methods.trigger();
 
-              console.log("state", methods.formState);
+             
 
               return isValid;
             }}

@@ -12,7 +12,7 @@ import {
 } from "@heroui/react";
 
 const NodeHeader = memo(({ selected, id, data }: NodeProps) => {
-  console.log("selected", selected);
+
   return (
     <BaseNode selected={selected}>
       <Card className="max-w-[340px]">
