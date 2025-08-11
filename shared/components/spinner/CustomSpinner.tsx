@@ -3,25 +3,15 @@ import { Spinner } from '@heroui/react';
 import { cn } from '@/utils';
 
 export interface CustomSpinnerProps {
-  /** Size of the spinner */
   size?: 'sm' | 'md' | 'lg';
-  /** Color theme of the spinner */
   color?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
-  /** Label text to display below spinner */
   label?: string;
-  /** Color of the label text */
   labelColor?: 'foreground' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
-  /** Additional CSS classes for the wrapper */
   className?: string;
-  /** Additional CSS classes for the spinner */
   spinnerClassName?: string;
-  /** Additional CSS classes for the label */
   labelClassName?: string;
-  /** Whether to show a centered layout */
   centered?: boolean;
-  /** Whether to show fullscreen overlay */
   fullscreen?: boolean;
-  /** Custom loading text variants */
   variant?: 'default' | 'dots' | 'wave' | 'pulse';
 }
 
@@ -37,7 +27,6 @@ const CustomSpinner: React.FC<CustomSpinnerProps> = ({
   fullscreen = false,
   variant = 'default',
 }) => {
-  // Loading text animations for different variants
   const renderLoadingText = () => {
     if (!label) return null;
 

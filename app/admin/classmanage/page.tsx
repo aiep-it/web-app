@@ -116,7 +116,7 @@ export default function ClassManagement() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-white min-h-screen">
       <h1 className="text-2xl font-bold">Class Management</h1>
 
       <ClassFilters

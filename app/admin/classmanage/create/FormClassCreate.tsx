@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Input, Textarea, Button, Select, SelectItem } from '@heroui/react';
+import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 
 import { getAllTeachers } from '@/services/user';
@@ -95,18 +96,32 @@ const FormClassCreate = () => {
         label="Class Name"
         {...register('name')}
         isInvalid={!!errors.name}
+        variant="bordered"
         errorMessage={errors.name?.message}
+        startContent={
+          <Icon icon="lucide:graduation-cap" className="text-default-400" />
+        }
       />
-      <Textarea label="Description" {...register('description')} />
+      
+      <Textarea 
+        label="Description" 
+        variant="bordered"
+        {...register('description')}
+      />
 
       <Select
+        label="Level"
         name="level"
+        variant="bordered"
         selectedKeys={[values.level]}
         onSelectionChange={(keys) =>
           setValue('level', Array.from(keys)[0] as ClassLevel)
         }
         isInvalid={!!errors.level}
         errorMessage={errors.level?.message}
+        startContent={
+          <Icon icon="lucide:signal" className="text-default-400" />
+        }
       >
         <SelectItem key={ClassLevel.STARTERS}>Starters</SelectItem>
         <SelectItem key={ClassLevel.MOVERS}>Movers</SelectItem>
@@ -117,12 +132,16 @@ const FormClassCreate = () => {
         label="Select Teacher"
         name="teacherIds"
         selectionMode="multiple"
+        variant="bordered"
         selectedKeys={values.teacherIds}
         onSelectionChange={(keys) =>
           setValue('teacherIds', Array.from(keys) as string[])
         }
         isInvalid={!!errors.teacherIds}
         errorMessage={errors.teacherIds?.message}
+        startContent={
+          <Icon icon="lucide:users" className="text-default-400" />
+        }
       >
         {teachers.map((t) => (
           <SelectItem key={t.id}>{`${t.fullName} `}</SelectItem>
@@ -133,12 +152,16 @@ const FormClassCreate = () => {
         label="Select Roadmap"
         name="roadmapIds"
         selectionMode="multiple"
+        variant="bordered"
         selectedKeys={values.roadmapIds}
         onSelectionChange={(keys) =>
           setValue('roadmapIds', Array.from(keys) as string[])
         }
         isInvalid={!!errors.roadmapIds}
         errorMessage={errors.roadmapIds?.message}
+        startContent={
+          <Icon icon="lucide:map" className="text-default-400" />
+        }
       >
         {roadmaps.map((r) => (
           <SelectItem key={r.id}>{r.name}</SelectItem>

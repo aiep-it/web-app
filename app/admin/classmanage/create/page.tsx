@@ -87,7 +87,7 @@ export default function CreateClassForm() {
 
   return (
  
-    <div className="container mx-auto p-4 md:p-6 max-w-7xl">
+    <div className="container mx-auto p-4 md:p-6 max-w-7xl bg-white min-h-screen">
     <div className="py-4">
       <h1 className="text-2xl md:text-3xl font-bold text-foreground">
         Create New Class

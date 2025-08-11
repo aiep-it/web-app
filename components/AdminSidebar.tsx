@@ -14,7 +14,7 @@ const menuItems = [
           { name: "Staff Management", href: "/admin/usermanage/staffs" },
         ]
       },
-      { name: "classmanage", icon: "lucide:school", href: "/admin/classmanage" },
+      { name: "Manage Class", icon: "lucide:school", href: "/admin/classmanage" },
     ]
   },
   { group: "Content", items: [

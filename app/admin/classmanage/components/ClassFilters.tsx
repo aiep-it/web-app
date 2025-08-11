@@ -12,6 +12,7 @@ import { Icon } from '@iconify/react';
 import { Teacher } from '@/services/types/user';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { CustomButton } from '@/shared/components/button';
 
 interface ClassFiltersProps {
   search: string;
@@ -74,12 +75,14 @@ const ClassFilters: React.FC<ClassFiltersProps> = ({
           </DropdownMenu>
         </Dropdown>
       </div>
-      <Button
-        color="primary"
+      <CustomButton
+        icon="lucide:plus"
+        iconPosition="start"
+        className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-sm flex-shrink-0"
         onPress={() => router.push(`/admin/classmanage/create`)}
       >
         Add New Class
-      </Button>
+      </CustomButton>
     </div>
   );
 };
