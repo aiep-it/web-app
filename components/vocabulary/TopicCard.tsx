@@ -5,17 +5,12 @@ import { VocabLearningModal } from './VocabLearningModal';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCmsAssetUrl } from '@/utils/index';
-import useVocabsSafe from '@/hooks/useVocabsSafe';
-import { VocabColumn } from '@/services/types/vocab';
 import { CONTENT } from '@/constant/content';
 
 interface TopicCardProps {
   topic: TopicData;
   isWorkspace?: boolean; // Optional prop to indicate if this is for a workspace
 }
-
-// Default image for all topic cards
-
 
 export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,7 +29,6 @@ export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
           alt={topic.title}
           className="w-full h-full object-cover"
           onError={(e) => {
-            // Fallback to gradient if image fails to load
             const target = e.currentTarget;
             target.style.display = 'none';
             const fallback = target.nextElementSibling as HTMLElement;

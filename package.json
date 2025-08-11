@@ -28,7 +28,7 @@
     "@heroui/snippet": "2.2.20",
     "@heroui/switch": "2.2.17",
     "@heroui/system": "^2.4.20",
-    "@heroui/theme": "2.4.17",
+    "@heroui/theme": "^2.4.20",
     "@heroui/toast": "^2.0.11",
     "@hookform/resolvers": "^5.2.1",
     "@iconify/react": "^6.0.0",

@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { OverallProgress } from '@/components/vocabulary/OverallProgress';
-import { TopicCard } from '@/components/vocabulary/TopicCard';
-import { Roadmap } from '@/services/types/roadmap';
-import { TopicData } from '@/services/types/topic';
+import { RoadmapSection } from './RoadmapSection';
 import { useRoadmaps } from '@/hooks/useRoadmaps';
 import { useTopics } from '@/hooks/useTopics';
 import { useSelector } from 'react-redux';
@@ -12,70 +10,6 @@ import { RootState } from '@/store/rootReducer';
 import { Icon } from '@iconify/react';
 import { useAuth } from '@clerk/nextjs';
 import { Spinner } from '@heroui/react';
-
-interface RoadmapSectionProps {
-  roadmap: Roadmap;
-  topics: TopicData[];
-  isLoading?: boolean;
-}
-
-function RoadmapSection({ roadmap, topics, isLoading }: RoadmapSectionProps) {
-  return (
-    <div className="mb-8">
-      {/* Roadmap Header */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-          <Icon
-            icon="material-symbols:folder"
-            className="text-blue-500"
-          />
-          {roadmap.name}
-        </h2>
-        {roadmap.description && (
-          <p className="text-gray-600 mt-2">
-            {roadmap.description}
-          </p>
-        )}
-      </div>
-
-      {/* Topics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {isLoading ? (
-          // Loading skeleton
-          Array.from({ length: 8 }).map((_, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate-pulse"
-            >
-              <div className="h-32 bg-gray-200"></div>
-              <div className="p-4">
-                <div className="h-4 bg-gray-200 rounded mb-3"></div>
-                <div className="h-3 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-8 bg-gray-200 rounded mb-3"></div>
-                <div className="h-8 bg-gray-200 rounded"></div>
-              </div>
-            </div>
-          ))
-        ) : topics?.length > 0 ? (
-          topics.map((topic) => (
-            <TopicCard key={topic.id} topic={topic} />
-          ))
-        ) : (
-          <div className="col-span-full text-center py-12">
-            <Icon
-              icon="material-symbols:quiz-outline"
-              className="text-gray-300 text-6xl mb-4 mx-auto"
-            />
-            <p className="text-gray-500">
-              No topics available in this category
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 export default function LearnVocabularyPage() {
   const { roadmaps, isLoading, error, refetch } = useRoadmaps();
@@ -85,54 +19,34 @@ export default function LearnVocabularyPage() {
   const [isClient, setIsClient] = useState(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   
-  // Clerk authentication hooks
   const { isLoaded, isSignedIn, getToken } = useAuth();
-
-  // Get all topics from Redux outside of the render loop
   const allTopicsByRoadmap = useSelector((state: RootState) => state.topic.topicsByRoadmap);
   
-  // Client-side hydration check
   useEffect(() => {
     setIsClient(true);
   }, []);
   
-  // Check authentication status - wait for Clerk to load
   useEffect(() => {
     if (isClient && isLoaded) {
       if (!isSignedIn) {
         setAuthError("Please log in to access vocabulary learning features");
-        setIsDataLoaded(false); // Reset data loading flag when user is not signed in
+        setIsDataLoaded(false);
       } else {
         setAuthError(null);
-        // Don't reset isDataLoaded here, let the main effect handle it
       }
     }
   }, [isClient, isLoaded, isSignedIn]);
   
-  // Reset data loading flag when roadmaps change (e.g., on refetch)
   useEffect(() => {
     if (roadmaps.length > 0 && !isDataLoaded) {
       // Don't automatically set isDataLoaded = false here
-      // Let it be controlled by the main loading effect
     }
   }, [roadmaps.length, isDataLoaded]);
 
-  // Memoize roadmap IDs to avoid unnecessary re-computation
-  const roadmapIds = useMemo(() => roadmaps.map(r => r.id), [roadmaps]);
-
-  // Load topics for all roadmaps và vocabularies
   useEffect(() => {
     const loadAllData = async () => {
-      // Only proceed if:
-      // 1. We have roadmaps (no error from useRoadmaps)
-      // 2. Clerk is loaded and user is signed in
-      // 3. Data hasn't been loaded yet
       if (roadmaps.length > 0 && !error && isClient && isLoaded && isSignedIn && !isDataLoaded) {
-        
-        console.log('Starting data load...');
-        setIsDataLoaded(true); // Prevent multiple calls
-        
-        // Set loading state for topics
+        setIsDataLoaded(true); 
         const newLoadingState: Record<string, boolean> = {};
         roadmaps.forEach((roadmap) => {
           newLoadingState[roadmap.id] = true;
@@ -140,37 +54,20 @@ export default function LearnVocabularyPage() {
         setLoadingTopics(newLoadingState);
 
         try {
-          // Fetch topics for all roadmaps first
-          console.log('Fetching topics for roadmaps...');
           const topicsPromises = roadmaps.map(async (roadmap) => {
             await getTopicsByRoadmap(roadmap.id);
             return roadmap.id;
           });
 
           await Promise.all(topicsPromises);
-          console.log('Topics loaded');
-          
-          console.log('Data loading completed successfully');
-          
         } catch (error) {
-          setIsDataLoaded(false); // Reset flag on error to allow retry
-          
+          setIsDataLoaded(false);      
           if (error && typeof error === 'object') {
-            const errorDetails = {
-              message: (error as any).message,
-              status: (error as any).response?.status,
-              statusText: (error as any).response?.statusText,
-              data: (error as any).response?.data
-            };
-            console.error('Error details:', errorDetails);
-            
             if ((error as any).response?.status === 403) {
               setAuthError("Authentication failed. Please log in again.");
             }
           }
         } finally {
-          console.log('🏁 Data loading finished, clearing loading states');
-          // Clear loading states
           const newLoadingState: Record<string, boolean> = {};
           roadmaps.forEach((roadmap) => {
             newLoadingState[roadmap.id] = false;
@@ -178,33 +75,22 @@ export default function LearnVocabularyPage() {
           setLoadingTopics(newLoadingState);
         }
       } else {
-        console.log('⏸️ Not loading data yet - waiting for:', {
-          roadmapsLoaded: roadmaps.length > 0,
-          noRoadmapsError: !error,
-          isClient,
-          clerkIsLoaded: isLoaded,
-          userIsSignedIn: isSignedIn,
-          isDataLoaded
-        });
+        console.log('Not loading data yet - waiting for');
       }
     };
-
     loadAllData();
-  }, [roadmaps.length, error, isClient, isLoaded, isSignedIn, isDataLoaded]); // Added error to dependencies
+  }, [roadmaps.length, error, isClient, isLoaded, isSignedIn, isDataLoaded]);
 
-  // Custom refetch function that resets data loading state
   const handleRefetch = useCallback(() => {
-    setIsDataLoaded(false); // Reset the flag to allow data reload
-    refetch(); // Call the original refetch from useRoadmaps
+    setIsDataLoaded(false); 
+    refetch(); 
   }, [refetch]);
 
-  // Reset data loaded flag when there's an error to allow retry
   useEffect(() => {
     if (error) {
       setIsDataLoaded(false);
     }
   }, [error]);
-
 
   if (isLoading) {
     return (
@@ -250,41 +136,6 @@ export default function LearnVocabularyPage() {
       </div>
     );
   }
-
-  // Show authentication error if user is not logged in
-  // if (authError) {
-  //   return (
-  //     <div className="flex h-screen w-full items-center justify-center bg-gray-50">
-  //       <div className="text-center max-w-md">
-  //         <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
-  //           <svg
-  //             className="w-8 h-8 text-yellow-500"
-  //             fill="none"
-  //             stroke="currentColor"
-  //             viewBox="0 0 24 24"
-  //           >
-  //             <path
-  //               strokeLinecap="round"
-  //               strokeLinejoin="round"
-  //               strokeWidth={2}
-  //               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-  //             />
-  //           </svg>
-  //         </div>
-  //         <h2 className="text-xl font-semibold text-gray-800 mb-2">
-  //           Authentication Required
-  //         </h2>
-  //         <p className="text-gray-600 mb-6">{authError}</p>
-  //         <Link
-  //           href="/sign-in"
-  //           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-block"
-  //         >
-  //           Go to Login
-  //         </Link>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="min-h-screen bg-gray-50 w-full">
