@@ -120,7 +120,7 @@ const CategoryListPage = () => {
               name={cat.name}
               description={cat.description}
               onDelete={handleDelete}
-              editUrl={`categories/${cat.id}/edit`}
+              editUrl={`/admin/categories/${cat.id}/edit`}
             />
           ))}
         </div>

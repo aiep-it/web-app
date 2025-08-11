@@ -74,7 +74,7 @@ const BaseForm: React.FC<BaseFormProps> = ({
         </div>
       ))}
 
-      {isFooter && (
+    
         <div className="flex justify-end pt-4">
           {
             <Button
@@ -86,7 +86,7 @@ const BaseForm: React.FC<BaseFormProps> = ({
             </Button>
           }
         </div>
-      )}
+      
     </form>
   );
 };
