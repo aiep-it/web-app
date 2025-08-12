@@ -1,3 +1,5 @@
+import { USER_ROLE } from "@/constant/authorProtect";
+
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
@@ -7,26 +9,31 @@ export const siteConfig = {
     {
       label: "Home",
       href: "/",
+      roleAccess: [USER_ROLE.ALL]
     },
     {
       label: "Learn Vocabulary",
       href: "/learn-vocabulary",
+      roleAccess: [USER_ROLE.STUDENT]
     },
     {
       label: "My Workspace",
       href: "/my-workspace",
+      roleAccess: [USER_ROLE.STUDENT]
     },
-    {
-      label: "Pricing",
-      href: "/pricing",
-    },
+    // {
+    //   label: "Pricing",
+    //   href: "/pricing",
+    // },
     {
       label: "Class Room",
       href: "/class-room",
+      roleAccess: [USER_ROLE.STUDENT, USER_ROLE.TEACHER]
     },
     {
       label: "My Report",
       href: "/report/me",
+      roleAccess: [USER_ROLE.STUDENT]
     },
   ],
   navMenuItems: [
