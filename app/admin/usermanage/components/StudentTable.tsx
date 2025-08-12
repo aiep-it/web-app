@@ -136,13 +136,13 @@ export default function StudentTable({
 
       <Table aria-label="Danh sách học sinh" classNames={{ wrapper: "max-h-[600px]" }}>
         <TableHeader>
-          <TableColumn>{mode === 'select' ? 'Chọn' : 'Thao tác'}</TableColumn>
-          <TableColumn>Họ và tên học sinh</TableColumn>
+        
+          <TableColumn>Username</TableColumn>
           <TableColumn>Họ và tên học sinh</TableColumn>
           <TableColumn>Phụ huynh</TableColumn>
           <TableColumn>SĐT</TableColumn>
           <TableColumn>Địa chỉ</TableColumn>
-
+  <TableColumn>{mode === 'select' ? 'Chọn' : 'Thao tác'}</TableColumn>
         </TableHeader>
         <TableBody emptyContent="Không có dữ liệu học sinh">
           {paginated.map((s) => (

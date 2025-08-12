@@ -84,7 +84,7 @@ const TopicViewCard: React.FC<IProps> = ({ topicData }) => {
                   router.push(`/admin/topic/${topicData.id}`);
                 }}
               >
-                Detail
+              Manage
               </Button>
             </Tooltip>
             <Tooltip content="Edit Note Info" className="capitalize ">

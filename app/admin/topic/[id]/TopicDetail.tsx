@@ -1,4 +1,5 @@
 'use client';
+
 import {
   Button,
   Card,
@@ -9,6 +10,7 @@ import {
   Tooltip,
 } from '@heroui/react';
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation'; // 🆕 Import useRouter
 import NodeEditPage from './edit/TopicEditPage';
 import { TopicData } from '@/services/types/topic';
 import { getTopicId } from '@/services/topic';
@@ -23,6 +25,7 @@ interface TopicDetailProps {
   id: string;
 }
 const TopicDetail: React.FC<TopicDetailProps> = ({ id }) => {
+  const router = useRouter(); // 🆕 Khởi tạo router
   const [activeTab, setActiveTab] = React.useState('roadmap');
   const [topic, setTopic] = useState<TopicData>();
   const [topicContentCMS, setTopicContentCMS] = useState<TopicContentCMS | null>(
@@ -40,16 +43,12 @@ const TopicDetail: React.FC<TopicDetailProps> = ({ id }) => {
         }),
       ]);
 
-      // Reset form only once
       if (topic) {
         setTopic(topic);
       }
-      // Set CMS content
-      let content = '';
       if (contentRes && contentRes.length) {
         const cmsContent = contentRes[0];
         setTopicContentCMS(cmsContent);
-        content = cmsContent.content || '';
       }
     };
 
@@ -67,6 +66,7 @@ const TopicDetail: React.FC<TopicDetailProps> = ({ id }) => {
             radius="full"
             variant="ghost"
             className="my-3 mr-5"
+            onPress={() => router.back()} // 🆕 Gọi hàm back
           >
             <Icon icon="lucide:arrow-left" />
           </Button>
@@ -84,11 +84,9 @@ const TopicDetail: React.FC<TopicDetailProps> = ({ id }) => {
           <Tab key="info" title="Node Information">
             <NodeDetailInfo topicData={topic} topicContent={topicContentCMS} />
           </Tab>
-     
-          <Tab key="vocab" title="Vocab" >
-            <VocabularyListPage topic={topic}/>
+          <Tab key="vocab" title="Vocab">
+            <VocabularyListPage topic={topic} />
           </Tab>
-         
         </Tabs>
       </CardBody>
     </Card>

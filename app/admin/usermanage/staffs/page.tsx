@@ -120,10 +120,11 @@ export default function UserWithClerkTable() {
                                         onChange={(e) => setNewRole(e.target.value)}
                                         className="w-full border rounded px-3 py-2"
                                     >
-                                        <option value="user">Người dùng (user)</option>
+                                        
                                         
                                         <option value="staff">Nhân viên (staff)</option>
                                         <option value="teacher">Giáo viên (teacher)</option>
+                                        <option value="student">Học sinh (student)</option>
                                     </select>
                                 </div>
                             </ModalBody>
