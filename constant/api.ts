@@ -29,6 +29,7 @@ export const ENDPOINTS = {
     GET_BY_ID: (id: string) => `/topic/${id}`,
     CREATE: '/topic',
     UPDATE: (id: string) => `/topic/${id}`,
+    AI_SUGGEST: '/topic/ai/suggest',
   },
   VOCAB: {
     SEARCH: "/vocabs/search",

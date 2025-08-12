@@ -39,7 +39,12 @@ export const createItemCMS = async (
   payload: any
 ): Promise<any> => {
   try {
-    return cms.request(createItem(collection, payload));
+    if(payload.id) {
+      const {id} = payload
+      return cms.request(updateItem( collection, id, payload));
+    }
+
+    return  cms.request(createItem(collection, payload));
   } catch (error) {
     console.error(`Error creating item in collection ${collection}:`, error);
     return null;
