@@ -16,7 +16,7 @@ import { getRoadmap } from '@/services/roadmap';
 
 const RoadmapListPage = () => {
   const { getToken } = useAuth();
-  const { userRole, isSignedIn, isRoleLoading } = useUserRole();
+
   const router = useRouter();
 
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
@@ -63,22 +63,11 @@ const RoadmapListPage = () => {
   };
 
   useEffect(() => {
-    if (isSignedIn) {
+   
       fetchRoadmaps();
       fetchCategories();
-    }
-  }, [isSignedIn]);
-
-  if (isRoleLoading)
-    return (
-      <p className="text-center mt-20 text-gray-400">
-        Đang tải quyền người dùng...
-      </p>
-    );
-  if (!isSignedIn)
-    return (
-      <p className="text-center mt-20 text-red-400">Bạn chưa đăng nhập.</p>
-    );
+  
+  }, []);
 
   return (
     <div className="min-h-screen dark:bg-black-10 text-foreground p-6">

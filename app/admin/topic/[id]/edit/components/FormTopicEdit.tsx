@@ -53,39 +53,37 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace })
   };
 
   useEffect(() => {
-    const loadData = async () => {
-      if (!topicId) return;
+  let mounted = true;
+  (async () => {
+    if (!topicId) return;
+    const [topicData, contentRes, lookupRes] = await Promise.all([
+      getTopicId(topicId),
+      getItems<TopicContentCMS>(COLLECTIONS.NodeContent, { filter: { nodeId: { _eq: topicId } } }),
+      getItems<LookupContent>(COLLECTIONS.Lookup, { filter: { type: { _eq: LOOKUP_KEY.SuggestionLevel } } }),
+    ]);
 
-      const [topicData, contentRes, lookupRes] = await Promise.all([
-        getTopicId(topicId),
-        getItems<TopicContentCMS>(COLLECTIONS.NodeContent, {
-          filter: { nodeId: { _eq: topicId } },
-        }),
-        getItems<LookupContent>(COLLECTIONS.Lookup, {
-          filter: { type: { _eq: LOOKUP_KEY.SuggestionLevel } },
-        }),
-      ]);
+    if (!mounted) return;
 
-      if (lookupRes && lookupRes.length) setSuggestionLevels(lookupRes);
+    if (lookupRes?.length) setSuggestionLevels(lookupRes);
 
-      let content = "";
-      if (contentRes && contentRes.length) {
-        const cmsContent = contentRes[0];
-        setTopicContentCMS(cmsContent);
-        content = cmsContent.content || "";
-      }
+    let content = "";
+    if (contentRes?.length) {
+      const cmsContent = contentRes[0];
+      setTopicContentCMS(cmsContent);
+      content = cmsContent.content || "";
+    }
 
-      if (topicData) {
-        methods.reset({
-          ...topicData,
-          content,
-        });
-      }
-    };
+    if (topicData) {
+      methods.reset({ ...topicData, content });
+    }
+  })();
 
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [topicId]);
+  return () => {
+    mounted = false;
+  };
+  
+}, [topicId, methods.reset]);
+
 
   const uploadCoverImage = async (file: File) => {
     const fileId = await uploadFile(file);
