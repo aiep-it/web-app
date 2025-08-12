@@ -28,11 +28,6 @@ export default function LearnQuizExercisePage() {
   const [isClient, setIsClient] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   
-  // Debug logging for currentUser
-  useEffect(() => {
-    console.log('LearnQuizExercisePage - currentUser:', currentUser);
-  }, [currentUser]);
-  
   // Quiz state
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string>('');
@@ -77,12 +72,11 @@ export default function LearnQuizExercisePage() {
       // Only fetch exercises if Clerk is loaded and user is signed in
       if (isClient && isLoaded && isSignedIn) {
         try {
-          console.log('Fetching exercises for quiz - authentication confirmed');
-          
+         
           // Get token from Clerk and set it for axios
           const token = await getToken();        
           if (token) {
-            console.log('CLERK TOKEN FOR EXERCISES:', token);
+           
             
             // Import and set the token for axios
             const { setAuthToken } = await import('@/lib/axios');
@@ -90,9 +84,9 @@ export default function LearnQuizExercisePage() {
             
             // Now fetch exercises with the token set
             await getAllExercises();
-            console.log('Exercises loaded successfully for quiz');
+          
           } else {
-            console.log('No Clerk token found, cannot fetch exercises');
+           
             setAuthError("Authentication failed. Please log in again.");
           }
           
@@ -113,11 +107,6 @@ export default function LearnQuizExercisePage() {
           }
         }
       } else {
-        console.log('Not fetching exercises yet - waiting for authentication:', {
-          isClient,
-          clerkIsLoaded: isLoaded,
-          userIsSignedIn: isSignedIn
-        });
       }
     };
 
@@ -137,7 +126,7 @@ export default function LearnQuizExercisePage() {
       };
       
       const result = await postExcerciseResult(userExerciseResultPayload);
-      console.log('Exercise result submitted:', result);
+     
     } catch (error) {
       console.error('Error submitting exercise result:', error);
     }
@@ -162,13 +151,7 @@ export default function LearnQuizExercisePage() {
       setScore(score + 1);
     }
      // Show result
-     console.log('Submitting answer:', {
-      quest: currentQuestion,
-      selectedAnswer,
-      isCorrect,
-      score: score + (isCorrect ? 1 : 0),
-      quizExercises: quizExercises
-    });
+   
     const res = await updateExcerciseResult(currentQuestion, selectedAnswer, isCorrect);
     
     // Mark question as answered

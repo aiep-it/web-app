@@ -195,12 +195,7 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
     ) {
       fetchListVocabs();
     } else {
-      console.log('Admin vocabs - not ready to fetch data:', {
-        clerkIsLoaded: isLoaded,
-        isSignedIn,
-        roleLoading: isRoleLoading,
-        userRole,
-      });
+   
     }
   }, [vocabPayload, isLoaded, isSignedIn, isRoleLoading, userRole]);
   const checkMedia = async (mediaUrl: string) => {
@@ -214,7 +209,7 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
     }
   };
   const renderCell = (item: VocabData, key: string) => {
-    console.log('Rendering cell for key:', key, 'with item:', item);
+  
     if (key === 'actions') {
       return (
         <div className="relative flex justify-end items-center gap-2">
@@ -532,7 +527,7 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
   };
 
   const handleInsertVocabs = async (onCloseModal: () => void) => {
-    console.log('Inserting selected AI vocabs:', selectedKeysAI, aiVocabs);
+    
     let payloadInsert: VocabData[] = [];
     if(selectedKeysAI === 'all'){
       payloadInsert =aiVocabs ? [...aiVocabs]: [];

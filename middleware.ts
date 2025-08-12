@@ -24,7 +24,7 @@ export default clerkMiddleware(async (auth, req) => {
     if (!userId) {
       return NextResponse.redirect(new URL("/sign-in", req.url));
     }
-    console.log("User ID:", userId);
+    
     interface SessionClaims {
       metadata: {
         role?: string; // Define role as optional

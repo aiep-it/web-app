@@ -260,10 +260,10 @@ export default function ClassDetailPage() {
             <h3 className="text-lg font-semibold mb-4">Thông tin chi tiết</h3>
             {isEditing ? (
               <div className="space-y-4">
-                <Input label="Tên lớp" name="name" value={formData.name} onChange={handleInputChange} />
-                <Input label="Mã lớp" name="code" value={formData.code} onChange={handleInputChange} />
-                <Textarea label="Mô tả" name="description" value={formData.description} onChange={handleInputChange} />
-                <Select label="Trình độ" selectedKeys={[formData.level]} onSelectionChange={(keys) => setFormData((prev) => ({ ...prev, level: Array.from(keys)[0] as string }))}>
+                <Input label="Tên lớp" name="name" value={formData.name} labelPlacement='outside-top' onChange={handleInputChange} />
+                <Input label="Mã lớp" name="code" value={formData.code} labelPlacement='outside-top' onChange={handleInputChange} />
+                <Textarea label="Mô tả" name="description" labelPlacement='outside-top' value={formData.description} onChange={handleInputChange} />
+                <Select selectedKeys={[formData.level]}  onSelectionChange={(keys) => setFormData((prev) => ({ ...prev, level: Array.from(keys)[0] as string }))}>
                   <SelectItem key="STARTERS">Starters</SelectItem>
                   <SelectItem key="MOVERS">Movers</SelectItem>
                   <SelectItem key="FLYERS">Flyers</SelectItem>
@@ -293,9 +293,10 @@ export default function ClassDetailPage() {
                 )}
               </div>
             ))}
+
             {isEditing && (
               <div className="flex items-center gap-2 mt-4">
-                <Select label="Thêm giáo viên" selectedKeys={selectedTeacherId ? [selectedTeacherId] : []} onSelectionChange={(keys) => setSelectedTeacherId(Array.from(keys)[0] as string)} className="w-full" size="sm">
+                <Select  placeholder="Chọn giáo viên" selectedKeys={selectedTeacherId ? [selectedTeacherId] : []} onSelectionChange={(keys) => setSelectedTeacherId(Array.from(keys)[0] as string)} className="w-full" size="sm">
                   {allTeachers.filter(t => !classData.teachers.some(ct => ct.id === t.id)).map(t => (
                     <SelectItem key={t.id}>{t.fullName}</SelectItem>
                   ))}
@@ -322,7 +323,8 @@ export default function ClassDetailPage() {
             {isEditing && (
               <div className="flex items-center gap-2 mt-4">
                 <Select
-                  label="Chọn roadmap"
+                  // label="Chọn roadmap"
+                  // labelPlacement="outside-left"
                   placeholder="Chọn roadmap"
                   selectedKeys={selectedRoadmapId ? [selectedRoadmapId] : []}
                   onSelectionChange={(keys) => setSelectedRoadmapId(Array.from(keys)[0] as string)}

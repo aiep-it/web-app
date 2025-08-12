@@ -38,12 +38,12 @@ export function useExercisesWithFetch(topicId: string) {
         setIsFetching(true);
         
         try {
-          console.log('Fetching exercises - authentication confirmed');
+          
           
           // Get token from Clerk and set it for axios
           const token = await getToken();        
           if (token) {
-            console.log('CLERK TOKEN FOR EXERCISES:', token);
+           
             
             // Import and set the token for axios
             const { setAuthToken } = await import('@/lib/axios');
@@ -51,10 +51,10 @@ export function useExercisesWithFetch(topicId: string) {
             
             // Now fetch exercises with the token set
             await getAllExercises();
-            console.log('Exercises loaded successfully');
+           
             setAuthError(null);
           } else {
-            console.log('No Clerk token found, cannot fetch exercises');
+          
             setAuthError("Authentication failed. Please log in again.");
           }
           
@@ -79,12 +79,7 @@ export function useExercisesWithFetch(topicId: string) {
           setIsFetching(false);
         }
       } else {
-        console.log('Not fetching exercises yet - waiting for authentication:', {
-          isClient,
-          clerkIsLoaded: isLoaded,
-          userIsSignedIn: isSignedIn,
-          hasTriedFetch
-        });
+     
       }
     };
 

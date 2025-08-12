@@ -43,3 +43,63 @@ export async function addNewCategory(payload: CategoryCreateForm): Promise<Categ
   }
 }
 
+export async function getCategoryById(id: string): Promise<Category | null> {
+  try {
+    return await axiosInstance
+      .get(ENDPOINTS.CATEGORY.GET_BY_ID(id))
+      .then((response) => {
+        if (response.status === 200) {
+          return response.data as Category;
+        }
+        return null;
+      })
+      .catch((e) => {
+        console.error("Error fetching category by id:", e);
+        return null;
+      });
+  } catch (error) {
+    console.error("Error fetching category by id:", error);
+    return null; 
+  }
+}
+
+
+export async function updateCategory(
+  id: string,
+  payload: CategoryCreateForm
+): Promise<Category | null> {
+  try {
+    return await axiosInstance
+      .put(ENDPOINTS.CATEGORY.UPDATE(id), payload)
+      .then((response) => {
+        if (response.status === 200) {
+          return response.data;
+        }
+        return null;
+      })
+      .catch((e) => {
+        console.error("Error updating category:", e);
+        return null;
+      });
+  } catch (error) {
+   
+    return null;
+  }
+}
+export async function deleteCategory(id: string): Promise<boolean> {
+  try {
+    return await axiosInstance
+      .delete(ENDPOINTS.CATEGORY.DELETE(id))
+      .then((response) => {
+        // Backend trả 204 No Content hoặc 200 Success đều coi là thành công
+        return response.status === 204 || response.status === 200;
+      })
+      .catch((e) => {
+        console.error("Error deleting category:", e);
+        return false;
+      });
+  } catch (error) {
+   
+    return false;
+  }
+}

@@ -129,7 +129,7 @@ export default function LearnVocabularyPage() {
       // 3. Data hasn't been loaded yet
       if (roadmaps.length > 0 && !error && isClient && isLoaded && isSignedIn && !isDataLoaded) {
         
-        console.log('Starting data load...');
+        
         setIsDataLoaded(true); // Prevent multiple calls
         
         // Set loading state for topics
@@ -141,16 +141,14 @@ export default function LearnVocabularyPage() {
 
         try {
           // Fetch topics for all roadmaps first
-          console.log('Fetching topics for roadmaps...');
+         
           const topicsPromises = roadmaps.map(async (roadmap) => {
             await getTopicsByRoadmap(roadmap.id);
             return roadmap.id;
           });
 
           await Promise.all(topicsPromises);
-          console.log('Topics loaded');
           
-          console.log('Data loading completed successfully');
           
         } catch (error) {
           setIsDataLoaded(false); // Reset flag on error to allow retry
@@ -169,7 +167,7 @@ export default function LearnVocabularyPage() {
             }
           }
         } finally {
-          console.log('🏁 Data loading finished, clearing loading states');
+       
           // Clear loading states
           const newLoadingState: Record<string, boolean> = {};
           roadmaps.forEach((roadmap) => {
@@ -178,14 +176,7 @@ export default function LearnVocabularyPage() {
           setLoadingTopics(newLoadingState);
         }
       } else {
-        console.log('⏸️ Not loading data yet - waiting for:', {
-          roadmapsLoaded: roadmaps.length > 0,
-          noRoadmapsError: !error,
-          isClient,
-          clerkIsLoaded: isLoaded,
-          userIsSignedIn: isSignedIn,
-          isDataLoaded
-        });
+   
       }
     };
 

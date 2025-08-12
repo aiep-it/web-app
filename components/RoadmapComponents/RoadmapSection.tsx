@@ -33,7 +33,7 @@ const RoadmapSection: React.FC<RoadmapSectionProps> = ({ title, roadmaps, clerkT
 
   
   useEffect(() => {
-    console.log(`RoadmapSection - isLoaded: ${isLoaded}, isSignedIn: ${isSignedIn}, userId: ${userId}, clerkToken (from props): ${clerkToken ? 'present' : 'null'}`);
+   
   }, [isLoaded, isSignedIn, userId, clerkToken]);
 
 

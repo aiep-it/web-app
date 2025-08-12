@@ -58,7 +58,7 @@ export default function QuizExercisePage({ myTopicId }: QuizExercisePageProps) {
 
   // Debug logging for currentUser
   useEffect(() => {
-    // console.log('QuizExercisePage - currentUser:', currentUser);
+
   }, [currentUser]);
 
   // Client-side hydration check

@@ -24,7 +24,7 @@ const CRichText = forwardRef<HTMLInputElement, Props>(
           field: { value, onChange, ...restField },
           fieldState: { error },
         }) => {
-            console.log("CRichText value:", value, error);
+          
           return (
             <div className="h-full">
               <label className="block text-small font-medium mb-1.5">

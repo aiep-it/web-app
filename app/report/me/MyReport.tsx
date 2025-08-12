@@ -74,7 +74,7 @@ const MyReport = () => {
     const res = await getSelfReport();
 
     if (res) {
-      console.log('res', res);
+     
       setReportData({ ...res });
     } else {
       toast.error('Fail to fetch Report');

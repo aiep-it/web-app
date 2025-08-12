@@ -16,7 +16,7 @@ export const topicFormSchema: yup.ObjectSchema<TopicContentForm> = yup.object({
   title: yup
     .string()
     .min(1, "Title must be at least 1 characters")
-    .max(30, "Title must be at most 30 characters")
+    .max(50, "Title must be at most 50 characters")
     .required("Title is required"),
 
   description: yup

@@ -33,12 +33,12 @@ const ListClassroom = () => {
   }, []);
 
   const handleJoinClass = async (closeModal: () => void) => {
-    console.log('Joining class with code:', classCode);
+  
     if (!classCode || classCode.length < 8) {
       toast.error('Please enter a valid class code.');
       return;
     }
-    console.log('Joining class with code:', classCode);
+   
     const res = await joinClassByCode(classCode);
 
     if (res) {

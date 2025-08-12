@@ -48,7 +48,7 @@ const column = [
 
 const CategoryListPage = () => {
   const { getToken } = useAuth();
-  const { userRole, isSignedIn, isRoleLoading } = useUserRole();
+  
   const router = useRouter();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -87,17 +87,12 @@ const CategoryListPage = () => {
   };
 
   useEffect(() => {
-    if (isSignedIn) {
+  
       fetchCategories();
-    }
-  }, [isSignedIn]);
+   
+  }, []);
 
-  if (isRoleLoading)
-    return (
-      <p className="text-center mt-20 text-gray-400">
-        Đang tải quyền người dùng...
-      </p>
-    );
+
 
   return (
     <div className="min-h-screen dark:bg-black text-foreground p-6">
@@ -121,6 +116,7 @@ const CategoryListPage = () => {
               description={cat.description}
               onDelete={handleDelete}
               editUrl={`categories/${cat.id}/edit`}
+              viewUrl={`/admin/roadmaps`}
             />
           ))}
         </div>

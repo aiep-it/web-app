@@ -22,18 +22,18 @@ export function UserProvider({ children }: UserProviderProps) {
   } = useUser();
 
   // Log user status for debugging
-  React.useEffect(() => {
-    if (isLoaded) {
-      console.log('User Status:', {
-        isSignedIn,
-        isInitialized,
-        hasUser: !!currentUser,
-        userId: currentUser?.id,
-        userRole: currentUser?.role,
-        error
-      });
-    }
-  }, [isLoaded, isSignedIn, isInitialized, currentUser, error]);
+  // React.useEffect(() => {
+  //   if (isLoaded) {
+  //     console.log('User Status:', {
+  //       isSignedIn,
+  //       isInitialized,
+  //       hasUser: !!currentUser,
+  //       userId: currentUser?.id,
+  //       userRole: currentUser?.role,
+  //       error
+  //     });
+  //   }
+  // }, [isLoaded, isSignedIn, isInitialized, currentUser, error]);
 
   return (
     <>

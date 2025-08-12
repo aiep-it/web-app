@@ -304,7 +304,7 @@ export const TopicModal: React.FC<TopicModalProps> = ({
   // Load vocabularies when modal opens (if not already loaded)
   useEffect(() => {
     if (isOpen && allVocabs.length === 0 && !vocabLoading) {
-      console.log('[TopicModal] Loading vocabularies...');
+     
       getVocabs({
         page: 1,
         size: 50,

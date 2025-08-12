@@ -83,7 +83,7 @@ export const useLearningPage = (topicId: string) => {
       setTopicVocabs(vocabsData);
       
       if (vocabsData.length === 0) {
-        console.log('No vocabs found for topic:', topicId);
+        
       }
     } catch (error) {
       console.error('Error fetching vocabs by topic:', error);

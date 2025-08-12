@@ -49,10 +49,10 @@ export const createExerciseInDirectus = async (payload: ExerciseCreatePayload): 
 
 export const updateExerciseInDirectus = async (payload: ExerciseUpdatePayload): Promise<DirectusExercise | null> => {
   try {
-    console.log('Starting update in Directus with payload:', payload);
+   
     
     // First, delete any existing records with the same exerciseId
-    console.log('Deleting existing records for exerciseId:', payload.exerciseId);
+  
     await cms.request(
       deleteItems(COLLECTIONS.Exercise, {
         filter: {
@@ -64,12 +64,12 @@ export const updateExerciseInDirectus = async (payload: ExerciseUpdatePayload): 
     );
     
     // Then create a new record with the updated data
-    console.log('Creating new record with data:', payload);
+   
     const result = await cms.request(
       createItem(COLLECTIONS.Exercise, payload)
     );
     
-    console.log('Successfully updated exercise in Directus:', result);
+   
     return result as DirectusExercise;
   } catch (error) {
     console.error('Error updating exercise in Directus:', error);
@@ -135,7 +135,7 @@ export const deleteExerciseFromDirectus = async (exerciseId: string): Promise<bo
         }
       })
     );
-    console.log('Deleted exercise from Directus:', exerciseId);
+
     return true;
   } catch (error) {
     console.error('Error deleting exercise from Directus:', error);

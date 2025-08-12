@@ -346,7 +346,7 @@ const NodeFlow = forwardRef<NodeFlowRef, NodeFlowProps>(
                 <Input
                   label="Name"
                   type="text"
-                  labelPlacement="outside"
+                  labelPlacement="outside-top"
                   value={labelInput}
                   onChange={(e: any) => setLabelInput(e.target.value)}
                   onBlur={() => {
