@@ -5,6 +5,9 @@ export enum USER_ROLE {
   ADMIN = 'ADMIN',
   PARENT = 'PARENT',
   ANONYMUS = 'ANONYMUS',
+  
+
+  ALL = 'ALL', // This is used for public routes, no need to check role
 }
 enum PERMISSION {
   READ = 'READ',

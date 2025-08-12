@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icon } from "@iconify/react";
 import { Logo } from '@/components/icons';
 import { siteConfig } from "@/config/site";
+import { USER_ROLE } from '@/constant/authorProtect';
+import { useAuth } from '@clerk/nextjs';
 
 interface UserSidebarProps {
   isExpanded: boolean;
@@ -12,6 +14,32 @@ interface UserSidebarProps {
 
 const UserSidebar: React.FC<UserSidebarProps> = ({ isExpanded, onToggle }) => {
   const pathname = usePathname();
+  const [siteRouters, setSideRouters] = useState<{ label: string; href: string; roleAccess: USER_ROLE[] }[]>([]);
+  const { sessionClaims } = useAuth();
+
+  useEffect(() => {
+    interface Metadata {
+      role?: string;
+    }
+
+    const metadata = sessionClaims?.metadata as Metadata;
+
+    if (metadata?.role) {
+      const role = metadata.role.toUpperCase() as USER_ROLE;
+
+      const accessibleRouters = siteConfig.navItems.filter((item) => {
+        if (
+          !item.roleAccess ||
+          (Array.isArray(item.roleAccess) &&
+            item.roleAccess.includes(USER_ROLE.ALL))
+        )
+          return true; // Public routes
+        return item.roleAccess.includes(role);
+      });
+
+      setSideRouters(accessibleRouters);
+    }
+  }, [sessionClaims]);
   
   const isActiveLink = (href: string) => {
     if (href === '/') {
@@ -38,7 +66,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ isExpanded, onToggle }) => {
       {/* Navigation Menu */}
       <nav className="flex-grow overflow-y-auto p-4">
         <div className="space-y-3">
-          {siteConfig.navItems.map((item) => {
+          {siteRouters.map((item) => {
             const isActive = isActiveLink(item.href);
             return (
               <Link
