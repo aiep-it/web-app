@@ -9,7 +9,7 @@ import {
 import { Button } from '@heroui/button';
 import { Kbd } from '@heroui/kbd';
 import { Link } from '@heroui/link';
-
+import NotificationBell from "@/components/notifications/NotificationBell";
 import { siteConfig } from '@/config/site';
 import { ThemeSwitch } from '@/components/theme-switch';
 import {
@@ -83,6 +83,7 @@ export const Navbar = () => {
             Sponsor
           </Button>
         </NavbarItem>
+        <NotificationBell/>
         {/* Clerk Auth Buttons */}
         <NavbarItem>
           <SignedOut>
