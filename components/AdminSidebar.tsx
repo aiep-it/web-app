@@ -111,7 +111,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       <div className="p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2">
           <Logo />
-          {isExpanded && <span className="font-bold text-inherit">ADMIN</span>}
+          {isExpanded && <span className="font-bold text-inherit">{currentRole}</span>}
         </div>
         <button
           onClick={onToggle}
