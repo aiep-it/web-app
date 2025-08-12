@@ -29,6 +29,7 @@ export type TopicUpdatePayload = {
 };
 
 export type NodeViewCMS = {
+  id?: string;
   roadmapId: string;
   edges: Edge[];
   nodes: Node[];

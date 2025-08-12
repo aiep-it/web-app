@@ -18,32 +18,47 @@ import {
   useDisclosure,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { Edge, Node } from '@xyflow/react';
+import { Edge, Node, Viewport } from '@xyflow/react';
 import ButtonConfirm from '@/components/ButtonConfirm';
 import { Roadmap } from '@/services/types/roadmap';
 import { getRoadmapById } from '@/services/roadmap';
-import NodeFlow, { NodeFlowRef } from '../../components/NodeFlow';
 import { aiSuggestTopic, createTopic } from '@/services/topic';
 import { NodeViewCMS, TopicPayload } from '@/services/types/topic';
-import { createItemCMS } from '@/services/cms';
+import { createItemCMS, getItems } from '@/services/cms';
 import { COLLECTIONS } from '@/config/cms';
-import AISuggestTopicForm, {
-  AISuggestTopicRef,
-} from '../../components/AISuggestTopic';
+import NodeFlow, { NodeFlowRef } from './NodeFlow';
+import AISuggestTopicForm, { AISuggestTopicRef } from './AISuggestTopic';
+import { useRouter } from 'next/navigation';
 
-interface NewTopicsPageProps {
+interface TopicEditorProps {
   id: string;
 }
 
-const NewTopicsPage: React.FC<NewTopicsPageProps> = ({ id }) => {
+const TopicEditor: React.FC<TopicEditorProps> = ({ id }) => {
   const nodeFlowRef = useRef<NodeFlowRef>(null);
   const [roadmap, setRoadmap] = React.useState<Roadmap | null>(null);
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [nodeViewContent, setNodeViewContent] =
     React.useState<NodeViewCMS | null>(null);
   const formRef = useRef<AISuggestTopicRef>(null);
-  // const [aiSuggestData, setAISuggestData] = useState<ExerciseData | null>(null);
+  const router = useRouter();
   const [aiSuggestLoading, setAISuggestLoading] = useState(false);
+
+  const fetchNodes = async (roadmapId: string) => {
+    const res = await getItems<NodeViewCMS>(COLLECTIONS.NodeView, {
+      filter: {
+        roadmapId: {
+          _eq: roadmapId,
+        },
+      },
+    });
+    if (res && res.length) {
+      const dataNodeView = res[0] as NodeViewCMS;
+
+      console.log('dataNodeView', dataNodeView);
+      setNodeViewContent(dataNodeView);
+    }
+  };
 
   const handleAction = async () => {
     setAISuggestLoading(true);
@@ -73,7 +88,10 @@ const NewTopicsPage: React.FC<NewTopicsPageProps> = ({ id }) => {
   useEffect(() => {
     const fetchRoadmap = async () => {
       const res = await getRoadmapById(id);
-
+      if (res && res.id) {
+        setRoadmap(res);
+        await fetchNodes(res.id);
+      }
       setRoadmap(res);
     };
 
@@ -95,12 +113,16 @@ const NewTopicsPage: React.FC<NewTopicsPageProps> = ({ id }) => {
           if (nodes.length === 0 && edges.length === 0) {
             return;
           } else {
-            const cmsPayload = {
+            const cmsPayload: { roadmapId: string; nodes: Node[]; edges: Edge[]; viewport: Viewport | null; id?: string } = {
               roadmapId: id,
               nodes,
               edges,
               viewport,
             };
+
+            if(nodeViewContent?.id) {
+                cmsPayload.id = nodeViewContent.id;
+            }
 
             await createItemCMS(COLLECTIONS.NodeView, cmsPayload);
 
@@ -108,6 +130,8 @@ const NewTopicsPage: React.FC<NewTopicsPageProps> = ({ id }) => {
               title: 'Nodes and Edges Processed',
               color: 'success',
             });
+
+            router.push(`/admin/roadmaps/${id}/topics`);
           }
         })
         .catch((error) => {
@@ -132,6 +156,10 @@ const NewTopicsPage: React.FC<NewTopicsPageProps> = ({ id }) => {
         title: typeof data.label === 'string' ? data.label : 'Node',
         roadmapId: id,
       };
+
+      if(nodeViewContent?.id) {
+        payload.id = node.id;
+      }
 
       const res = await createTopic(payload);
 
@@ -245,4 +273,4 @@ const NewTopicsPage: React.FC<NewTopicsPageProps> = ({ id }) => {
   );
 };
 
-export default NewTopicsPage;
+export default TopicEditor;

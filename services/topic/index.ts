@@ -1,4 +1,4 @@
-import { TopicData, TopicPayload, TopicUpdatePayload } from "../types/topic";
+import { NodeViewCMS, TopicData, TopicPayload, TopicUpdatePayload } from "../types/topic";
 import { ENDPOINTS } from "@/constant/api";
 import axiosInstance from "@/lib/axios";
 
@@ -44,6 +44,20 @@ export async function getTopicsByRoadmapId(roadMapId: string): Promise<TopicData
 export async function updateTopic(id: string, payload: TopicUpdatePayload): Promise<TopicData | null> {
     try {
         const response = await axiosInstance.put<TopicData>(ENDPOINTS.TOPIC.UPDATE(id), payload);
+        if (response.status === 200) {
+            return response.data;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error updating node:", error);
+        return null;
+    }
+}
+
+
+export async function aiSuggestTopic(payload: {content: string}): Promise<NodeViewCMS | null> {
+    try {
+        const response = await axiosInstance.post<NodeViewCMS>(ENDPOINTS.TOPIC.AI_SUGGEST, payload);
         if (response.status === 200) {
             return response.data;
         }
