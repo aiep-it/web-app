@@ -9,12 +9,30 @@ import ClassRoomHeader from './component/ClassRoomHeader';
 import ListTopicClass from './component/ListTopicClass';
 import EmptySection from '@/components/EmptySection';
 import ListMembers from './component/ListMembers';
+import { useAuth } from '@clerk/nextjs';
+import { USER_ROLE } from '@/constant/authorProtect';
+import ClassReport from './component/ClassReport';
 
 interface ClassRoomPageProps {
   classId: string; // Optional prop if you want to pass classId
 }
 const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
   const [classInfo, setClassInfo] = React.useState<ClassResponse | null>(null);
+  const [currentRole, setCurrentRole] = React.useState<USER_ROLE | null>(null);
+  const { sessionClaims } = useAuth();
+  useEffect(() => {
+    interface Metadata {
+      role?: string;
+    }
+
+    const metadata = sessionClaims?.metadata as Metadata;
+
+    if (metadata?.role) {
+      const role = metadata.role.toUpperCase() as USER_ROLE;
+
+      setCurrentRole(role);
+    }
+  }, [sessionClaims]);
   const fetchMyClass = async () => {
     const res = await getMyClass(classId);
 
@@ -77,7 +95,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
                       </div>
                     }
                   >
-                    <ListTopicClass classTopics={roadmap.topics || []} />
+                    <ListTopicClass currentRole={currentRole} classTopics={roadmap.topics || []}  classId={classId}/>
                   </AccordionItem>
                 ))}
               </Accordion>
@@ -131,6 +149,22 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
               message="This class does not have any media yet."
             />
           </Tab>
+          {
+            currentRole && currentRole === USER_ROLE.TEACHER && (
+              <Tab
+            key="class-report"
+            title={
+              <div className="flex items-center gap-2">
+                <Icon icon="lucide:clipboard-minus" />
+                <span>Class Report</span>
+                {/* {events.length > 0 && <Chip size="sm" variant="flat">{events.length}</Chip>} */}
+              </div>
+            }
+          >
+            <ClassReport classId={classId} />
+          </Tab>
+            )
+          }
           {/* {isManager && (
           <Tab
             key="admin"

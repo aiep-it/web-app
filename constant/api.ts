@@ -96,5 +96,7 @@ export const ENDPOINTS = {
   REPORT: {
     SELF: "/reports/self",
     COURSER_OVER_VIEW: "/reports/course-overview",
+    CLASS: (classId: string) => `/reports/class/${classId}`,
+    CLASS_TOPIC: (classId: string, topicId: string) => `/reports//class/${classId}/topic/${topicId}`,
   }
 };

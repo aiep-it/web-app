@@ -41,3 +41,43 @@ export async function getCourseOverview(page: ReportPage):  Promise<CourseOvervi
         return null;
     }
 }
+
+export async function getClassReport(classId: string): Promise<any | null> {
+    try {
+        return await axiosInstance
+        .get(ENDPOINTS.REPORT.CLASS(classId))
+        .then((response) => {
+            if (response.status === 200) {
+            return response.data;
+            }
+            return null;
+        })
+        .catch((e) => {
+            console.error('Error fetching class report:', e);
+            return null;
+        });
+    } catch (error) {
+        console.error('Error fetching class report:', error);
+        return null;
+    }
+}
+
+export async function getClassTopicReport(classId: string, topicId: string): Promise<any | null> {
+    try {
+        return await axiosInstance
+        .get(ENDPOINTS.REPORT.CLASS_TOPIC(classId, topicId))
+        .then((response) => {
+            if (response.status === 200) {
+            return response.data;
+            }
+            return null;
+        })
+        .catch((e) => {
+            console.error('Error fetching class topic report:', e);
+            return null;
+        });
+    } catch (error) {
+        console.error('Error fetching class topic report:', error);
+        return null;
+    }
+}
