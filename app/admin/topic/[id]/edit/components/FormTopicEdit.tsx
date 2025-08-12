@@ -14,12 +14,12 @@ import CRichText from "@/components/FormProvider/Fields/CRichText";
 import ButtonConfirm from "@/components/ButtonConfirm";
 import { createItemCMS, getItems, updateItemCMS, uploadFile } from "@/services/cms";
 import { addToast } from "@heroui/toast";
-import { SelectItem, Tooltip } from "@heroui/react";
-import { Icon } from "@iconify/react";
+import { SelectItem } from "@heroui/react";
 import { COLLECTIONS } from "@/config/cms";
 import { LookupContent } from "@/types/lookup";
 import { LOOKUP_KEY } from "@/constant/lookupKey";
 import CSelector from "@/components/FormProvider/Fields/CSelector";
+import { useRouter } from "next/navigation"; // ✅ thêm
 
 interface FormTopicEditProps {
   topicId?: string;
@@ -33,6 +33,7 @@ const defaultValues: TopicContent = {
 const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace }) => {
   const [suggestionLevels, setSuggestionLevels] = useState<LookupContent[]>([]);
   const [topicContentCMS, setTopicContentCMS] = useState<TopicContentCMS | null>(null);
+  const router = useRouter(); // ✅ thêm
 
   const methods = useForm<TopicContentForm>({
     resolver: yupResolver(topicFormSchema),
@@ -41,10 +42,7 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace })
   const { handleSubmit } = methods;
 
   const updateContent = async (id: string, content: string) => {
-    const cmsPayload = {
-      nodeId: id,
-      content: content,
-    }
+    const cmsPayload = { nodeId: id, content };
     let res;
     if (topicContentCMS) {
       res = await updateItemCMS(COLLECTIONS.NodeContent, topicContentCMS.id, cmsPayload);
@@ -52,13 +50,12 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace })
       res = await createItemCMS(COLLECTIONS.NodeContent, cmsPayload);
     }
     return res && res.content ? res.content : null;
-  }
-
+  };
 
   useEffect(() => {
     const loadData = async () => {
       if (!topicId) return;
-  
+
       const [topicData, contentRes, lookupRes] = await Promise.all([
         getTopicId(topicId),
         getItems<TopicContentCMS>(COLLECTIONS.NodeContent, {
@@ -68,89 +65,88 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace })
           filter: { type: { _eq: LOOKUP_KEY.SuggestionLevel } },
         }),
       ]);
-  
-      // Set suggestion levels
-      if (lookupRes && lookupRes.length) {
-        setSuggestionLevels(lookupRes);
-      }
-  
-      // Set CMS content
+
+      if (lookupRes && lookupRes.length) setSuggestionLevels(lookupRes);
+
       let content = "";
       if (contentRes && contentRes.length) {
         const cmsContent = contentRes[0];
         setTopicContentCMS(cmsContent);
         content = cmsContent.content || "";
       }
-  
-      // Reset form only once
+
       if (topicData) {
         methods.reset({
           ...topicData,
-          content, // override if needed
+          content,
         });
       }
     };
-  
+
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topicId]);
 
   const uploadCoverImage = async (file: File) => {
     const fileId = await uploadFile(file);
-
-    if (fileId) {
-      return fileId;
-    }
-    return null;
+    return fileId || null;
   };
 
   const onSubmit = async (data: TopicContentForm) => {
+    if (!topicId) {
+      addToast({ title: "Missing topic ID", description: "Topic ID is required.", color: "danger" });
+      throw new Error("Missing topic ID"); // ❗ để ButtonConfirm giữ modal
+    }
+
     let coverImage = data.coverImage instanceof File ? undefined : data.coverImage;
     if (data.coverImage instanceof File) {
       coverImage = await uploadCoverImage(data.coverImage);
-    }
-
-    if (!coverImage) {
-      addToast({
-        title: "Error uploading cover image",
-        description: "Failed to upload cover image. Please try again.",
-        color: "danger",
-      });
-
+      if (!coverImage) {
+        addToast({
+          title: "Error uploading cover image",
+          description: "Failed to upload cover image. Please try again.",
+          color: "danger",
+        });
+        // Không bắt buộc throw — tùy logic của bạn. Nếu muốn bắt buộc phải có ảnh bìa, hãy throw:
+        // throw new Error("Cover image upload failed");
+      }
     }
 
     const payload: TopicUpdatePayload = {
       title: data.title,
       description: data.description,
-      coverImage: coverImage,
+      coverImage,
       suggestionLevel: data.suggestionLevel,
-      isMyWorkspace: isMyWorkspace
+      isMyWorkspace,
     };
 
     const res = await updateTopic(topicId as string, payload);
 
-    if (res) {
-      let dataContent = data.content;
-      if (data.content) {
-        dataContent = await updateContent(res.id as string, data.content);
-      }
-
-      addToast({
-        title: "Topic updated successfully",
-        description: "Your topic has been updated successfully.",
-        color: "success",
-      });
-      methods.reset({
-        ...res,
-        content: dataContent ||  "",
-      });
-    } else {
+    if (!res) {
       addToast({
         title: "Error updating topic",
         description: "Failed to update the topic. Please try again.",
         color: "danger",
       });
+      throw new Error("Update topic failed"); // ❗ giữ nguyên modal & page
     }
+
+    // Cập nhật content CMS nếu có
+    let dataContent = data.content;
+    if (data.content) {
+      dataContent = await updateContent(res.id as string, data.content);
+    }
+
+    addToast({
+      title: "Topic updated successfully",
+      description: "Your topic has been updated successfully.",
+      color: "success",
+    });
+
+    // ✅ Thành công: quay lại trang trước, không reset form, không fetch lại
+    router.back();
   };
+
   return (
     <div>
       <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
@@ -181,37 +177,39 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace })
             </div>
           </div>
         </div>
+
         <div className="sm:flex-row gap-4 w-full pt-3 mt-4">
-            <CSelector name="suggestionLevel" label="Suggestion Level">
-              {suggestionLevels.map((suggestionLevel) => {
-                return (
-                  <SelectItem key={suggestionLevel.value}>
-                    {suggestionLevel.label}
-                  </SelectItem>
-                );
-              })}
-            </CSelector>
+          <CSelector name="suggestionLevel" label="Suggestion Level">
+            {suggestionLevels.map((s) => (
+              <SelectItem key={s.value}>{s.label}</SelectItem>
+            ))}
+          </CSelector>
         </div>
+
         <div className="sm:flex-row gap-4 w-full pt-3 mt-4">
           <CImageUpload name="coverImage" label="Cover Image" />
         </div>
+
         <div className="sm:flex-row gap-4 w-full pt-3 mt-4">
           <div className="h-[500px]">
             <CRichText name="content" label="Content" />
           </div>
         </div>
-       
+
         <div className="flex gap-2 pt-10 justify-end mt-4">
           <ButtonConfirm
             color="primary"
             previousValidate={async () => {
+              // validate form; nếu fail, modal sẽ không mở
               const isValid = await methods.trigger();
-
-             
-
               return isValid;
             }}
+            // Quan trọng: để ButtonConfirm detect lỗi và giữ modal,
+            // onSave phải throw khi fail (đã làm trong onSubmit).
             onSave={handleSubmit(onSubmit)}
+            saveButtonText="Save"
+            title="Confirm Save?"
+            message="Are you sure you want to save these changes?"
           />
         </div>
       </FormProvider>
