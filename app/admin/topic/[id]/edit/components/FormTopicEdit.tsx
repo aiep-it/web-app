@@ -200,12 +200,11 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace })
           <ButtonConfirm
             color="primary"
             previousValidate={async () => {
-              // validate form; nếu fail, modal sẽ không mở
+          
               const isValid = await methods.trigger();
               return isValid;
             }}
-            // Quan trọng: để ButtonConfirm detect lỗi và giữ modal,
-            // onSave phải throw khi fail (đã làm trong onSubmit).
+          
             onSave={handleSubmit(onSubmit)}
             saveButtonText="Save"
             title="Confirm Save?"
