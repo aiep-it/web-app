@@ -116,6 +116,7 @@ const RoadmapListPage = () => {
                             description={r.description}
                             onDelete={handleDelete}
                             editUrl={`roadmaps/${r.id}/edit`}
+                            viewUrl={`/admin/roadmaps/${r.id}`}
                           />
                         ))}
                       </div>

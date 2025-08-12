@@ -18,7 +18,7 @@ const menuItems = [
     ]
   },
   { group: "Content", items: [
-    { name: "Manage Category", icon: "lucide:chart-bar-stacked", href: "/admin/categories" },
+    { name: "Manage Level", icon: "lucide:chart-bar-stacked", href: "/admin/categories" },
     { name: "Manage Roadmap", icon: "lucide:book-plus", href: "/admin/roadmaps" },
     { name: "Manage Vocabulary", icon: "lucide:whole-word", href: "/admin/vocabularies" },
     { name: "Manage Exercises", icon: "lucide:notebook-text", href: "/admin/exercises" },

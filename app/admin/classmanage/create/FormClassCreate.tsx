@@ -108,9 +108,9 @@ const FormClassCreate = () => {
         isInvalid={!!errors.level}
         errorMessage={errors.level?.message}
       >
-        <SelectItem key={ClassLevel.STARTERS}>Starters</SelectItem>
-        <SelectItem key={ClassLevel.MOVERS}>Movers</SelectItem>
-        <SelectItem key={ClassLevel.FLYERS}>Flyers</SelectItem>
+        <SelectItem key={ClassLevel.STARTERS}>STARTERS</SelectItem>
+        <SelectItem key={ClassLevel.MOVERS}>MOVERS</SelectItem>
+        <SelectItem key={ClassLevel.FLYERS}>FLYERS</SelectItem>
       </Select>
 
       <Select

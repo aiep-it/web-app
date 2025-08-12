@@ -159,6 +159,7 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace })
             <div className="flex flex-col gap-2">
               <CTextField
                 title="Topic Title"
+                labelPlacement="outside-top"
                 disabled={Boolean(topicId)}
                 isRequired
                 label="Title"
@@ -172,6 +173,7 @@ const FormTopicEdit: React.FC<FormTopicEditProps> = ({ topicId, isMyWorkspace })
             <div className="flex flex-col gap-2">
               <CTextField
                 name="description"
+                labelPlacement="outside-top"
                 placeholder="Description"
                 label="Description"
                 variant="bordered"
