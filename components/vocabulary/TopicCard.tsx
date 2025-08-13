@@ -98,11 +98,14 @@ export function TopicCard({ topic, isWorkspace = false }: TopicCardProps) {
 
         {/* Description */}
         {topic.description ? (
-          <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+          <p 
+            className="text-gray-600 text-sm mb-4 line-clamp-2 h-10 cursor-default"
+            title={topic.description}
+          >
             {topic.description}
           </p>
         ) : (
-          <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+          <p className="text-gray-600 text-sm mb-4 line-clamp-2 h-10">
             No description for this topic.
           </p>
         )}
