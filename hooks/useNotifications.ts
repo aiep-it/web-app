@@ -1,66 +1,70 @@
-// "use client";
+"use client";
 
-// import useSWR from "swr";
-// import { useAuth } from "@clerk/nextjs";
-// import { useCallback, useMemo } from "react";
+import { getMyNotifications, markNotificationRead } from "@/services/notification";
+import { NotificationItem } from "@/services/types/notification";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+// import type { NotificationItem } from "@/types/notification";
+// import { getMyNotifications, markNotificationRead } from "@/services/notification.api";
 
-// export interface NotificationItem {
-//   id: string;
-//   title: string;
-//   message: string;
-//   link?: string | null;
-//   read: boolean;
-//   createdAt: string;
-// }
+/**
+ * Hook đơn giản dùng services + axiosInstance của bạn
+ * - Không dùng SWR
+ * - Có optional polling (tắt mặc định)
+ */
+export function useNotifications(options?: { pollMs?: number }) {
+  const { pollMs = 0 } = options || {};
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const pollRef = useRef<NodeJS.Timeout | null>(null);
 
-// const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
+  const load = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getMyNotifications();
+      setNotifications(data);
+      setError(null);
+    } catch (e: any) {
+      console.error(e);
+      setError(e?.message || "Failed to load notifications");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-// export function useNotifications() {
-//   const { getToken, isSignedIn } = useAuth();
+  useEffect(() => {
+    load();
 
-//   const fetcher = useCallback(async (url: string) => {
-//     const token = await getToken(); // Clerk session token
-//     const res = await fetch(url, {
-//       headers: {
-//         "Content-Type": "application/json",
-//         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-//       },
-//       credentials: "include",
-//     });
-//     if (!res.ok) throw new Error(await res.text());
-//     return res.json();
-//   }, [getToken]);
+    if (pollMs > 0) {
+      pollRef.current = setInterval(load, pollMs);
+      return () => {
+        if (pollRef.current) clearInterval(pollRef.current);
+      };
+    }
+  }, [load, pollMs]);
 
-//   const { data, error, isLoading, mutate } = useSWR<NotificationItem[]>(
-//     isSignedIn ? `${API_BASE}/api/notifications` : null,
-//     fetcher,
-//     { refreshInterval: 0 } // bạn có thể set 15000 để poll mỗi 15s
-//   );
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => !n.read).length,
+    [notifications]
+  );
 
-//   const unreadCount = useMemo(
-//     () => (data?.filter(n => !n.read).length ?? 0),
-//     [data]
-//   );
+  const markAsRead = useCallback(async (id: string) => {
+    const ok = await markNotificationRead(id);
+    if (ok) {
+      // update optimistic
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      );
+    }
+    return ok;
+  }, []);
 
-//   const markAsRead = useCallback(async (id: string) => {
-//     const token = await getToken();
-//     await fetch(`${API_BASE}/api/notifications/${id}/read`, {
-//       method: "PATCH",
-//       headers: {
-//         "Content-Type": "application/json",
-//         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-//       },
-//       credentials: "include",
-//     });
-//     mutate();
-//   }, [getToken, mutate]);
-
-//   return {
-//     notifications: data ?? [],
-//     isLoading,
-//     error,
-//     unreadCount,
-//     markAsRead,
-//     refresh: mutate,
-//   };
-// }
+  return {
+    notifications,
+    isLoading,
+    error,
+    unreadCount,
+    markAsRead,
+    refresh: load,
+  };
+}

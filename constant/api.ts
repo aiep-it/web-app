@@ -98,5 +98,9 @@ export const ENDPOINTS = {
     COURSER_OVER_VIEW: "/reports/course-overview",
     CLASS: (classId: string) => `/reports/class/${classId}`,
     CLASS_TOPIC: (classId: string, topicId: string) => `/reports//class/${classId}/topic/${topicId}`,
-  }
+  },
+   NOTIFICATION: {
+    GET_MY: "/notifications",
+    MARK_READ: (id: string) => `/notifications/${id}/read`,
+  },
 };
