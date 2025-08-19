@@ -78,13 +78,6 @@ const EditCategoryPage: React.FC = () => {
     }
   };
 
-  if (isRoleLoading || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-white bg-gray-900">
-        <p className="text-lg">Đang tải...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-100  text-black p-6 md:p-8 flex justify-center items-start">
