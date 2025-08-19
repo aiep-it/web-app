@@ -38,7 +38,7 @@ export async function markNotificationRead(id: string): Promise<boolean> {
         return false;
       });
   } catch (error) {
-    console.error("Error marking notification read:", error);
+    // console.error("Error marking notification read:", error);
     return false;
   }
 }
