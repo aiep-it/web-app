@@ -15,11 +15,11 @@ export async function getMyNotifications(): Promise<NotificationItem[]> {
         return [];
       })
       .catch((e) => {
-        console.error("Error fetching notifications:", e);
+        // console.error("Error fetching notifications:", e);
         return [];
       });
   } catch (error) {
-    console.error("Error fetching notifications:", error);
+    // console.error("Error fetching notifications:", error);
     return [];
   }
 }
@@ -34,11 +34,11 @@ export async function markNotificationRead(id: string): Promise<boolean> {
         return response.status === 200;
       })
       .catch((e) => {
-        console.error("Error marking notification read:", e);
+        // console.error("Error marking notification read:", e);
         return false;
       });
   } catch (error) {
-    console.error("Error marking notification read:", error);
+    // console.error("Error marking notification read:", error);
     return false;
   }
 }

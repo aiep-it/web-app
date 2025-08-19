@@ -79,7 +79,6 @@ const EditCategoryPage: React.FC = () => {
   };
 
 
-
   return (
     <div className="min-h-screen bg-gray-100  text-black p-6 md:p-8 flex justify-center items-start">
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg mt-10">

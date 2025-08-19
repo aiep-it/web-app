@@ -65,6 +65,16 @@ export default function NotificationBell() {
           ))}
         </ul>
       )}
+      <div
+        onClick={() => {
+          router.push("/notifications");
+          setOpen(false);
+        }}
+        className="px-3 py-2 text-center text-sm text-blue-600 hover:underline cursor-pointer border-t"
+      >
+        Xem tất cả
+      </div>
+
     </div>
   );
 
