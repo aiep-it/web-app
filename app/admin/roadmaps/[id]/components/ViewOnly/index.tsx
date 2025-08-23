@@ -113,6 +113,7 @@ const NodeFlowViewOnly = forwardRef<NodeFlowRef, IProps>((props, ref) => {
         zoomOnScroll={false}
         selectionOnDrag={false}
         nodesDraggable={false}
+ 
       >
       </ReactFlow>
 

@@ -21,9 +21,13 @@ import { useRouter } from 'next/navigation';
 
 interface RoadMapDetailPageProps {
   id: string;
+  isViewOnly?: boolean;
 }
 
-const RoadMapDetailPage: React.FC<RoadMapDetailPageProps> = ({ id }) => {
+const RoadMapDetailPage: React.FC<RoadMapDetailPageProps> = ({
+  id,
+  isViewOnly = false,
+}) => {
   const [roadmap, setRoadmap] = React.useState<Roadmap | null>();
   const [nodeViewContent, setNodeViewContent] =
     React.useState<NodeViewCMS | null>(null);
@@ -81,22 +85,29 @@ const RoadMapDetailPage: React.FC<RoadMapDetailPageProps> = ({ id }) => {
               </div>
             </div>
           </div>
-          <div>
-            <Button
-              color="primary"
-              variant="bordered"
-              onPress={() => setEditNode(!editNode)}
-            >
-              {editNode ? 'Save Node' : 'Edit Node'}
-            </Button>
-            <Button className="mx-3" color="secondary" variant="bordered" onPress={() => {
-              router.push(`/admin/roadmaps/${id}/topics`); // Navigate to Nodes List Page
-            }}>
-              List Node Detail
-            </Button>
-          </div>
+          {!isViewOnly && (
+            <div>
+              <Button
+                color="primary"
+                variant="bordered"
+                onPress={() => setEditNode(!editNode)}
+              >
+                {editNode ? 'Save Node' : 'Edit Node'}
+              </Button>
+              <Button
+                className="mx-3"
+                color="secondary"
+                variant="bordered"
+                onPress={() => {
+                  router.push(`/admin/roadmaps/${id}/topics`); // Navigate to Nodes List Page
+                }}
+              >
+                List Node Detail
+              </Button>
+            </div>
+          )}
         </CardHeader>
-        <CardBody>
+        <CardBody className={`h-full ${isViewOnly ? 'h-[70vh]' : ''} overflow-auto`}>
           {!loading ? (
             nodeViewContent ? (
               editNode ? (
@@ -116,7 +127,14 @@ const RoadMapDetailPage: React.FC<RoadMapDetailPageProps> = ({ id }) => {
             ) : (
               <div className="flex h-32 items-center justify-center rounded-md border-2 border-dashed border-default-200 bg-default-50 flex-col">
                 <p className="text-default-500">Không Có Chủ Đề</p>
-                <Button className='mt-3' variant='ghost' color='primary' onPress={() => {router.push(`/admin/roadmaps/${roadmap?.id}/topics/new`)}}>
+                <Button
+                  className="mt-3"
+                  variant="ghost"
+                  color="primary"
+                  onPress={() => {
+                    router.push(`/admin/roadmaps/${roadmap?.id}/topics/new`);
+                  }}
+                >
                   Chuyển Đến Trang Tạo Chủ Đề Mới
                 </Button>
               </div>

@@ -9,4 +9,5 @@
       .matches(/^(0|\+84)[0-9]{9}$/, 'SĐT không hợp lệ')
       .required('SĐT là bắt buộc'),
     address: yup.string().min(5, 'Địa chỉ quá ngắn').required('Địa chỉ là bắt buộc'),
+    parentEmail: yup.string().email().required('Email là bắt buộc'),
   });

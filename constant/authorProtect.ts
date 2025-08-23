@@ -5,9 +5,13 @@ export enum USER_ROLE {
   ADMIN = 'ADMIN',
   PARENT = 'PARENT',
   ANONYMUS = 'ANONYMUS',
-  
 
   ALL = 'ALL', // This is used for public routes, no need to check role
+}
+
+export enum STUDENT_STATUS {
+  ACTIVATE = 'ACTIVATE',
+  DEACTIVATE = 'DEACTIVATE',
 }
 enum PERMISSION {
   READ = 'READ',
@@ -35,11 +39,10 @@ export const AUTHOR_PROTECT: RouterProtect[] = [
 ];
 
 export const PUBLIC_ROUTES = [
-    "/",
-    "/about",
-    "/contact",
-    "/sign-in",
-    "/sign-up",
-    "/403",
-  ];
-  
+  '/',
+  '/about',
+  '/contact',
+  '/sign-in',
+  '/sign-up',
+  '/403',
+];

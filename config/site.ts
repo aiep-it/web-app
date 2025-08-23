@@ -35,6 +35,12 @@ export const siteConfig = {
       href: "/report/me",
       roleAccess: [USER_ROLE.STUDENT]
     },
+    {
+      label: "My Children",
+      href: "/parent/reports",
+      roleAccess: [USER_ROLE.PARENT]
+    },
+   
   ],
   navMenuItems: [
     {

@@ -143,6 +143,14 @@ const StudentManagementForm: React.FC<Props> = ({ refetchStudents }) => {
                   isInvalid={!!errors.parentPhone}
                   errorMessage={errors.parentPhone?.message}
                 />
+                 <Input
+                  label="Email phụ huynh (Tài khoản đăng nhập)"
+                  placeholder="09xx xxx xxx"
+                  labelPlacement="outside-top"
+                  {...register('parentEmail')}
+                  isInvalid={!!errors.parentEmail}
+                  errorMessage={errors.parentEmail?.message}
+                />
                 <Input
                   label="Địa chỉ"
                   placeholder="123 Đường ABC, Quận XYZ"

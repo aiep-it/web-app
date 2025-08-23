@@ -1,13 +1,13 @@
+import { UserClass } from './class';
+
 export interface UpdateRoleRequest {
   userId: string;
   role: string;
 }
 
 export interface Teacher {
-
-
-// export interface UserData {
-// >>>>>>> 10b7c8cd1f89bba9dec2615d742a1394fae86421
+  // export interface UserData {
+  // >>>>>>> 10b7c8cd1f89bba9dec2615d742a1394fae86421
   id: string;
   clerkId: string;
   email: string;
@@ -26,19 +26,14 @@ export interface Teacher {
   parentPhone?: string;
   password?: string;
   username?: string;
-
 }
 
 export interface UserData {
-
-
-
   id: string;
   clerkId: string;
   email: string;
   firstName: string;
   lastName: string;
-
 
   role: string;
   createdAt: string;
@@ -49,5 +44,30 @@ export interface UserData {
   parentPhone?: string;
   password?: string;
   username?: string;
+}
 
+export interface StudentData extends UserData {
+  status?: string;
+  userClasses: UserClass;
+  _count?: any;
+}
+
+export interface FeedbackData {
+  id: string;
+  studentId: string;
+  teacherId: string;
+  classId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  teacher: {
+    id: string;
+    fullName: string;
+    email: string;
+  };
+  class: {
+    id: string;
+    name: string;
+    code: string;
+  };
 }

@@ -8,10 +8,16 @@ import {
   AddStudentsPayload,
   UserClass,
 } from '../types/class';
+import { Roadmap } from '../types/roadmap';
 
-export async function getAllClasses(query?: { teacherId?: string; search?: string }): Promise<ClassResponse[]> {
+export async function getAllClasses(query?: {
+  teacherId?: string;
+  search?: string;
+}): Promise<ClassResponse[]> {
   try {
-    const res = await axiosInstance.get(ENDPOINTS.CLASS.GET_ALL, { params: query });
+    const res = await axiosInstance.get(ENDPOINTS.CLASS.GET_ALL, {
+      params: query,
+    });
     return res.data;
   } catch (error) {
     console.error('Error fetching classes:', error);
@@ -39,7 +45,10 @@ export async function createClass(payload: ClassPayload): Promise<boolean> {
   }
 }
 
-export async function updateClass(id: string, payload: Partial<ClassPayload>): Promise<boolean> {
+export async function updateClass(
+  id: string,
+  payload: Partial<ClassPayload>,
+): Promise<boolean> {
   try {
     const res = await axiosInstance.put(ENDPOINTS.CLASS.UPDATE(id), payload);
     return res.status === 200;
@@ -59,9 +68,15 @@ export async function deleteClass(id: string): Promise<boolean> {
   }
 }
 
-export async function addTeacherToClass(id: string, payload: AddTeacherPayload): Promise<boolean> {
+export async function addTeacherToClass(
+  id: string,
+  payload: AddTeacherPayload,
+): Promise<boolean> {
   try {
-    const res = await axiosInstance.patch(ENDPOINTS.CLASS.ADD_TEACHER(id), payload);
+    const res = await axiosInstance.patch(
+      ENDPOINTS.CLASS.ADD_TEACHER(id),
+      payload,
+    );
     return res.status === 200;
   } catch (error) {
     console.error('Error adding teacher:', error);
@@ -69,9 +84,15 @@ export async function addTeacherToClass(id: string, payload: AddTeacherPayload):
   }
 }
 
-export async function removeTeacherFromClass(id: string, payload: AddTeacherPayload): Promise<boolean> {
+export async function removeTeacherFromClass(
+  id: string,
+  payload: AddTeacherPayload,
+): Promise<boolean> {
   try {
-    const res = await axiosInstance.patch(ENDPOINTS.CLASS.REMOVE_TEACHER(id), payload);
+    const res = await axiosInstance.patch(
+      ENDPOINTS.CLASS.REMOVE_TEACHER(id),
+      payload,
+    );
     return res.status === 200;
   } catch (error) {
     console.error('Error removing teacher:', error);
@@ -79,18 +100,29 @@ export async function removeTeacherFromClass(id: string, payload: AddTeacherPayl
   }
 }
 
-export async function addStudentsToClass(id: string, payload: AddStudentsPayload): Promise<boolean> {
+export async function addStudentsToClass(
+  id: string,
+  payload: AddStudentsPayload,
+): Promise<boolean> {
   try {
-    const res = await axiosInstance.patch(ENDPOINTS.CLASS.ADD_STUDENTS(id), payload);
+    const res = await axiosInstance.patch(
+      ENDPOINTS.CLASS.ADD_STUDENTS(id),
+      payload,
+    );
     return res.status === 200;
   } catch (error) {
     console.error('Error adding students:', error);
     return false;
   }
 }
-export async function addRoadmapToClass(id: string, roadmapId: string): Promise<boolean> {
+export async function addRoadmapToClass(
+  id: string,
+  roadmapId: string,
+): Promise<boolean> {
   try {
-    const res = await axiosInstance.post(ENDPOINTS.CLASS.ADD_ROADMAP(id), { roadmapId });
+    const res = await axiosInstance.post(ENDPOINTS.CLASS.ADD_ROADMAP(id), {
+      roadmapId,
+    });
     return res.status === 200 || res.status === 201;
   } catch (error) {
     console.error('Error adding roadmap:', error);
@@ -98,9 +130,14 @@ export async function addRoadmapToClass(id: string, roadmapId: string): Promise<
   }
 }
 
-export async function removeStudentFromClass(id: string, studentId: string): Promise<boolean> {
+export async function removeStudentFromClass(
+  id: string,
+  studentId: string,
+): Promise<boolean> {
   try {
-    const res = await axiosInstance.delete(ENDPOINTS.CLASS.REMOVE_STUDENT(id, studentId));
+    const res = await axiosInstance.delete(
+      ENDPOINTS.CLASS.REMOVE_STUDENT(id, studentId),
+    );
     return res.status === 200;
   } catch (error) {
     console.error('Error removing student:', error);
@@ -108,9 +145,14 @@ export async function removeStudentFromClass(id: string, studentId: string): Pro
   }
 }
 
-export async function removeRoadmapFromClass(id: string, roadmapId: string): Promise<boolean> {
+export async function removeRoadmapFromClass(
+  id: string,
+  roadmapId: string,
+): Promise<boolean> {
   try {
-    const res = await axiosInstance.patch(ENDPOINTS.CLASS.REMOVE_ROADMAP(id), { roadmapId });
+    const res = await axiosInstance.patch(ENDPOINTS.CLASS.REMOVE_ROADMAP(id), {
+      roadmapId,
+    });
     return res.status === 200;
   } catch (error) {
     console.error('Error removing roadmap:', error);
@@ -118,7 +160,9 @@ export async function removeRoadmapFromClass(id: string, roadmapId: string): Pro
   }
 }
 
-export async function getMyClass(classId: string): Promise<ClassResponse | null> {
+export async function getMyClass(
+  classId: string,
+): Promise<ClassResponse | null> {
   try {
     const res = await axiosInstance.get(ENDPOINTS.CLASS.MY_CLASS(classId));
     return res.data;
@@ -138,9 +182,11 @@ export async function getMyClasses(): Promise<UserClass[] | null> {
   }
 }
 
-export async function joinClassByCode(classCode: string){
+export async function joinClassByCode(classCode: string) {
   try {
-    const res = await axiosInstance.post(ENDPOINTS.CLASS.JOIN_BY_CODE, { classCode });
+    const res = await axiosInstance.post(ENDPOINTS.CLASS.JOIN_BY_CODE, {
+      classCode,
+    });
     return res.status === 200 || res.status === 201;
   } catch (error) {
     console.error('Error joining class by code:', error);
@@ -148,3 +194,42 @@ export async function joinClassByCode(classCode: string){
   }
 }
 
+export async function sendFeedbackToClass(
+  classId: string,
+  studentId: string,
+  content: string,
+): Promise<boolean> {
+  try {
+    const res = await axiosInstance.post(ENDPOINTS.REPORT.SEND_FEEDBACK, {
+      studentId: studentId,
+      classId: classId,
+      content: content,
+    });
+    return res.status === 200 || res.status === 201;
+  } catch (error) {
+    console.error('Error sending feedback to class:', error);
+    return false;
+  }
+}
+
+export async function getExtendRoadMaps(classId: string): Promise<Roadmap[] | null> {
+  try {
+    const res = await axiosInstance.get(ENDPOINTS.CLASS.EXTEND_ROADMAPS(classId));
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching my classes:', error);
+    return [];
+  }
+}
+
+export async function pickRoadmapIntoClass(classId: string, payload: string[]): Promise<boolean> {
+  try {
+    const res = await axiosInstance.post(ENDPOINTS.CLASS.PICK_ROADMAPS(classId), {
+      roadmapIds: payload,
+    });
+    return res.status === 200 || res.status === 201;
+  } catch (error) {
+    console.error('Error picking roadmap into class:', error);
+    return false;
+  }
+}

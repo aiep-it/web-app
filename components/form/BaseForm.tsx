@@ -74,8 +74,7 @@ const BaseForm: React.FC<BaseFormProps> = ({
         </div>
       ))}
 
-    
-        <div className="flex justify-end pt-4">
+        {/* <div className="flex justify-end pt-4">
           {
             <Button
               type="submit"
@@ -85,7 +84,7 @@ const BaseForm: React.FC<BaseFormProps> = ({
               {isSubmitting ? 'Đang xử lý...' : submitLabel}
             </Button>
           }
-        </div>
+        </div> */}
       
     </form>
   );

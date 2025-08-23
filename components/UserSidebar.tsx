@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { Icon } from "@iconify/react";
 import { Logo } from '@/components/icons';
 import { siteConfig } from "@/config/site";
-import { USER_ROLE } from '@/constant/authorProtect';
+import { STUDENT_STATUS, USER_ROLE } from '@/constant/authorProtect';
 import { useAuth } from '@clerk/nextjs';
 
 interface UserSidebarProps {
@@ -20,6 +20,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ isExpanded, onToggle }) => {
   useEffect(() => {
     interface Metadata {
       role?: string;
+      status?: string;
     }
 
     const metadata = sessionClaims?.metadata as Metadata;
@@ -27,14 +28,16 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ isExpanded, onToggle }) => {
     if (metadata?.role) {
       const role = metadata.role.toUpperCase() as USER_ROLE;
 
+      const status = metadata?.status?.toUpperCase() || STUDENT_STATUS.ACTIVATE;
+
       const accessibleRouters = siteConfig.navItems.filter((item) => {
         if (
           !item.roleAccess ||
           (Array.isArray(item.roleAccess) &&
-            item.roleAccess.includes(USER_ROLE.ALL))
+            item.roleAccess.includes(USER_ROLE.ALL)  )
         )
           return true; // Public routes
-        return item.roleAccess.includes(role);
+        return item.roleAccess.includes(role) && status === STUDENT_STATUS.ACTIVATE;
       });
 
       setSideRouters(accessibleRouters);
@@ -114,6 +117,8 @@ function getIconForNavItem(label: string): string {
     'Help & Feedback': 'lucide:help-circle',
     'Logout': 'lucide:log-out',
     // Add other mappings if needed
+    'My Children': 'lucide:chart-bar-increasing',
+    'Feedback': 'lucide:message-circle-warning',
   };
   
   return iconMap[label] || 'lucide:circle';

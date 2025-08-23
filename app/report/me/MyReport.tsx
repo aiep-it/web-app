@@ -4,6 +4,7 @@ import ChartsSection from '@/components/Report/ChartsSection';
 import ExerciseTable from '@/components/Report/ExerciseTable';
 import Overview from '@/components/Report/Overview';
 import VocabTable from '@/components/Report/VocabTable';
+import { getChildReport } from '@/services/parents';
 import { getSelfReport } from '@/services/report';
 import {
   ExerciseReportItem,
@@ -14,16 +15,23 @@ import { Card, CardBody, CardHeader, Divider } from '@heroui/react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
-
-const MyReport = () => {
+interface MyReportProps {
+  stdId?: string;
+}
+const MyReport = ({ stdId }: MyReportProps) => {
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [excercise, setExcercise] = useState<ExerciseReportItem[]>([]);
   const [vocabs, setVocabs] = useState<VocabReportItems[]>([]);
   const fetchSelfReport = async () => {
-    const res = await getSelfReport();
+    let res = null;
+
+    if (stdId) {
+      res = await getChildReport(stdId);
+    } else {
+      res = await getSelfReport();
+    }
 
     if (res) {
-     
       setReportData({ ...res });
     } else {
       toast.error('Fail to fetch Report');
@@ -67,7 +75,9 @@ const MyReport = () => {
       <Card className="max-w-6xl mx-auto">
         <CardHeader>
           <h1 className="text-2xl font-bold text-foreground">
-            My Report Progress
+            {
+              stdId ? `Report for Student` : 'My Report'
+            }
           </h1>
         </CardHeader>
         <CardBody>

@@ -66,7 +66,7 @@ const ListTopicClass: React.FC<ListTopicClassProps> = ({
       setClassTopicReportLoading(true);
       setTopic(topic);
       await getClassTopicIdReport(classId, topic.id);
-      
+
       setClassTopicReportLoading(false);
     }
   };
@@ -161,7 +161,7 @@ const ListTopicClass: React.FC<ListTopicClassProps> = ({
           })}
         </TableBody>
       </Table>
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='3xl'>
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="3xl">
         <ModalContent>
           {(onClose) => (
             <>
@@ -190,42 +190,40 @@ const ListTopicClass: React.FC<ListTopicClassProps> = ({
                           </TableCell>
                           <TableCell>
                             {report.exerciseSummary ? (
-                               <Progress
-                               aria-label="Downloading..."
-                               className="max-w-md"
-                               color="success"
-                               showValueLabel={true}
-                               size="md"
-                               value={calculePercentage(
-                                report.exerciseSummary.exerciseSuccessRate ||
-                                  0,
-                                report.exerciseSummary
-                                  .totalExercisesAttempted || 0,
-                              )}
-                             />
-                             
+                              <Progress
+                                aria-label="Downloading..."
+                                className="max-w-md"
+                                color="success"
+                                showValueLabel={true}
+                                size="md"
+                                value={calculePercentage(
+                                  report.exerciseSummary.exerciseSuccessRate ||
+                                    0,
+                                  report.exerciseSummary
+                                    .totalExercisesAttempted || 0,
+                                )}
+                              />
                             ) : (
                               '-'
                             )}
                           </TableCell>
-                          <TableCell>{report.vocabSummary ? (
-                               <Progress
-                               aria-label="Downloading..."
-                               className="max-w-md"
-                               color="success"
-                               showValueLabel={true}
-                               size="md"
-                               value={calculePercentage(
-                                report.vocabSummary.learnedVocabCount ||
-                                  0,
-                                report.vocabSummary
-                                  .totalVocabCount || 0,
-                              )}
-                             />
-                             
+                          <TableCell>
+                            {report.vocabSummary ? (
+                              <Progress
+                                aria-label="Downloading..."
+                                className="max-w-md"
+                                color="success"
+                                showValueLabel={true}
+                                size="md"
+                                value={calculePercentage(
+                                  report.vocabSummary.learnedVocabCount || 0,
+                                  report.vocabSummary.totalVocabCount || 0,
+                                )}
+                              />
                             ) : (
                               '-'
-                            )}</TableCell>
+                            )}
+                          </TableCell>
                         </TableRow>
                       ))
                     ) : (
@@ -239,12 +237,16 @@ const ListTopicClass: React.FC<ListTopicClassProps> = ({
                 </Table>
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={() => {
-                  setTopic(null);
-                  setClassTopicReport([]);
+                <Button
+                  color="danger"
+                  variant="light"
+                  onPress={() => {
+                    setTopic(null);
+                    setClassTopicReport([]);
 
-                  onClose();
-                }}>
+                    onClose();
+                  }}
+                >
                   Close
                 </Button>
               </ModalFooter>

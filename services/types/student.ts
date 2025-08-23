@@ -5,6 +5,7 @@ export type Student = {
   fullName: string;
   parentName: string;
   parentPhone: string;
+  parentEmail?: string;
   address: string;
   username: string;
   createdAt: string;
@@ -15,4 +16,5 @@ export type StudentPayload = {
   parentName: string;
   parentPhone: string;
   address: string;
+  parentEmail: string;
 };
