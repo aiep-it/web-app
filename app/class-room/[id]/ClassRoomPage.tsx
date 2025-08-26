@@ -334,6 +334,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
                       <TableColumn key={column.key}>{column.label}</TableColumn>
                     )}
                   </TableHeader>
+                  
                   <TableBody items={extendsRoadmaps}>
                     {(item) => (
                       <TableRow key={item.id}>
