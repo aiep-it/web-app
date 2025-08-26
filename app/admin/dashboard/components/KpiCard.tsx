@@ -9,7 +9,7 @@ type KpiCardProps = {
   label: string;
   value: string;
   sub?: string;
-  /** chọn tông màu điểm nhấn */
+
   accent?: "blue" | "green" | "purple" | "orange";
 };
 

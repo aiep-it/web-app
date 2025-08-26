@@ -8,8 +8,8 @@ import { Icon } from "@iconify/react";
 type RoleItem = { name: string; value: number; percent?: number };
 type ApiResp = { total: number; data: RoleItem[]; generatedAt?: string };
 
-const RAW_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:3001";
-const API_BASE = RAW_BASE.replace(/\/$/, ""); // bỏ "/" cuối nếu có
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:3001";
 const COLORS = ["#6366F1","#22C55E","#F59E0B","#EF4444","#06B6D4","#A855F7","#84CC16","#F97316"];
 
 export type RoleDistributionCardProps = {
@@ -56,7 +56,7 @@ export default function RoleDistributionCard({
     return () => ac.abort();
   }, [fetchData, refreshKey]);
 
-  // Nếu BE không trả percent thì tính tạm ở FE
+
   const chartData = useMemo(() => {
     if (!data) return [];
     if (data.length && data[0].percent !== undefined) return data;
@@ -64,7 +64,7 @@ export default function RoleDistributionCard({
     return data.map(d => ({ ...d, percent: t ? +(d.value * 100 / t).toFixed(2) : 0 }));
   }, [data, total]);
 
-  // Formatter cho tooltip (value + %)
+
   const tooltipFormatter = (value: number, _name: string, item: any) => {
     const pct = item?.payload?.percent ?? 0;
     return [`${value} (${pct}%)`, item?.payload?.name];
