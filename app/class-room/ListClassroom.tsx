@@ -16,6 +16,7 @@ const ListClassroom = () => {
   const [classCode, setClassCode] = React.useState("");
 
   const [classes, setClasses] = React.useState<UserClass[]>([]);
+  
   const fetchAllMyClasses = async () => {
     setIsLoading(true);
     const res = await getMyClasses();
