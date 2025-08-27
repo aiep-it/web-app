@@ -5,18 +5,18 @@ import { Card, CardHeader, CardBody, Button, Chip, Skeleton } from "@heroui/reac
 import { PieChart, Pie, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { Icon } from "@iconify/react";
 
-type RoleItem = { name: string; value: number; percent?: number };
+import { getRoleDistribution } from "@/services/stats";
+import type { RangeKey, RoleItem } from "@/services/types/stats";
+
 type ApiResp = { total: number; data: RoleItem[]; generatedAt?: string };
 
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:3001";
 const COLORS = ["#6366F1","#22C55E","#F59E0B","#EF4444","#06B6D4","#A855F7","#84CC16","#F97316"];
 
 export type RoleDistributionCardProps = {
   title?: string;
   height?: number | string; // 280 | "280px"
   className?: string;
-  range?: "7d" | "30d" | "90d" | "365d";
+  range?: RangeKey;
 };
 
 export default function RoleDistributionCard({
@@ -36,15 +36,20 @@ export default function RoleDistributionCard({
     setLoading(true);
     setError(null);
     try {
-      const url = `${API_BASE}/stats/users/role-distribution?range=${range}`;
-      const res = await fetch(url, { signal, cache: "no-store", headers: { Accept: "application/json" } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json: ApiResp = await res.json();
-      setData(json.data || []);
-      setTotal(json.total || 0);
-      setUpdatedAt(json.generatedAt ?? null);
+      const json = await getRoleDistribution(range, signal);
+      if (!json) {
+        setData([]);
+        setTotal(0);
+        setUpdatedAt(null);
+      } else {
+        setData(json.data || []);
+        setTotal(json.total || 0);
+        setUpdatedAt(json.generatedAt ?? null);
+      }
     } catch (e: any) {
-      if (e?.name !== "AbortError") setError(e?.message || "Lỗi không xác định");
+      if (e?.name !== "CanceledError" && e?.name !== "AbortError") {
+        setError(e?.message || "Lỗi không xác định");
+      }
     } finally {
       setLoading(false);
     }
@@ -56,14 +61,11 @@ export default function RoleDistributionCard({
     return () => ac.abort();
   }, [fetchData, refreshKey]);
 
-
   const chartData = useMemo(() => {
     if (!data) return [];
-    if (data.length && data[0].percent !== undefined) return data;
     const t = total || data.reduce((s, d) => s + d.value, 0);
     return data.map(d => ({ ...d, percent: t ? +(d.value * 100 / t).toFixed(2) : 0 }));
   }, [data, total]);
-
 
   const tooltipFormatter = (value: number, _name: string, item: any) => {
     const pct = item?.payload?.percent ?? 0;
@@ -85,9 +87,17 @@ export default function RoleDistributionCard({
         <Button
           size="sm"
           variant="flat"
-          startContent={<Icon icon="mdi:refresh" width={18} height={18} />}
+          startContent={
+            <Icon
+              icon="mdi:refresh"
+              width={18}
+              height={18}
+              className={loading ? "animate-spin" : ""}
+            />
+          }
           isDisabled={loading}
           onPress={() => setRefreshKey(k => k + 1)}
+          aria-busy={loading}
         >
           Làm mới
         </Button>
@@ -99,11 +109,19 @@ export default function RoleDistributionCard({
             <Skeleton className="h-full w-full rounded-xl" />
           </div>
         ) : error ? (
-          <div style={{ height }} className="flex w-full items-center justify-center text-sm text-danger">
+          <div
+            style={{ height }}
+            className="flex w-full items-center justify-center text-sm text-danger"
+            aria-live="polite"
+          >
             Lỗi tải dữ liệu: {error}
           </div>
         ) : !chartData.length ? (
-          <div style={{ height }} className="flex w-full items-center justify-center text-sm text-foreground-500">
+          <div
+            style={{ height }}
+            className="flex w-full items-center justify-center text-sm text-foreground-500"
+            aria-live="polite"
+          >
             Không có dữ liệu
           </div>
         ) : (
