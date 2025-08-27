@@ -100,11 +100,12 @@ export default class UserWithClerkTables extends React.Component<{}, State> {
               <ModalBody>
                 <div>Email: <b>{selectedUser?.email}</b></div>
                 <Select selectedKeys={newRole} onSelectionChange={(keys) => this.setState({ newRole: new Set(keys as Set<string>) })}>
-                  <SelectItem key="admin">Admin</SelectItem>
+                
                   <SelectItem key="teacher">Teacher</SelectItem>
-                  <SelectItem key="ANONYMUS">ANONYMUS</SelectItem>
+                  
                   <SelectItem key="staff">Staff</SelectItem>
                   <SelectItem key="student">Student</SelectItem>
+                  <SelectItem key="ANONYMUS">XÓA QUYỀN</SelectItem>
                 </Select>
               </ModalBody>
               <ModalFooter>
