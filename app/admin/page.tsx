@@ -7,19 +7,39 @@ import { useUser } from "@clerk/nextjs";
 
 export default function LoginSuccessPage() {
   const router = useRouter();
-  const {  user } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
+
 
   const name = useMemo(
     () => (user?.firstName?.trim() ? user.firstName : user?.username || "ADMIN"),
     [user]
   );
   const imageUrl = user?.imageUrl ?? undefined;
+  const role = useMemo<string>(() => {
+    const pub = (user?.publicMetadata as any)?.role; 
+    const unsafe = (user?.unsafeMetadata as any)?.role;
+    return (pub  || unsafe || "user") as string;
+  }, [user]);
+
+  const target = useMemo(() => {
+    const r = role?.toLowerCase();
+    if (r === "admin") return "/admin/dashboard";
+    if (r === "staff") return "/admin/usermanage";
+    return "/";
+  }, [role]);
 
   const [val, setVal] = useState(0);
 
   useEffect(() => {
+    if (!isLoaded) return;
+
+    if (!isSignedIn) {
+      router.replace("/sign-in");
+      return;
+    }
+
     let v = 0;
-    const durationMs = 1200;
+    const durationMs = 900;
     const fps = 60;
     const tick = 1000 / fps;
     const step = 100 / (durationMs / tick);
@@ -31,16 +51,17 @@ export default function LoginSuccessPage() {
 
     const done = setTimeout(() => {
       clearInterval(id);
-      router.replace("admin/dashboard");
+      router.replace(target);
     }, durationMs + 180);
 
     return () => {
       clearInterval(id);
       clearTimeout(done);
     };
-  }, [ router]);
+  }, [isLoaded, isSignedIn, router, target]);
 
- 
+  if (!isLoaded) return null;
+
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-6">
       <Card className="w-full max-w-4xl rounded-3xl shadow-2xl">
@@ -56,7 +77,15 @@ export default function LoginSuccessPage() {
                 !
               </p>
               <p className="mt-1 text-lg text-default-500">
-                Đăng nhập thành công — đang vào Dashboard…
+                Đăng nhập thành công — đang vào{" "}
+                <span className="font-semibold">
+                  {role?.toLowerCase() === "admin"
+                    ? "Dashboard quản trị"
+                    : role?.toLowerCase() === "staff"
+                    ? "Quản lý người dùng"
+                    : "Dashboard"}
+                </span>
+                …
               </p>
             </div>
           </div>
@@ -70,7 +99,7 @@ export default function LoginSuccessPage() {
               size="lg"
               className="relative"
               classNames={{
-                base: "h-6 rounded-full", 
+                base: "h-6 rounded-full",
                 track:
                   "rounded-full bg-default-200/70 dark:bg-default-100/40 backdrop-blur",
                 indicator:
@@ -79,6 +108,8 @@ export default function LoginSuccessPage() {
               showValueLabel={false}
             />
           </div>
+
+         
         </CardBody>
       </Card>
 
