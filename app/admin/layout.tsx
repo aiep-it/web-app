@@ -2,20 +2,19 @@
 
 import { ThemeProvider } from 'next-themes';
 import React, { useState } from 'react';
-import AdminSidebar from '../../components/AdminSidebar'; // Giữ nguyên đường dẫn này
+import AdminSidebar from '../../components/AdminSidebar'; 
 import { Icon } from '@iconify/react';
-import CBreadcrumbs from '@/components/CBreadcrumbs'; // Từ phiên bản thứ hai
-// import { SideNav } from "@/components/SideNavs"; // Không sử dụng nếu dùng AdminSidebar
-// import { Button } from "@heroui/button"; // Không sử dụng nếu không cần Button từ heroui
+import CBreadcrumbs from '@/components/CBreadcrumbs'; 
+
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [isExpanded, setIsExpanded] = useState(true); // Từ phiên bản HEAD
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Có trong cả hai, giữ lại và quản lý nhất quán
+  const [isExpanded, setIsExpanded] = useState(true); 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); 
 
   return (
-    <ThemeProvider attribute="class"> {/* Từ phiên bản HEAD */}
+    <ThemeProvider attribute="class"> 
       <div className="min-h-screen flex bg-gray-100 dark:bg-black">
-        {/* Overlay mobile */}
+     
         {isMobileMenuOpen && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
@@ -29,13 +28,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
           } md:translate-x-0`}
         >
-          {/* Sử dụng AdminSidebar và truyền props isExpanded, onToggle */}
+         
           <AdminSidebar isExpanded={isExpanded} onToggle={() => setIsExpanded(!isExpanded)} />
         </div>
 
         {/* Content */}
         <div className="flex-grow flex flex-col">
-          {/* Mobile Header - Từ phiên bản HEAD */}
+        
           <header className="bg-white dark:bg-gray-800 p-4 flex justify-between items-center md:hidden">
             <h1 className="text-xl font-bold">Admin Panel</h1>
             <button
@@ -47,7 +46,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </header>
 
           <main className="flex-grow p-6 overflow-auto">
-            <CBreadcrumbs /> {/* Từ phiên bản thứ hai */}
+            <CBreadcrumbs />
             {children}
           </main>
         </div>
