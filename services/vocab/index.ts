@@ -3,6 +3,7 @@ import {
   VocabPayload,
   VocabListResponse,
   VocabData,
+  AIImageResponse,
 } from '../types/vocab';
 
 import { ENDPOINTS } from '@/constant/api';
@@ -146,6 +147,31 @@ export async function aiGenerate(topicId: string) {
     console.error('Error fetching vocabs:', error);
 
     return [];
+  }
+}
+
+export async function genImageFromText(prompt: string): Promise<AIImageResponse | null> {
+  try {
+    return await axiosInstance
+      .post(ENDPOINTS.AI.GEN_IMAGE_FROM_TEXT, {
+        prompt,
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          return response.data?.data as AIImageResponse;
+        }
+
+        return null;
+      })
+      .catch((e) => {
+        console.error('Error generating image from text:', e);
+
+        return null;
+      });
+  } catch (error) {
+    console.error('Error generating image from text:', error);
+
+    return null;
   }
 }
 

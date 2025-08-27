@@ -1,6 +1,8 @@
 'use client';
 import {
   addToast,
+  Avatar,
+  Badge,
   Button,
   Chip,
   Divider,
@@ -8,12 +10,14 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
+  Image,
   Modal,
   ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
   Pagination,
+  Spinner,
   Tooltip,
   useDisclosure,
   User,
@@ -43,6 +47,7 @@ import {
   updateVocab,
   aiGenerate,
   bulkVocabs,
+  genImageFromText,
 } from '@/services/vocab';
 import CImageUpload from '@/components/CImageUpload';
 import { uploadFile } from '@/services/cms';
@@ -51,6 +56,7 @@ import { TopicData } from '@/services/types/topic';
 import { get } from 'http';
 import AudioPlayButton from '@/components/AudioPlayButton';
 import { getCmsAssetUrl } from '@/utils';
+import { set } from 'react-hook-form';
 
 interface VocabularyListPageProps {
   topic?: TopicData;
@@ -63,6 +69,14 @@ const vocabColumns = [
   { uid: 'audio', name: 'Audio', sortable: false },
 
   { uid: 'actions', name: 'Actions', sortable: false },
+];
+
+const vocabColumnAIs = [
+  { uid: 'word', name: 'Word', sortable: true },
+  { uid: 'meaning', name: 'Meaning', sortable: false },
+  { uid: 'example', name: 'Example', sortable: false },
+  { uid: 'image', name: 'Image', sortable: false },
+  { uid: 'audio', name: 'Audio', sortable: false },
 ];
 
 export const VerticalDotsIcon = ({ size = 24, ...props }) => {
@@ -115,6 +129,7 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
     is_know: false,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFileToChange, setImageFileToChange] = useState<File | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -127,7 +142,51 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
     new Set<Key>(),
   );
 
+  const [selectedVocabUploadImage, setSelectedVocabUploadImage] =
+    useState<VocabData | null>(null);
+
   const vocabColumnsAI = [...vocabColumns];
+
+  const [loadingImageIds, setLoadingImageIds] = useState<Set<number>>(
+    new Set(),
+  );
+
+  const handleImageAI = async (vocab: VocabData) => {
+    if (vocab._index !== undefined) {
+      console.log('Generating image for vocab index:', vocab._index);
+      setLoadingImageIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.add(vocab._index!);
+        return newSet;
+      });
+    }
+    try {
+      const res = await genImageFromText(vocab.example || vocab.word);
+      if (res && res.directusFileId) {
+        setAiVocabs((prev) => {
+          if (!prev) return prev;
+          const newVocabs = prev.map((v) =>
+            v._index === vocab._index
+              ? { ...v, imageUrl: getCmsAssetUrl(res.directusFileId) }
+              : v,
+          );
+          return newVocabs;
+        });
+      }
+    } catch (e) {
+      addToast({
+        title: 'Error',
+        description: `Failed to generate image! Please try again!`,
+        color: 'danger',
+      });
+    } finally {
+      setLoadingImageIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(vocab._index || 0);
+        return newSet;
+      });
+    }
+  };
 
   const fetchListVocabs = async () => {
     try {
@@ -169,6 +228,12 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
     onOpenChange: onAIOpenChange,
   } = useDisclosure();
 
+  const {
+    isOpen: openUploadImage,
+    onOpen: setOpenUploadImage,
+    onOpenChange: onUploadImageChange,
+  } = useDisclosure();
+
   const getEmptyVocabData = (): VocabData => ({
     id: '',
     topicId: '',
@@ -186,7 +251,6 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
   useEffect(() => setHydrated(true), []);
 
   useEffect(() => {
-    // Only fetch data when Clerk is loaded, user is authenticated and role is loaded
     if (
       isLoaded &&
       isSignedIn &&
@@ -195,7 +259,6 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
     ) {
       fetchListVocabs();
     } else {
-   
     }
   }, [vocabPayload, isLoaded, isSignedIn, isRoleLoading, userRole]);
   const checkMedia = async (mediaUrl: string) => {
@@ -208,8 +271,8 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
       return false;
     }
   };
+
   const renderCell = (item: VocabData, key: string) => {
-  
     if (key === 'actions') {
       return (
         <div className="relative flex justify-end items-center gap-2">
@@ -271,29 +334,77 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
     }
 
     if (key === 'image') {
+      const isLoading =
+        item._index !== undefined && loadingImageIds.has(item._index);
+
+      if (isLoading) {
+        return (
+          <Spinner
+            classNames={{ label: 'text-foreground mt-4' }}
+            variant="wave"
+          />
+        );
+      }
+
       return (
         <div className="flex w-full items-center justify-center'">
           {item.imageUrl ? (
-            <img
-              src={
-                item.imageUrl.startsWith('https')
-                  ? item.imageUrl
-                  : getCmsAssetUrl(item.imageUrl)
-              }
-              alt={item.word}
-              className="w-full h-16 object-cover rounded-lg shadow-sm"
-            />
+            <Badge
+              color="danger"
+              content={<Icon icon="lucide:x" />}
+              size="sm"
+              className="cursor-pointer"
+              onClick={() => {
+                setAiVocabs((prev) => {
+                  if (!prev) return prev;
+                  const newVocabs = prev.map((v) =>
+                    v._index === item._index ? { ...v, imageUrl: '' } : v,
+                  );
+                  return newVocabs;
+                });
+              }}
+            >
+              {/* <Image
+                alt="HeroUI hero Image"
+                src={
+                  item.imageUrl.startsWith('https')
+                    ? item.imageUrl
+                    : getCmsAssetUrl(item.imageUrl)
+                }
+                className="w-full h-16 object-cover rounded-lg shadow-sm border border-gray-200"
+              /> */}
+              <img
+                src={
+                  item.imageUrl.startsWith('https')
+                    ? item.imageUrl
+                    : getCmsAssetUrl(item.imageUrl)
+                }
+                alt={item.word}
+                className="w-full h-16 object-cover rounded-lg shadow-sm"
+              />
+            </Badge>
           ) : (
-            <div className='flex items-center justify-center'>
-              {/* <span className="text-default-400">No Image</span> */}
-              <Tooltip content="Upload">
-                <Button isIconOnly startContent={<Icon icon="lucide:upload" />} size="sm" variant="light" />
-              </Tooltip>
+            <div className="flex items-center justify-center">
+              {/* <Tooltip content="Upload">
+                <Button
+                  isIconOnly
+                  startContent={<Icon icon="lucide:upload" />}
+                  size="sm"
+                  onPress={() => {
+                    setOpenUploadImage();
+                    setSelectedVocabUploadImage(item);
+                  }}
+                  variant="light"
+                />
+              </Tooltip> */}
               <Tooltip content="AI Generate">
-                <Button isIconOnly startContent={<Icon icon="lucide:bot" />} size="sm" variant="light" />
-              </Tooltip>
-              <Tooltip content="Simple Words">
-                <Button isIconOnly startContent={<Icon icon="lucide:case-upper" />} size="sm" variant="light" />
+                <Button
+                  isIconOnly
+                  startContent={<Icon icon="lucide:bot" />}
+                  size="sm"
+                  variant="light"
+                  onPress={() => handleImageAI(item)}
+                />
               </Tooltip>
             </div>
           )}
@@ -303,12 +414,12 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
 
     if (key === 'audio') {
       const audioSrc = item.audioUrl?.startsWith('https')
-      ? item.audioUrl
-      : getCmsAssetUrl(item.audioUrl);
+        ? item.audioUrl
+        : getCmsAssetUrl(item.audioUrl);
       return (
         <div className="flex">
           {item.audioUrl ? (
-           <AudioPlayButton src={audioSrc} />
+            <AudioPlayButton src={audioSrc} />
           ) : (
             <span className="text-default-400">No Audio</span>
           )}
@@ -385,9 +496,10 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
   }, [selectedKeys, vocabsList?.page]);
 
   const handleSubmit = async () => {
+    console.log('Submitting form with state:', formState);
     let res: VocabData;
-    let imageUrl = '';
-    let audioUrl = '';
+    let imageUrl = formState.imageUrl || '';
+    let audioUrl = formState.audioUrl || '';
     setIsSubmitting(true);
     try {
       if (activeModal.type === 'delete') {
@@ -503,7 +615,6 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
       const res = await aiGenerate(topic.id);
 
       if (res && res.data) {
-     
         const vocabs = res.data.map((item: any, index: number) => ({
           ...item,
           _index: index,
@@ -526,19 +637,15 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
     setSelectedKeysAI(new Set<Key>());
   };
 
-  const handleInsertVocabs = async (onCloseModal: () => void) => {
-    
+  const handleInsertVocabs = async () => {
     let payloadInsert: VocabData[] = [];
-    if(selectedKeysAI === 'all'){
-      payloadInsert =aiVocabs ? [...aiVocabs]: [];
-    }
-    else if (selectedKeysAI.size > 0) {
-      payloadInsert = aiVocabs?.filter((vocab) =>
-        {
-          return selectedKeysAI.has(vocab._index?.toString() as Key)
-        },
-      ) ?? [];
-
+    if (selectedKeysAI === 'all') {
+      payloadInsert = aiVocabs ? [...aiVocabs] : [];
+    } else if (selectedKeysAI.size > 0) {
+      payloadInsert =
+        aiVocabs?.filter((vocab) => {
+          return selectedKeysAI.has(vocab._index?.toString() as Key);
+        }) ?? [];
     }
 
     if (payloadInsert.length !== 0) {
@@ -550,6 +657,11 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
       const res = await bulkVocabs(payload);
 
       if (res) {
+        setAiVocabs((prev) =>
+          prev?.filter(
+            (vocab) => !payloadInsert.some((p) => p._index === vocab._index),
+          ),
+        );
         addToast({
           title: 'Notification',
           description: `Inserted ${payload.length} vocabularies successfully!`,
@@ -563,9 +675,9 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
           color: 'danger',
         });
       }
-      onCloseModal();
+      onAIOpenChange();
     }
-  }
+  };
   return (
     <div className="min-h-screen dark:bg-black-10 text-foreground p-6">
       {}
@@ -594,6 +706,7 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
       </div>
 
       <CTable<VocabData>
+        key={Array.from(loadingImageIds).join(',')}
         bottomContent={bottomContent}
         columns={vocabColumns}
         data={vocabsList?.content ?? []}
@@ -676,7 +789,10 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
                 initialUrl={activeModal.vocab?.imageUrl}
                 onSelect={(file) => setImageFile(file)}
               />
-              <CAudioUpload onSelect={(file) => setAudioFile(file)} />
+              <CAudioUpload
+                currentAudioUrl={activeModal.vocab?.audioUrl}
+                onSelect={(file) => setAudioFile(file)}
+              />
             </div>
             <div className="w-1/2">
               <BaseForm fields={fields} onSubmit={() => {}} isFooter={false} />
@@ -708,7 +824,8 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
               <ModalBody>
                 <div className="w-full">
                   <CTable<VocabData>
-                    columns={vocabColumns}
+                    key={Array.from(loadingImageIds).join(',')}
+                    columns={vocabColumnAIs}
                     data={aiVocabs ?? []}
                     isLoading={isLoading}
                     loadingContent="Loading AI generated vocabularies..."
@@ -732,11 +849,39 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
                 >
                   Clear
                 </Button>
-                <Button color="primary" onPress={() => {
-                  handleInsertVocabs(onClose);
-           
-                }}>
+                <Button
+                  color="primary"
+                  onPress={() => {
+                    handleInsertVocabs();
+                  }}
+                >
                   Add Selected
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={openUploadImage} onOpenChange={onUploadImageChange}>
+        <ModalContent>
+          {(onCloseModal) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Change Image For {selectedVocabUploadImage?.word}
+              </ModalHeader>
+              <ModalBody>
+                <CImageUpload
+                  initialUrl={selectedVocabUploadImage?.imageUrl}
+                  onSelect={(file) => setImageFile(file)}
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onCloseModal}>
+                  Close
+                </Button>
+                <Button color="primary" onPress={onCloseModal}>
+                  Action
                 </Button>
               </ModalFooter>
             </>

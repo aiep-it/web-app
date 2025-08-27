@@ -69,6 +69,8 @@ export const ENDPOINTS = {
     JOIN_BY_CODE: `/class/join-by-code`,
     EXTEND_ROADMAPS: (classId: string) => `/teachers/roadmaps/by-class/${classId}`,
     PICK_ROADMAPS: (classId: string) => `/teachers/classes/${classId}/roadmaps`,
+
+    GET_FEEDBACK: (stdId: string, classId: string) => `/teachers/feedback/students/${stdId}/classes/${classId}`,
   },
   EXERCISE: {
     GET_ALL: '/exercises',
@@ -87,6 +89,7 @@ export const ENDPOINTS = {
   AI: {
     GEN_FROM_IMAGE: '/ai/personal-learning',
     AI_SUGGEST_QUIZ: '/ai/suggest-quiz',
+    GEN_IMAGE_FROM_TEXT: '/ai/generate-image-from-prompt',
   },
   PERSONAL_LEARNING: {
     CREATE: '/personal-learning/create',

@@ -21,34 +21,22 @@ import {
   Input,
   Spacer,
   Skeleton,
-  Kbd,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 
 import EmptySection from '@/components/EmptySection';
 import { getMyChildrens, getFeedback } from '@/services/parents';
+import { sendFeedbackToClass } from '@/services/class';
 import type { StudentData, FeedbackData } from '@/services/types/user';
 
 // ---- Color & label maps
-const statusColorMap: Record<string, 'success' | 'danger' | 'default' | 'primary' | 'warning' | 'secondary'> = {
-  ACTIVATE: 'success',
-  DEACTIVATE: 'danger',
-};
-const statusLabelMap: Record<string, string> = {
-  ACTIVATE: 'Active',
-  DEACTIVATE: 'Deactive',
-};
-const classLevelColorMap: Record<string, 'primary' | 'success' | 'warning' | 'secondary' | 'danger' | 'default'> = {
-  STARTERS: 'primary',
-  MOVERS: 'success',
-  FLYERS: 'warning',
-};
+const statusColorMap = { ACTIVATE: 'success', DEACTIVATE: 'danger' } as const;
+const statusLabelMap: Record<string, string> = { ACTIVATE: 'Active', DEACTIVATE: 'Deactive' };
+const classLevelColorMap = { STARTERS: 'primary', MOVERS: 'success', FLYERS: 'warning' } as const;
 
-// ---- Helper to normalize userClasses
-const normalizeClasses = (uc: unknown) => {
-  return Array.isArray(uc) ? uc : uc ? [uc] : [];
-};
+// ---- Helper to normalize userClasses to an array
+const normalizeClasses = (uc: unknown) => (Array.isArray(uc) ? uc : uc ? [uc] : []);
 
 export default function ChildrenCardsView() {
   const router = useRouter();
@@ -57,10 +45,31 @@ export default function ChildrenCardsView() {
   const [children, setChildren] = useState<StudentData[]>([]);
   const [query, setQuery] = useState('');
 
+  // Logic lấy theo chuẩn bạn đưa: feedback grouped-by-class + gửi feedback theo class
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
-  const [feedbacks, setFeedbacks] = useState<FeedbackData[]>([]);
+  const [listFeedBackSelected, setListFeedBackSelected] = useState<FeedbackData[]>([]);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [inputValues, setInputValues] = useState<Record<string, string>>({}); // key = classId
+
+  const handleChange = (classId: string, value: string) => {
+    setInputValues((prev) => ({ ...prev, [classId]: value }));
+  };
+
+  const handleSend = async (classId: string) => {
+    const message = inputValues[classId]?.trim();
+    if (!message || !selectedStudent) return;
+    await sendFeedbackToClass(classId, selectedStudent.id, message);
+    setInputValues((prev) => ({ ...prev, [classId]: '' }));
+    // refresh list sau khi gửi
+    setFeedbackLoading(true);
+    try {
+      const res = await getFeedback(selectedStudent.id);
+      setListFeedBackSelected(res || []);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
 
   // ---- Fetch children on mount
   const fetchChildren = useCallback(async () => {
@@ -91,14 +100,13 @@ export default function ChildrenCardsView() {
     });
   }, [children, query]);
 
-  // ---- Feedback modal logic
   const openFeedbackModal = async (student: StudentData) => {
     setSelectedStudent(student);
     setIsModalOpen(true);
     setFeedbackLoading(true);
     try {
-      const res = await getFeedback(student.id);
-      setFeedbacks(res || []);
+      const res = await getFeedback(student.id); // expect FeedbackData[]: grouped by class
+      setListFeedBackSelected(res || []);
     } finally {
       setFeedbackLoading(false);
     }
@@ -107,18 +115,13 @@ export default function ChildrenCardsView() {
   const closeFeedbackModal = () => {
     setIsModalOpen(false);
     setSelectedStudent(null);
-    setFeedbacks([]);
+    setListFeedBackSelected([]);
+    setInputValues({});
   };
 
-  // ---- Card UI for one student (BIGGER & MORE IMPACTFUL)
+  // ---- Card UI for one student (BIGGER & IMPACTFUL)
   const StudentCard: React.FC<{ s: StudentData }> = ({ s }) => {
-    const initials = (s.fullName || s.username || 'U')
-      .split(' ')
-      .map((t) => t[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
-
+    const initials = (s.fullName || s.username || 'U').split(' ').map((t) => t[0]).join('').slice(0, 2).toUpperCase();
     const classesArr = normalizeClasses(s.userClasses);
     const classCount = classesArr.length;
     const feedbackCount = s._count?.feedbackReceived || 0;
@@ -132,16 +135,10 @@ export default function ChildrenCardsView() {
         {/* Cover / Banner */}
         <CardHeader className="relative p-0">
           <div className="h-24 w-full bg-gradient-to-r from-indigo-500/20 via-fuchsia-500/20 to-cyan-500/20" />
-          <Avatar
-            isBordered
-            radius="lg"
-            name={initials}
-            className="absolute left-5 -bottom-7 size-16 shadow-medium"
-          />
+          <Avatar isBordered radius="lg" name={initials} className="absolute left-5 -bottom-7 size-16 shadow-medium" />
         </CardHeader>
 
         <CardBody className="pt-10">
-          {/* Name & status */}
           <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="text-lg font-semibold leading-none tracking-tight">{s.fullName || '-'}</h3>
@@ -150,16 +147,16 @@ export default function ChildrenCardsView() {
                 <span>{s.username || '—'}</span>
               </div>
             </div>
-            {/* {s.status && (
-              // <Tooltip content={`Status: ${statusLabelMap[s.status] ?? s.status}`}>
-              //   <Chip size="sm" color={statusColorMap[s.status] ?? 'default'} variant="flat" className="min-w-20 justify-center">
-              //     {statusLabelMap[s.status] ?? s.status}
-              //   </Chip>
-              // </Tooltip>
-            )} */}
+            {s.status && (
+              <Tooltip content={`Status: ${statusLabelMap[s.status] ?? s.status}`}>
+                <Chip size="sm" color={(statusColorMap as any)[s.status] ?? 'default'} variant="flat" className="min-w-20 justify-center">
+                  {statusLabelMap[s.status] ?? s.status}
+                </Chip>
+              </Tooltip>
+            )}
           </div>
 
-          {/* Mini stats row */}
+          {/* Mini stats */}
           <div className="mt-4 grid grid-cols-3 gap-2">
             <div className="rounded-xl border border-default-200 p-3 text-center">
               <div className="text-xl font-bold leading-none">{classCount}</div>
@@ -180,11 +177,7 @@ export default function ChildrenCardsView() {
             {classCount > 0 ? (
               classesArr.map((uc: any) => (
                 <Tooltip key={uc?.class?.id} content={`Code: ${uc?.class?.code || '—'}`}>
-                  <Chip
-                    size="sm"
-                    color={uc?.class?.level ? classLevelColorMap[uc.class.level] : 'default'}
-                    variant="flat"
-                  >
+                  <Chip size="sm" color={uc?.class?.level ? (classLevelColorMap as any)[uc.class.level] : 'default'} variant="flat">
                     {uc?.class?.name || 'Unknown class'}
                   </Chip>
                 </Tooltip>
@@ -197,27 +190,15 @@ export default function ChildrenCardsView() {
 
         <CardFooter className="pt-0">
           <div className="grid w-full grid-cols-1 sm:grid-cols-2 gap-2">
-            <Button
-              size="md"
-              color="primary"
-              variant="solid"
-              startContent={<Icon icon="lucide:eye" width={18} />}
-              onPress={() => router.push(`/parent/reports/${s.id}`)}
-            >
+            <Button size="md" color="primary" variant="solid" startContent={<Icon icon="lucide:eye" width={18} />} onPress={() => router.push(`/parent/reports/${s.id}`)}>
               View report
             </Button>
-
             <Tooltip content="See feedback from teachers">
-              <Button
-                size="md"
-                variant="flat"
-                startContent={
-                  <Badge content={feedbackCount} color="secondary" placement="top-right">
-                    <Icon icon="lucide:message-circle" width={18} />
-                  </Badge>
-                }
-                onPress={() => openFeedbackModal(s)}
-              >
+              <Button size="md" variant="flat" startContent={
+                <Badge content={feedbackCount} color="secondary" placement="top-right">
+                  <Icon icon="lucide:message-circle" width={18} />
+                </Badge>
+              } onPress={() => openFeedbackModal(s)}>
                 Feedback
               </Button>
             </Tooltip>
@@ -229,28 +210,20 @@ export default function ChildrenCardsView() {
 
   return (
     <div className="w-full">
-      {/* Page header */}
+      {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold">My Children</h2>
           <p className="text-small text-default-500">Profiles, classes and teacher feedback</p>
         </div>
         <div className="flex items-center gap-2">
-          <Input
-            value={query}
-            onValueChange={setQuery}
-            radius="lg"
-            variant="bordered"
-            placeholder="Search by name, username, or class..."
-            startContent={<Icon icon="lucide:search" width={18} />}
-            className="min-w-[280px]"
-          />
+          <Input value={query} onValueChange={setQuery} radius="lg" variant="bordered" placeholder="Search by name, username, or class..." startContent={<Icon icon="lucide:search" width={18} />} className="min-w-[280px]" />
         </div>
       </div>
 
       <Spacer y={4} />
 
-      {/* Content area */}
+      {/* Cards grid */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -289,14 +262,12 @@ export default function ChildrenCardsView() {
         </div>
       )}
 
-      {/* Feedback modal */}
+      {/* Feedback modal — lấy đúng logic grouped-by-class + gửi feedback theo class */}
       <Modal isOpen={isModalOpen} onOpenChange={setIsModalOpen} size="3xl" placement="top-center">
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1">
-                Feedback — {selectedStudent?.fullName || 'Student'}
-              </ModalHeader>
+              <ModalHeader className="flex flex-col gap-1">Feedback — {selectedStudent?.fullName || 'Student'}</ModalHeader>
               <ModalBody>
                 {feedbackLoading ? (
                   <div className="space-y-3">
@@ -310,16 +281,37 @@ export default function ChildrenCardsView() {
                       </div>
                     ))}
                   </div>
-                ) : feedbacks.length > 0 ? (
+                ) : listFeedBackSelected.length > 0 ? (
                   <Accordion variant="bordered" className="space-y-2">
-                    {feedbacks.map((fb) => (
+                    {listFeedBackSelected.map((feedback) => (
                       <AccordionItem
-                        key={fb.id}
-                        title={fb.teacher.fullName}
-                        subtitle={`Class: ${fb.class.name}`}
-                        startContent={<Avatar isBordered color="primary" radius="md" name={fb.class.name} />}
+                        key={feedback.classId}
+                        title={feedback.classInfo.name}
+                        subtitle={`Class: ${feedback.classInfo.code}`}
+                        startContent={<Avatar isBordered color="primary" radius="md" name={feedback.classInfo.name} />}
                       >
-                        {fb.content}
+                        {feedback.feedbacks.length > 0 ? (
+                          feedback.feedbacks.map((fb, idx) => (
+                            <div key={idx} className="mb-4">
+                              <p className="text-sm mb-1">
+                                <span className="font-semibold">{fb.teacher.fullName || '-'}</span>: {fb.content}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-default-400 text-tiny">No Feedback from teacher yet.</p>
+                        )}
+
+                        <Input
+                          placeholder="Type your message here..."
+                          value={inputValues[feedback.classId] || ''}
+                          onChange={(e) => handleChange(feedback.classId, e.target.value)}
+                          endContent={
+                            <Button isIconOnly variant="faded" color="primary" onPress={() => handleSend(feedback.classId)}>
+                              <Icon icon="lucide:send-horizontal" />
+                            </Button>
+                          }
+                        />
                       </AccordionItem>
                     ))}
                   </Accordion>
@@ -328,12 +320,8 @@ export default function ChildrenCardsView() {
                 )}
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Close
-                </Button>
-                <Button color="primary" onPress={onClose}>
-                  OK
-                </Button>
+                <Button color="danger" variant="light" onPress={() => { onClose(); closeFeedbackModal(); }}>Close</Button>
+                <Button color="primary" onPress={() => { onClose(); }}>OK</Button>
               </ModalFooter>
             </>
           )}

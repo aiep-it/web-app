@@ -1,29 +1,31 @@
 import EmptySection from '@/components/EmptySection';
 import { USER_ROLE } from '@/constant/authorProtect';
 import { sendFeedbackToClass } from '@/services/class';
+import { getFeedback, teacherGetFeedback } from '@/services/parents';
 import { ClassTeacher } from '@/services/types/class';
 import { Student } from '@/services/types/student';
+import { FeedbackData, TeacherFeedback } from '@/services/types/user';
 import {
+  Accordion,
+  AccordionItem,
   Avatar,
+  Badge,
   Button,
   Card,
   CardBody,
   CardHeader,
-  Checkbox,
   Divider,
-  Link,
+  Input,
   Modal,
   ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
-  Tab,
-  Tabs,
   Textarea,
   useDisclosure,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import toast from 'react-hot-toast';
 
 interface ListMembersProps {
@@ -31,6 +33,7 @@ interface ListMembersProps {
   students: Student[];
   classId?: string;
   currentRole?: USER_ROLE | null;
+  clazzName?: string;
 }
 export const ListboxWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -39,7 +42,13 @@ export const ListboxWrapper: React.FC<{ children: React.ReactNode }> = ({
     {children}
   </div>
 );
-const ListMembers: React.FC<ListMembersProps> = ({ teachers, students, classId,currentRole }) => {
+const ListMembers: React.FC<ListMembersProps> = ({
+  teachers,
+  students,
+  classId,
+  currentRole,
+  clazzName,
+}) => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(
@@ -53,7 +62,24 @@ const ListMembers: React.FC<ListMembersProps> = ({ teachers, students, classId,c
     setSelectedStudent(null);
     setMessage('');
     onOpenChange();
-  }
+  };
+
+  const [listFeedBackSeletect, setListFeedBackSelected] = React.useState<
+    TeacherFeedback[]
+  >([]);
+
+  const fetchFeedbacks = async (studentId: string) => {
+    if (!classId) return;
+    const res = await teacherGetFeedback(studentId, classId);
+
+    setListFeedBackSelected(res || []);
+  };
+
+  useEffect(() => {
+    if (selectedStudent && selectedStudent.id) {
+      fetchFeedbacks(selectedStudent.id);
+    }
+  }, [selectedStudent]);
 
   const sendFeedBack = async () => {
     if (!selectedStudent || !message || !classId) {
@@ -63,14 +89,14 @@ const ListMembers: React.FC<ListMembersProps> = ({ teachers, students, classId,c
     // Here you would typically send the feedback to your backend
     const res = await sendFeedbackToClass(classId, selectedStudent.id, message);
     // Reset the message after sending
-    if(res) {
+    if (res) {
       toast.success('Feedback sent successfully!');
       handleClose();
     } else {
       toast.error('Failed to send feedback. Please try again later.');
     }
     setIsSending(false);
-  }
+  };
 
   return (
     <div>
@@ -134,8 +160,12 @@ const ListMembers: React.FC<ListMembersProps> = ({ teachers, students, classId,c
                     </span>
                   </div>
                 </div>
-               {
-                  currentRole === 'TEACHER' && (
+                {currentRole === 'TEACHER' && (
+                  <Badge
+                    isInvisible={(student?.feedbackCount ?? 0) === 0}
+                    content={student.feedbackCount || ''}
+                    color="danger"
+                  >
                     <Button
                       variant="flat"
                       color="primary"
@@ -146,8 +176,8 @@ const ListMembers: React.FC<ListMembersProps> = ({ teachers, students, classId,c
                     >
                       <Icon icon="lucide:message-square" />
                     </Button>
-                  )
-               }
+                  </Badge>
+                )}
               </div>
             ))
           )}
@@ -158,11 +188,42 @@ const ListMembers: React.FC<ListMembersProps> = ({ teachers, students, classId,c
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">
-                FeedBack For {selectedStudent?.fullName || 'No Student Selected'}
+                FeedBack For{' '}
+                {selectedStudent?.fullName || 'No Student Selected'}
               </ModalHeader>
-              <ModalBody className='space-y-3'>
+              <ModalBody className="space-y-3">
+                {listFeedBackSeletect.length > 0 ? (
+                  <Accordion variant="bordered" className="space-y-2">
+                    {listFeedBackSeletect.map((feedback) => (
+                      <AccordionItem
+                        key={feedback.id}
+                        startContent={
+                          <Avatar
+                            isBordered
+                            color="primary"
+                            radius="md"
+                            name={feedback.teacher.fullName || 'Teacher'}
+                          />
+                        }
+                        title={feedback?.teacher?.fullName || '-'}
+                        subtitle={feedback.createdAt || '-'}
+                      >
+                        <div className="whitespace-pre-wrap">
+                          {feedback.content}{' '}
+                        </div>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                ) : (
+                  <EmptySection
+                    title="No Feedbacks"
+                    message="This student does not have any feedbacks yet."
+                  />
+                )}
                 <div className="flex items-center px-2">
-                  <p>to: <span>{selectedStudent?.parentEmail}</span></p>
+                  <p>
+                    to: <span>{selectedStudent?.parentEmail}</span>
+                  </p>
                 </div>
                 <Textarea
                   label="Message"
@@ -176,7 +237,11 @@ const ListMembers: React.FC<ListMembersProps> = ({ teachers, students, classId,c
                 <Button color="danger" variant="flat" onPress={onClose}>
                   Close
                 </Button>
-                <Button color="primary" onPress={sendFeedBack} isLoading={isSending}>
+                <Button
+                  color="primary"
+                  onPress={sendFeedBack}
+                  isLoading={isSending}
+                >
                   Send
                 </Button>
               </ModalFooter>

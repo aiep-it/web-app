@@ -1,5 +1,5 @@
 import axiosInstance from '@/lib/axios';
-import { FeedbackData, StudentData } from '../types/user';
+import { FeedbackData, StudentData, TeacherFeedback } from '../types/user';
 import { ENDPOINTS } from '@/constant/api';
 
 export async function getMyChildrens(): Promise<StudentData[] | []> {
@@ -30,6 +30,19 @@ export async function getChildReport(childId: string): Promise<any | null> {
 export async function getFeedback(childId: string): Promise<FeedbackData[] | null> {
     try {
         const response = await axiosInstance.get(ENDPOINTS.PARENT.GET_FEEDBACK(childId));
+        if (response.status === 200) {
+          return response.data; 
+        }
+        return []; 
+      } catch (error) {
+        console.error('Error fetching child report:', error);
+        return [];
+      }
+}
+
+export async function teacherGetFeedback(stdId: string, classId: string): Promise<TeacherFeedback[] | null> {
+    try {
+        const response = await axiosInstance.get(ENDPOINTS.CLASS.GET_FEEDBACK(stdId, classId));
         if (response.status === 200) {
           return response.data; 
         }

@@ -53,6 +53,26 @@ export interface StudentData extends UserData {
 }
 
 export interface FeedbackData {
+  classId: string;
+  studentId: string;
+  classInfo: {
+    name: string;
+    code: string;
+  };
+  feedbacks: Array<{
+    teacher: {
+      id: string;
+      fullName: string;
+      email: string;
+    };
+
+    id: string;
+    content: string;
+    created_at: string;
+    updated_at: string;
+  }>;
+}
+export interface TeacherFeedback {
   id: string;
   studentId: string;
   teacherId: string;

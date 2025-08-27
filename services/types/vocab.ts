@@ -1,8 +1,8 @@
 export enum VocabColumn {
-  created_at = "created_at",
+  created_at = 'created_at',
 }
 
-export type VocabSortOrder = "asc" | "desc";
+export type VocabSortOrder = 'asc' | 'desc';
 
 export type VocabFilters = Record<string, any>;
 
@@ -63,4 +63,10 @@ export interface VocabCMS {
   vocabId?: string;
   imageId?: string;
   audioId?: string;
+}
+
+export interface AIImageResponse {
+  directusFileId: string;
+  filename: string;
+  path: string;
 }
