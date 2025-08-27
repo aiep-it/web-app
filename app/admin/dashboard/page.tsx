@@ -31,7 +31,6 @@ import KpiCard from "./components/KpiCard";
 import SectionCard from "./components/SectionCard";
 import RecentClassesSection from "./components/RecentClassesSection";
 
-// ⬇️ NEW: dùng services thay vì fetch
 import { getAllStats } from "@/services/stats";
 import type {
   RangeKey,
@@ -58,12 +57,12 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // KPI
+  
   const [studentsTotal, setStudentsTotal] = useState(0);
   const [teachersTotal, setTeachersTotal] = useState(0);
   const [classesTotal, setClassesTotal] = useState(0);
 
-  // Charts
+
   const [lineData, setLineData] = useState<{ date: string; active: number }[]>(
     []
   );
@@ -71,7 +70,6 @@ export default function AdminDashboard() {
     []
   );
 
-  // Table (recent classes)
   const [recentClasses, setRecentClasses] = useState<
     {
       id: string;
@@ -92,14 +90,14 @@ export default function AdminDashboard() {
     );
   }, [search, recentClasses]);
 
-  // Giữ 1 AbortController cho mỗi lần load
+ 
   const abortRef = useRef<AbortController | null>(null);
 
-  // ⬇️ NEW: dùng getAllStats từ service
+  
   const fetchAll = async (currentRange: RangeKey) => {
     setLoading(true);
     setError(null);
-    abortRef.current?.abort(); // hủy request cũ nếu còn
+    abortRef.current?.abort(); 
     const controller = new AbortController();
     abortRef.current = controller;
 
@@ -110,16 +108,14 @@ export default function AdminDashboard() {
         controller.signal
       );
 
-      // KPI
       setStudentsTotal(students?.total ?? 0);
       setTeachersTotal(teachers?.total ?? 0);
       setClassesTotal(classes?.total ?? 0);
 
-      // Charts
       setLineData((students?.series || []).map((p) => ({ date: p.label, active: p.value })));
       setBarData((classes?.series || []).map((p) => ({ name: p.label, classes: p.value })));
 
-      // Recent classes
+    
       setRecentClasses(
         (classes?.recent || []).map((c) => ({
           id: c.id,
@@ -145,8 +141,6 @@ export default function AdminDashboard() {
     return () => abortRef.current?.abort();
   }, [range]);
 
-  // (Optional) nếu cần: có thể truyền data thật vào RoleDistributionCard qua props
-  // hiện tại component đó tự handle nên giữ nguyên.
 
   return (
     <div className="min-h-screen w-full p-6 md:p-8 lg:p-10 bg-gradient-to-b from-white to-default-50">

@@ -134,6 +134,11 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   async (error) => {
+    if (axios.isCancel(error) || error?.code === "ERR_CANCELED" || error?.name === "CanceledError") {
+      return Promise.reject(error);
+    }
+
+
     const originalConfig = error.config;
     
     if (error.response) {

@@ -2,6 +2,12 @@
 import axiosInstance from "@/lib/axios";
 import { ENDPOINTS } from "@/constant/api";
 import type { RangeKey, RoleDistResp, StudentsRes, TeachersRes, ClassesRes } from "../types/stats";
+import axios, { AxiosError } from "axios";
+
+
+function isCanceled(err: unknown) {
+  return axios.isCancel(err) || (err as AxiosError)?.code === "ERR_CANCELED";
+}
 
 
 export async function getStudentsStats(
@@ -16,7 +22,9 @@ export async function getStudentsStats(
     if (res.status === 200) return res.data;
     return { total: 0, series: [] };
   } catch (err) {
-    console.error("Error fetching students stats:", err);
+     if (!isCanceled(err)) {
+      console.error("Error getRoleDistribution:", err);
+    }
     return { total: 0, series: [] };
   }
 }
@@ -33,7 +41,9 @@ export async function getTeachersStats(
     if (res.status === 200) return res.data;
     return { total: 0, series: [] };
   } catch (err) {
-    console.error("Error fetching teachers stats:", err);
+    if (!isCanceled(err)) {
+      console.error("Error getRoleDistribution:", err);
+    }
     return { total: 0, series: [] };
   }
 }
@@ -51,7 +61,9 @@ export async function getClassesStats(
     if (res.status === 200) return res.data;
     return { total: 0, series: [], recent: [] };
   } catch (err) {
-    console.error("Error fetching classes stats:", err);
+    if (!isCanceled(err)) {
+      console.error("Error getRoleDistribution:", err);
+    }
     return { total: 0, series: [], recent: [] };
   }
 }
@@ -72,6 +84,9 @@ export async function getAllStats(
 
 export type { StudentsRes, TeachersRes, ClassesRes };
 
+
+
+
 export async function getRoleDistribution(range: RangeKey, signal?: AbortSignal): Promise<RoleDistResp | null> {
   try {
     const res = await axiosInstance.get<RoleDistResp>(
@@ -80,8 +95,10 @@ export async function getRoleDistribution(range: RangeKey, signal?: AbortSignal)
     );
     if (res.status === 200) return res.data;
     return null;
-  } catch (error) {
-    console.error("Error getRoleDistribution:", error);
+  } catch (err) {
+   if (!isCanceled(err)) {
+      console.error("Error getRoleDistribution:", err);
+    }
     return null;
   }
 }
