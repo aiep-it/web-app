@@ -62,6 +62,7 @@ export default function LoginSuccessPage() {
 
   if (!isLoaded) return null;
 
+  
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-6">
       <Card className="w-full max-w-4xl rounded-3xl shadow-2xl">
