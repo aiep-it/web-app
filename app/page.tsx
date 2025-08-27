@@ -66,7 +66,7 @@ export default function LandingPage() {
               Lộ trình chuẩn Cambridge Starters / Movers / Flyers.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Button
+              {/* <Button
                 as={Link}
                 href="/sign-up"
                 color="primary"
@@ -85,7 +85,7 @@ export default function LandingPage() {
                 className="font-semibold"
               >
                 Xem demo
-              </Button>
+              </Button> */}
             </div>
 
             {/* Stats */}

@@ -112,5 +112,14 @@ export const ENDPOINTS = {
     GET_CHILDREN: '/parent/me/children',
     GET_CHILD_REPORT: (stdId: string) => `/reports/std/${stdId}`,
     GET_FEEDBACK: (stdId: string) => `/parent/feedback/${stdId}`,
-  }
+  },
+ 
+
+  STATS: {
+    STUDENTS: "/stats/students",
+    TEACHERS: "/stats/teachers",
+    CLASSES: "/stats/classes",
+    USERS_ROLE_DISTRIBUTION: "/stats/users/role-distribution",
+  },
+
 };
