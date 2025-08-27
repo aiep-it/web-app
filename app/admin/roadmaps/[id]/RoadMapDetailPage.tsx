@@ -54,13 +54,18 @@ const RoadMapDetailPage: React.FC<RoadMapDetailPageProps> = ({
   useEffect(() => {
     const fetchRoadmap = async () => {
       setLoading(true);
-      const res = await getRoadmapById(id);
+      try {
+        const res = await getRoadmapById(id);
 
-      if (res && res.id) {
-        setRoadmap(res);
-        await fetchNodes(res.id);
+        if (res && res.id) {
+          setRoadmap(res);
+          await fetchNodes(res.id);
+        }
+      } catch (error) {
+        console.error('Error fetching roadmap:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchRoadmap();
@@ -107,9 +112,11 @@ const RoadMapDetailPage: React.FC<RoadMapDetailPageProps> = ({
             </div>
           )}
         </CardHeader>
-        <CardBody className={`h-full ${isViewOnly ? 'h-[70vh]' : ''} overflow-auto`}>
+        <CardBody
+          className={`h-full ${isViewOnly ? 'h-[70vh]' : ''} overflow-auto`}
+        >
           {!loading ? (
-            nodeViewContent ? (
+            nodeViewContent && roadmap ? (
               editNode ? (
                 // TODO : Implement edit mode for NodeFlow
                 <NodeFlow
@@ -126,17 +133,19 @@ const RoadMapDetailPage: React.FC<RoadMapDetailPageProps> = ({
               )
             ) : (
               <div className="flex h-32 items-center justify-center rounded-md border-2 border-dashed border-default-200 bg-default-50 flex-col">
-                <p className="text-default-500">Không Có Chủ Đề</p>
-                <Button
-                  className="mt-3"
-                  variant="ghost"
-                  color="primary"
-                  onPress={() => {
-                    router.push(`/admin/roadmaps/${roadmap?.id}/topics/new`);
-                  }}
-                >
-                  Chuyển Đến Trang Tạo Chủ Đề Mới
-                </Button>
+                <p className="text-default-500">Không Có Chủ Đề {isViewOnly  && 'Vui Lòng Liên Hệ Staff'}</p>
+                {!isViewOnly && (
+                  <Button
+                    className="mt-3"
+                    variant="ghost"
+                    color="primary"
+                    onPress={() => {
+                      router.push(`/admin/roadmaps/${roadmap?.id}/topics/new`);
+                    }}
+                  >
+                    Chuyển Đến Trang Tạo Chủ Đề Mới
+                  </Button>
+                )}
               </div>
             )
           ) : (

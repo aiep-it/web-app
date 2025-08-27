@@ -275,6 +275,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
                   students={classInfo.students || []}
                   classId={classId}
                   currentRole={currentRole}
+                  clazzName={classInfo.name}
                 />
               ) : (
                 <EmptySection
@@ -284,13 +285,13 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
               )}
             </div>
           </Tab>
-          <Tab
+          {/* <Tab
             key="Media"
             title={
               <div className="flex items-center gap-2">
                 <Icon icon="lucide:tv-minimal" />
                 <span>Media</span>
-                {/* {events.length > 0 && <Chip size="sm" variant="flat">{events.length}</Chip>} */}
+              
               </div>
             }
           >
@@ -298,7 +299,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
               title="No Media"
               message="This class does not have any media yet."
             />
-          </Tab>
+          </Tab> */}
           {currentRole && currentRole === USER_ROLE.TEACHER && (
             <Tab
               key="class-report"

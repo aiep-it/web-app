@@ -9,6 +9,7 @@ export type Student = {
   address: string;
   username: string;
   createdAt: string;
+  feedbackCount?: number;
 };
 
 export type StudentPayload = {

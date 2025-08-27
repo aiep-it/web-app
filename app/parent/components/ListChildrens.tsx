@@ -2,7 +2,7 @@
 import type { SVGProps } from 'react';
 import type { ChipProps } from '@heroui/react';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -26,6 +26,7 @@ import {
   ModalContent,
   Accordion,
   AccordionItem,
+  Input,
 } from '@heroui/react';
 import { FeedbackData, StudentData } from '@/services/types/user';
 import { getFeedback, getMyChildrens } from '@/services/parents';
@@ -33,6 +34,7 @@ import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
 import { set } from 'react-hook-form';
 import EmptySection from '@/components/EmptySection';
+import { sendFeedbackToClass } from '@/services/class';
 
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
   size?: number;
@@ -143,6 +145,12 @@ export default function ListChildren() {
   const [listFeedBackSeletec, setListFeedBackSelected] = React.useState<
     FeedbackData[]
   >([]);
+
+  const [inputValues, setInputValues] = useState<{ [key: string]: string }>({});
+
+  const handleChange = (classId: string, value: string) => {
+    setInputValues((prev) => ({ ...prev, [classId]: value }));
+  };
 
   const renderCell = React.useCallback(
     (user: StudentData, columnKey: React.Key): React.ReactNode => {
@@ -268,6 +276,22 @@ export default function ListChildren() {
     }
   }, [selectedStudent]);
 
+
+  const handleSend = async (classId: string) => {
+    console.log('Handle send for classId:', classId);
+    const message = inputValues[classId]?.trim();
+    if (!message || !selectedStudent) return;
+
+    console.log(`Send message for class ${classId}:`, message);
+    const res = await sendFeedbackToClass(
+      classId,
+      selectedStudent?.id,
+      message,
+    );
+
+    setInputValues((prev) => ({ ...prev, [classId]: '' })); // reset input
+  };
+
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   return (
     <>
@@ -308,21 +332,52 @@ export default function ListChildren() {
               <ModalBody>
                 {listFeedBackSeletec.length > 0 ? (
                   <Accordion variant="bordered" className="space-y-2">
-                    {listFeedBackSeletec.map((feedback, index) => (
+                    {listFeedBackSeletec.map((feedback) => (
                       <AccordionItem
-                        key={feedback.id}
+                        key={feedback.classId}
                         startContent={
                           <Avatar
                             isBordered
-                            color='primary'
+                            color="primary"
                             radius="md"
-                            name={feedback.class.name}
+                            name={feedback.classInfo.name}
                           />
                         }
-                        subtitle={`Class: ${feedback.class.name} `}
-                        title={feedback.teacher.fullName}
+                        subtitle={`Class: ${feedback.classInfo.code} `}
+                        title={feedback.classInfo.name}
                       >
-                        {feedback.content}
+                        {feedback.feedbacks.length > 0 ? (
+                          feedback.feedbacks.map((fb, idx) => (
+                            <div key={idx} className="mb-4">
+                              <p className="text-sm mb-1">
+                                <span className="font-semibold"></span>{' '}
+                                {fb.teacher.fullName || '-'} : {fb.content}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-default-400 text-tiny">
+                            No Feedback from teacher yet.
+                          </p>
+                        )}
+                        <Input
+                          placeholder="Type your message here..."
+                          value={inputValues[feedback.classId] || ''}
+                          onChange={(e) =>
+                            handleChange(feedback.classId, e.target.value)
+                          }
+                          endContent={
+                            <Button
+                              isIconOnly
+                              variant="faded"
+                              color="primary"
+                              onPress={() => handleSend(feedback.classId)}
+                            >
+                              {' '}
+                              <Icon icon={'lucide:send-horizontal'} />{' '}
+                            </Button>
+                          }
+                        />
                       </AccordionItem>
                     ))}
                   </Accordion>
