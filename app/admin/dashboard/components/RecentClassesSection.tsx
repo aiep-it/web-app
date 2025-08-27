@@ -18,7 +18,7 @@ export type ClassItem = {
   level?: string;
   teacher: string;
   students: number;
-  startDate: string; // ISO hoặc đã format sẵn
+  startDate: string; 
   status: ClassStatus;
 };
 
@@ -41,7 +41,7 @@ class RecentClassesSection extends Component<RecentClassesProps> {
     fetchAll(range);
   };
 
-  // Màu & icon trạng thái
+ 
 renderStatusBadge(status: ClassStatus) {
   const map: Record<
     string,
@@ -67,7 +67,7 @@ renderStatusBadge(status: ClassStatus) {
   );
 }
 
-  // Chip Level (nếu có)
+  
   renderLevel(level?: string) {
     if (!level) return <span className="text-xs text-default-400">Level: -</span>;
     const tone =
@@ -84,7 +84,7 @@ renderStatusBadge(status: ClassStatus) {
   render() {
     const { title, loading, filteredClasses, actionExtra, range } = this.props;
 
-    // số hàng skeleton khi loading
+   
     const skeletonRows = Array.from({ length: 5 }).map((_, i) => (
       <TableRow key={`sk-${i}`}>
         <TableCell><Skeleton className="h-4 w-16 rounded-md" /></TableCell>
