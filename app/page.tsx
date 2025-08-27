@@ -36,11 +36,10 @@ export default function Home() {
       <Hero />
       <SectionTitle
         preTitle="Nextly Benefits"
-        title=" Why should you use this landing page"
+        title=" Empower Kids to Learn English Smarter"
       >
-        Nextly is a free landing page & marketing website template for startups
-        and indie projects. Its built with Next.js & TailwindCSS. And its
-        completely open-source.
+                Snap a photo and let AI help children learn English vocabulary in a fun and effective way.
+
       </SectionTitle>
 
       <Benefits data={benefitOne} />
@@ -48,21 +47,20 @@ export default function Home() {
 
       <SectionTitle
         preTitle="Watch a video"
-        title="Learn how to fullfil your needs"
+        title="Discover the Cambridge English Journey with SnapLearn"
       >
-        This section is to highlight a promo or demo video of your product.
-        Analysts says a landing page with video has 3% more conversion rate. So,
-        don&apos;t forget to add one. Just like this.
+        Watch how SnapLearn helps children learn English vocabulary aligned with Cambridge YLE standards — 
+      through fun, AI-powered interactions and real-world context.
       </SectionTitle>
 
-      <Video videoId="fZ0D0cnR88E" />
+      <Video videoId="LjcCOzsrzEY" />
 
       <SectionTitle
         preTitle="Testimonials"
-        title="Here's what our customers said"
+        title="What people are saying about SnapLearn"
       >
-        Testimonials is a great way to increase the brand trust and awareness.
-        Use this section to highlight your popular customers.
+        Trusted by families and educators to help children improve their English
+        vocabulary through fun and interactive learning.
       </SectionTitle>
 
       <Testimonials />
