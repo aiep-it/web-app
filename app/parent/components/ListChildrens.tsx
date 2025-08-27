@@ -210,11 +210,11 @@ export default function ChildrenCardsView() {
 
   return (
     <div className="w-full">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+   
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-start">
         <div>
           <h2 className="text-2xl font-bold">My Children</h2>
-          <p className="text-small text-default-500">Profiles, classes and teacher feedback</p>
+       
         </div>
         <div className="flex items-center gap-2">
           <Input value={query} onValueChange={setQuery} radius="lg" variant="bordered" placeholder="Search by name, username, or class..." startContent={<Icon icon="lucide:search" width={18} />} className="min-w-[280px]" />
