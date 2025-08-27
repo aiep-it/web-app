@@ -1,336 +1,330 @@
 'use client';
-import type { SVGProps } from 'react';
-import type { ChipProps } from '@heroui/react';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  User,
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Button,
   Chip,
   Tooltip,
-  Listbox,
-  ListboxItem,
   Avatar,
   Badge,
   Modal,
-  useDisclosure,
+  ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Button,
-  ModalContent,
   Accordion,
   AccordionItem,
+  Input,
+  Spacer,
+  Skeleton,
+  Kbd,
 } from '@heroui/react';
-import { FeedbackData, StudentData } from '@/services/types/user';
-import { getFeedback, getMyChildrens } from '@/services/parents';
-import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
-import { set } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
+
 import EmptySection from '@/components/EmptySection';
+import { getMyChildrens, getFeedback } from '@/services/parents';
+import type { StudentData, FeedbackData } from '@/services/types/user';
 
-export type IconSvgProps = SVGProps<SVGSVGElement> & {
-  size?: number;
-};
-
-export const columns = [
-  { name: 'NAME', uid: 'fullName' },
-  { name: 'Class', uid: 'userClasses' },
-  { name: 'STATUS', uid: 'status' },
-  { name: 'ACTIONS', uid: 'actions' },
-];
-
-export const EyeIcon = (props: IconSvgProps) => {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      focusable="false"
-      height="1em"
-      role="presentation"
-      viewBox="0 0 20 20"
-      width="1em"
-      {...props}
-    >
-      <path
-        d="M12.9833 10C12.9833 11.65 11.65 12.9833 10 12.9833C8.35 12.9833 7.01666 11.65 7.01666 10C7.01666 8.35 8.35 7.01666 10 7.01666C11.65 7.01666 12.9833 8.35 12.9833 10Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-      />
-      <path
-        d="M9.99999 16.8916C12.9417 16.8916 15.6833 15.1583 17.5917 12.1583C18.3417 10.9833 18.3417 9.00831 17.5917 7.83331C15.6833 4.83331 12.9417 3.09998 9.99999 3.09998C7.05833 3.09998 4.31666 4.83331 2.40833 7.83331C1.65833 9.00831 1.65833 10.9833 2.40833 12.1583C4.31666 15.1583 7.05833 16.8916 9.99999 16.8916Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-      />
-    </svg>
-  );
-};
-
-export const EditIcon = (props: IconSvgProps) => {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      focusable="false"
-      height="1em"
-      role="presentation"
-      viewBox="0 0 20 20"
-      width="1em"
-      {...props}
-    >
-      <path
-        d="M11.05 3.00002L4.20835 10.2417C3.95002 10.5167 3.70002 11.0584 3.65002 11.4334L3.34169 14.1334C3.23335 15.1084 3.93335 15.775 4.90002 15.6084L7.58335 15.15C7.95835 15.0834 8.48335 14.8084 8.74168 14.525L15.5834 7.28335C16.7667 6.03335 17.3 4.60835 15.4583 2.86668C13.625 1.14168 12.2334 1.75002 11.05 3.00002Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeMiterlimit={10}
-        strokeWidth={1.5}
-      />
-      <path
-        d="M9.90833 4.20831C10.2667 6.50831 12.1333 8.26665 14.45 8.49998"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeMiterlimit={10}
-        strokeWidth={1.5}
-      />
-      <path
-        d="M2.5 18.3333H17.5"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeMiterlimit={10}
-        strokeWidth={1.5}
-      />
-    </svg>
-  );
-};
-const statusColorMap: Record<string, ChipProps['color']> = {
+// ---- Color & label maps
+const statusColorMap: Record<string, 'success' | 'danger' | 'default' | 'primary' | 'warning' | 'secondary'> = {
   ACTIVATE: 'success',
   DEACTIVATE: 'danger',
 };
-const statusColorLabel: Record<string, string> = {
+const statusLabelMap: Record<string, string> = {
   ACTIVATE: 'Active',
   DEACTIVATE: 'Deactive',
 };
-const classLevelColorLabel: Record<string, ChipProps['color']> = {
+const classLevelColorMap: Record<string, 'primary' | 'success' | 'warning' | 'secondary' | 'danger' | 'default'> = {
   STARTERS: 'primary',
   MOVERS: 'success',
   FLYERS: 'warning',
 };
 
-export const ListboxWrapper = ({ children }: { children: React.ReactNode }) => (
-  <div className="w-full max-w-[260px] border-small px-1 py-2 rounded-small border-default-200 dark:border-default-100">
-    {children}
-  </div>
-);
+// ---- Helper to normalize userClasses
+const normalizeClasses = (uc: unknown) => {
+  return Array.isArray(uc) ? uc : uc ? [uc] : [];
+};
 
-export default function ListChildren() {
-  const [children, setChildren] = React.useState<StudentData[]>([]);
+export default function ChildrenCardsView() {
   const router = useRouter();
 
-  const [selectedStudent, setSelectedStudent] =
-    React.useState<StudentData | null>(null);
-  const [listFeedBackSeletec, setListFeedBackSelected] = React.useState<
-    FeedbackData[]
-  >([]);
+  const [loading, setLoading] = useState(true);
+  const [children, setChildren] = useState<StudentData[]>([]);
+  const [query, setQuery] = useState('');
 
-  const renderCell = React.useCallback(
-    (user: StudentData, columnKey: React.Key): React.ReactNode => {
-      const cellValue = user[columnKey as keyof StudentData];
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
+  const [feedbacks, setFeedbacks] = useState<FeedbackData[]>([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
 
-      switch (columnKey) {
-        case 'fullName':
-          return (
-            <User
-              avatarProps={{ radius: 'lg', name: user.fullName }}
-              description={user.username}
-              name={String(cellValue) || '-'}
-            >
-              {user.fullName}
-            </User>
-          );
-
-        case 'status':
-          return (
-            <Chip
-              className="capitalize"
-              color={user.status ? statusColorMap[user.status] : 'default'}
-              size="sm"
-              variant="flat"
-            >
-              {typeof cellValue === 'string'
-                ? statusColorLabel[cellValue]
-                : '-'}
-            </Chip>
-          );
-        case 'userClasses':
-          const classes = Array.isArray(cellValue) ? cellValue : [];
-          console.log(classes[0]);
-          return classes.length > 0 ? (
-            <div className="flex flex-col items-start gap-2 space-y-2">
-              {classes.map((cls) => (
-                <Tooltip content={cls.class.code} key={cls?.class?.id}>
-                  <User
-                    avatarProps={{ radius: 'lg', name: cls?.class?.code }}
-                    description={
-                      <Chip
-                        size="sm"
-                        color={
-                          cls?.class?.level
-                            ? classLevelColorLabel[cls.class.level]
-                            : 'primary'
-                        }
-                      >
-                        {cls.class.level}
-                      </Chip>
-                    }
-                    name={String(cls.class?.name) || '-'}
-                  >
-                    {cls.class?.name}
-                  </User>
-                </Tooltip>
-              ))}
-            </div>
-          ) : (
-            <p className="text-default-400 text-tiny">No Join Any Class</p>
-          );
-        case 'actions':
-          return (
-            <div className="relative flex items-center gap-2">
-              <Tooltip content="Details">
-                <span
-                  className="text-lg text-default-400 cursor-pointer active:opacity-50"
-                  onClick={() => {
-                    router.push(`/parent/reports/${user.id}`);
-                  }}
-                >
-                  <Icon icon="lucide:eye" width={20} />
-                </span>
-              </Tooltip>
-              <Tooltip content="See Feedback">
-                <span
-                  className="text-lg text-default-400 cursor-pointer active:opacity-50"
-                  onClick={() => {
-                    setSelectedStudent(user);
-                    onOpen();
-                  }}
-                >
-                  <Badge
-                    color="secondary"
-                    content={user._count?.feedbackReceived || 0}
-                  >
-                    <Icon icon="lucide:message-circle" width={20} />
-                  </Badge>
-                </span>
-              </Tooltip>
-            </div>
-          );
-        default:
-          return cellValue !== undefined ? <>{cellValue}</> : '-';
-      }
-    },
-    [],
-  );
-
-  const fetchChildren = async () => {
-    const res = await getMyChildrens();
-
-    if (res) {
-      setChildren(res);
-    }
-  };
-
-  useEffect(() => {
-    if (children.length === 0) {
-      fetchChildren();
+  // ---- Fetch children on mount
+  const fetchChildren = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await getMyChildrens();
+      setChildren(res || []);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  const fetchFeedbacks = async (studentId: string) => {
-    const res = await getFeedback(studentId);
+  useEffect(() => {
+    fetchChildren();
+  }, [fetchChildren]);
 
-    setListFeedBackSelected(res || []);
+  // ---- Search / filter
+  const filteredChildren = useMemo(() => {
+    if (!query.trim()) return children;
+    const q = query.toLowerCase();
+    return children.filter((s) => {
+      const name = (s.fullName || '').toLowerCase();
+      const usern = (s.username || '').toLowerCase();
+      const classesJoined = normalizeClasses(s.userClasses)
+        .map((c: any) => `${c?.class?.name ?? ''} ${c?.class?.code ?? ''}`.toLowerCase())
+        .join(' ');
+      return name.includes(q) || usern.includes(q) || classesJoined.includes(q);
+    });
+  }, [children, query]);
+
+  // ---- Feedback modal logic
+  const openFeedbackModal = async (student: StudentData) => {
+    setSelectedStudent(student);
+    setIsModalOpen(true);
+    setFeedbackLoading(true);
+    try {
+      const res = await getFeedback(student.id);
+      setFeedbacks(res || []);
+    } finally {
+      setFeedbackLoading(false);
+    }
   };
 
-  useEffect(() => {
-    if (selectedStudent && selectedStudent.id) {
-      fetchFeedbacks(selectedStudent.id);
-    }
-  }, [selectedStudent]);
+  const closeFeedbackModal = () => {
+    setIsModalOpen(false);
+    setSelectedStudent(null);
+    setFeedbacks([]);
+  };
 
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  return (
-    <>
-      <Table aria-label="Example table with custom cells">
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn
-              key={column.uid}
-              align={column.uid === 'actions' ? 'center' : 'start'}
-            >
-              {column.name}
-            </TableColumn>
-          )}
-        </TableHeader>
-        <TableBody items={children} emptyContent={'No rows to display.'}>
-          {(item) => (
-            <TableRow key={item.id}>
-              {(columnKey) => (
-                <TableCell>{renderCell(item, columnKey)}</TableCell>
-              )}
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-      <Modal
-        isOpen={isOpen}
-        placement="top-center"
-        onOpenChange={onOpenChange}
-        size="3xl"
+  // ---- Card UI for one student (BIGGER & MORE IMPACTFUL)
+  const StudentCard: React.FC<{ s: StudentData }> = ({ s }) => {
+    const initials = (s.fullName || s.username || 'U')
+      .split(' ')
+      .map((t) => t[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+
+    const classesArr = normalizeClasses(s.userClasses);
+    const classCount = classesArr.length;
+    const feedbackCount = s._count?.feedbackReceived || 0;
+
+    return (
+      <Card
+        radius="lg"
+        shadow="md"
+        className="h-full overflow-hidden border border-default-200 transition-all duration-300 hover:shadow-2xl hover:-translate-y-0.5"
       >
+        {/* Cover / Banner */}
+        <CardHeader className="relative p-0">
+          <div className="h-24 w-full bg-gradient-to-r from-indigo-500/20 via-fuchsia-500/20 to-cyan-500/20" />
+          <Avatar
+            isBordered
+            radius="lg"
+            name={initials}
+            className="absolute left-5 -bottom-7 size-16 shadow-medium"
+          />
+        </CardHeader>
+
+        <CardBody className="pt-10">
+          {/* Name & status */}
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-lg font-semibold leading-none tracking-tight">{s.fullName || '-'}</h3>
+              <div className="mt-1 flex items-center gap-2 text-small text-default-500">
+                <Icon icon="lucide:at-sign" width={16} />
+                <span>{s.username || '—'}</span>
+              </div>
+            </div>
+            {/* {s.status && (
+              // <Tooltip content={`Status: ${statusLabelMap[s.status] ?? s.status}`}>
+              //   <Chip size="sm" color={statusColorMap[s.status] ?? 'default'} variant="flat" className="min-w-20 justify-center">
+              //     {statusLabelMap[s.status] ?? s.status}
+              //   </Chip>
+              // </Tooltip>
+            )} */}
+          </div>
+
+          {/* Mini stats row */}
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="rounded-xl border border-default-200 p-3 text-center">
+              <div className="text-xl font-bold leading-none">{classCount}</div>
+              <div className="mt-1 text-tiny text-default-500">Classes</div>
+            </div>
+            <div className="rounded-xl border border-default-200 p-3 text-center">
+              <div className="text-xl font-bold leading-none">{feedbackCount}</div>
+              <div className="mt-1 text-tiny text-default-500">Feedback</div>
+            </div>
+            <div className="rounded-xl border border-default-200 p-3 text-center">
+              <div className="text-xl font-bold leading-none">{s.status ? (statusLabelMap[s.status] ?? s.status) : '—'}</div>
+              <div className="mt-1 text-tiny text-default-500">Status</div>
+            </div>
+          </div>
+
+          {/* Class chips */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            {classCount > 0 ? (
+              classesArr.map((uc: any) => (
+                <Tooltip key={uc?.class?.id} content={`Code: ${uc?.class?.code || '—'}`}>
+                  <Chip
+                    size="sm"
+                    color={uc?.class?.level ? classLevelColorMap[uc.class.level] : 'default'}
+                    variant="flat"
+                  >
+                    {uc?.class?.name || 'Unknown class'}
+                  </Chip>
+                </Tooltip>
+              ))
+            ) : (
+              <span className="text-tiny text-default-400">No classes joined</span>
+            )}
+          </div>
+        </CardBody>
+
+        <CardFooter className="pt-0">
+          <div className="grid w-full grid-cols-1 sm:grid-cols-2 gap-2">
+            <Button
+              size="md"
+              color="primary"
+              variant="solid"
+              startContent={<Icon icon="lucide:eye" width={18} />}
+              onPress={() => router.push(`/parent/reports/${s.id}`)}
+            >
+              View report
+            </Button>
+
+            <Tooltip content="See feedback from teachers">
+              <Button
+                size="md"
+                variant="flat"
+                startContent={
+                  <Badge content={feedbackCount} color="secondary" placement="top-right">
+                    <Icon icon="lucide:message-circle" width={18} />
+                  </Badge>
+                }
+                onPress={() => openFeedbackModal(s)}
+              >
+                Feedback
+              </Button>
+            </Tooltip>
+          </div>
+        </CardFooter>
+      </Card>
+    );
+  };
+
+  return (
+    <div className="w-full">
+      {/* Page header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">My Children</h2>
+          <p className="text-small text-default-500">Profiles, classes and teacher feedback</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Input
+            value={query}
+            onValueChange={setQuery}
+            radius="lg"
+            variant="bordered"
+            placeholder="Search by name, username, or class..."
+            startContent={<Icon icon="lucide:search" width={18} />}
+            className="min-w-[280px]"
+          />
+        </div>
+      </div>
+
+      <Spacer y={4} />
+
+      {/* Content area */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="h-full">
+              <CardHeader className="relative p-0">
+                <Skeleton className="h-24 w-full rounded-none" />
+                <Skeleton className="absolute left-5 -bottom-7 h-16 w-16 rounded-2xl" />
+              </CardHeader>
+              <CardBody className="pt-10">
+                <Skeleton className="h-5 w-1/2 rounded-md" />
+                <Skeleton className="mt-2 h-4 w-1/3 rounded-md" />
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  <Skeleton className="h-14 rounded-xl" />
+                  <Skeleton className="h-14 rounded-xl" />
+                  <Skeleton className="h-14 rounded-xl" />
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <Skeleton className="h-6 w-24 rounded-md" />
+                  <Skeleton className="h-6 w-16 rounded-md" />
+                </div>
+              </CardBody>
+              <CardFooter className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Skeleton className="h-10 rounded-lg" />
+                <Skeleton className="h-10 rounded-lg" />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      ) : filteredChildren.length === 0 ? (
+        <EmptySection title="No students" message="You don't have any linked students or your search returned no results." />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5">
+          {filteredChildren.map((s) => (
+            <StudentCard key={s.id} s={s} />
+          ))}
+        </div>
+      )}
+
+      {/* Feedback modal */}
+      <Modal isOpen={isModalOpen} onOpenChange={setIsModalOpen} size="3xl" placement="top-center">
         <ModalContent>
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">
-                List FeedBack for{' '}
-                {selectedStudent?.fullName || 'No Student Selected'}
+                Feedback — {selectedStudent?.fullName || 'Student'}
               </ModalHeader>
               <ModalBody>
-                {listFeedBackSeletec.length > 0 ? (
+                {feedbackLoading ? (
+                  <div className="space-y-3">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <Skeleton className="w-10 h-10 rounded-md" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-1/3 rounded-md" />
+                          <Skeleton className="h-4 w-2/3 rounded-md" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : feedbacks.length > 0 ? (
                   <Accordion variant="bordered" className="space-y-2">
-                    {listFeedBackSeletec.map((feedback, index) => (
+                    {feedbacks.map((fb) => (
                       <AccordionItem
-                        key={feedback.id}
-                        startContent={
-                          <Avatar
-                            isBordered
-                            color='primary'
-                            radius="md"
-                            name={feedback.class.name}
-                          />
-                        }
-                        subtitle={`Class: ${feedback.class.name} `}
-                        title={feedback.teacher.fullName}
+                        key={fb.id}
+                        title={fb.teacher.fullName}
+                        subtitle={`Class: ${fb.class.name}`}
+                        startContent={<Avatar isBordered color="primary" radius="md" name={fb.class.name} />}
                       >
-                        {feedback.content}
+                        {fb.content}
                       </AccordionItem>
                     ))}
                   </Accordion>
                 ) : (
-                  <EmptySection
-                    title="No Feedbacks"
-                    message="This student does not have any feedbacks yet."
-                  />
+                  <EmptySection title="No Feedbacks" message="This student does not have any feedbacks yet." />
                 )}
               </ModalBody>
               <ModalFooter>
@@ -338,13 +332,13 @@ export default function ListChildren() {
                   Close
                 </Button>
                 <Button color="primary" onPress={onClose}>
-                  Action
+                  OK
                 </Button>
               </ModalFooter>
             </>
           )}
         </ModalContent>
       </Modal>
-    </>
+    </div>
   );
 }
