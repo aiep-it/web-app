@@ -18,7 +18,7 @@ export const Hero = () => {
 
             </p>
 
-            <div className="flex flex-col items-start space-y-3 sm:space-x-4 sm:space-y-0 sm:items-center sm:flex-row">
+            {/* <div className="flex flex-col items-start space-y-3 sm:space-x-4 sm:space-y-0 sm:items-center sm:flex-row">
               <a
                 href="https://web3templates.com/templates/nextly-landing-page-template-for-startups"
                 target="_blank"
@@ -43,7 +43,7 @@ export const Hero = () => {
                 </svg>
               
               </a>
-            </div>
+            </div> */}
           </div>
         </div>
         <div className="flex items-center justify-center w-full lg:w-1/2">

@@ -58,7 +58,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ isExpanded, onToggle }) => {
         <div className="flex items-center gap-2">
           <Logo />
           {isExpanded && (
-            <span className="font-bold text-inherit">AIEP-IT</span>
+            <span className="font-bold text-inherit">SNAP-LEARN</span>
           )}
         </div>
         <button onClick={onToggle} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
