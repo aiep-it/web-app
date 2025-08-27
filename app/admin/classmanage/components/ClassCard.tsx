@@ -90,30 +90,28 @@ const ClassCard: React.FC<ClassCardProps> = ({
           </p>
         )}
       </CardBody>
-      <CardFooter className="flex flex-wrap justify-center gap-1 border-t border-default-200 p-3">
-        <Tooltip content="View Class Details">
-          <Button size="sm" isIconOnly variant="light" color="primary" onPress={() => onViewDetails(class_.id)}>
-            <Icon icon="lucide:eye" />
-          </Button>
-        </Tooltip>
-        <Tooltip content="Edit Class Information">
-          <Button size="sm" isIconOnly variant="light" color="warning" onPress={() => onEditClass(class_.id)}>
-            <Icon icon="lucide:edit" />
-          </Button>
-        </Tooltip>
-        <Tooltip content="Manage Teachers">
-          <Button size="sm" isIconOnly variant="light" color="success" onPress={() => onManageTeachers(class_.id)}>
-            <Icon icon="lucide:user-cog" />
-          </Button>
-        </Tooltip>
-        <Tooltip content="Manage Students">
-          <Button size="sm" isIconOnly variant="light" color="secondary" onPress={() => onManageStudents(class_.id)}>
-            <Icon icon="lucide:users" />
-          </Button>
-        </Tooltip>
-        <Tooltip content="Delete Class" color="danger">
-          <Button size="sm" isIconOnly variant="light" color="danger" onPress={() => onDeleteClass(class_)}>
-            <Icon icon="lucide:trash-2" />
+        <CardFooter className="flex justify-between items-center gap-3 border-t border-default-200 p-3">
+        <Button
+          size="sm"
+          color="primary"
+          variant="solid"
+          className="font-semibold"
+          onPress={() => onViewDetails(class_.id)}
+          startContent={<Icon icon="lucide:eye" className="text-base" />}
+        >
+          Details
+        </Button>
+
+        <Tooltip color="danger" content="Delete class">
+          <Button
+            size="sm"
+            color="danger"
+            variant="flat"
+            onPress={() => onDeleteClass(class_)}
+            startContent={<Icon icon="lucide:trash-2" className="text-base" />}
+            className="font-semibold"
+          >
+            Delete
           </Button>
         </Tooltip>
       </CardFooter>

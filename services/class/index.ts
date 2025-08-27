@@ -58,10 +58,12 @@ export async function updateClass(
   }
 }
 
+
 export async function deleteClass(id: string): Promise<boolean> {
   try {
     const res = await axiosInstance.delete(ENDPOINTS.CLASS.DELETE(id));
-    return res.status === 204;
+    // backend có thể trả 204 No Content hoặc 200 { ok: true }
+    return res.status === 204 || res.data?.ok === true;
   } catch (error) {
     console.error('Error deleting class:', error);
     return false;

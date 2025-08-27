@@ -2,49 +2,48 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDisclosure, Button } from '@heroui/react';
 import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 import { getAllClasses, deleteClass } from '@/services/class';
-import { ClassResponse } from '@/services/types/class';
-import { useRouter } from 'next/navigation';
+import { getAllTeachers } from '@/services/user';
 
 import ClassFilters from '@/app/admin/classmanage/components/ClassFilters';
 import ClassCard from '@/app/admin/classmanage/components/ClassCard';
 import DeleteConfirmationModal from '@/app/admin/classmanage/components/DeleteConfirmationModal';
 import LoadingSpinner from '@/components/Class/LoadingSpinner';
-import { getAllTeachers } from '@/services/user';
 
+import type { ClassResponse } from '@/services/types/class';
 import type { Teacher } from '@/services/types/user';
 
 export default function ClassManagement() {
+  // Data states
   const [classes, setClasses] = useState<ClassResponse[]>([]);
-  const [search, setSearch] = useState('');
-  const [selectedTeacher, setSelectedTeacher] = useState<string | null>(null);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+
+  // UI states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [classToDelete, setClassToDelete] = useState<ClassResponse | null>(
-    null,
-  );
+  // Filters
+  const [search, setSearch] = useState('');
+  const [selectedTeacher, setSelectedTeacher] = useState<string | null>(null);
+
+  // Delete flow
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<ClassResponse | null>(null);
 
   const router = useRouter();
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<ClassResponse | null>(null); // hoặc generic type nếu dùng chung
-
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-
+  // Fetch classes
   const fetchClasses = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const queryParams: { teacherId?: string; search?: string } = {};
-      if (selectedTeacher) {
-        queryParams.teacherId = selectedTeacher;
-      }
-      if (search) {
-        queryParams.search = search;
-      }
+      if (selectedTeacher) queryParams.teacherId = selectedTeacher;
+      if (search) queryParams.search = search;
+
       const data = await getAllClasses(queryParams);
       setClasses(data);
     } catch (err) {
@@ -56,64 +55,77 @@ export default function ClassManagement() {
     }
   }, [search, selectedTeacher]);
 
+  // Fetch teachers (once)
   useEffect(() => {
-    const fetchTeachers = async () => {
-      const data = await getAllTeachers();
-      setTeachers(data); // Assume data is Teacher[]
-    };
-    fetchTeachers();
+    (async () => {
+      try {
+        const data = await getAllTeachers();
+        setTeachers(data || []);
+      } catch (err) {
+        console.error('Failed to fetch teachers:', err);
+        toast.error('Failed to load teachers.');
+      }
+    })();
   }, []);
 
+  // Trigger fetch when filters change
   useEffect(() => {
     fetchClasses();
   }, [fetchClasses]);
 
-  // Handlers for ClassCard actions
-
-  const handleViewDetails = (classId: string) => {
+  // Handlers for actions on each class card
+  const handleViewDetails = useCallback((classId: string) => {
     router.push(`/admin/classmanage/${classId}`);
-  };
+  }, [router]);
 
-  const handleEditClass = (classId: string) => {
+  const handleEditClass = useCallback((classId: string) => {
     toast(`Edit class ID: ${classId}`);
-  };
+  }, []);
 
-  const handleManageTeachers = (classId: string) => {
+  const handleManageTeachers = useCallback((classId: string) => {
     toast(`Manage teachers for class ID: ${classId}`);
-  };
+  }, []);
 
-  const handleManageStudents = (classId: string) => {
+  const handleManageStudents = useCallback((classId: string) => {
     toast(`Manage students for class ID: ${classId}`);
-  };
-  const handleDeleteClass = (classItem: ClassResponse) => {
+  }, []);
+
+  const handleAddNewClass = useCallback(() => {
+    router.push('/admin/classmanage/create');
+  }, [router]);
+
+  const handleDeleteClass = useCallback((classItem: ClassResponse) => {
     setItemToDelete(classItem);
     onOpen();
-  };
+  }, [onOpen]);
 
-  const confirmDeleteClass = async () => {
-    if (!itemToDelete) return;
-
-    setIsDeleting(true);
-    try {
-      const success = await deleteClass(itemToDelete.id);
-      if (success) {
-        toast.success(`Class "${itemToDelete.name}" deleted successfully!`);
-        setClasses((prev) => prev.filter((c) => c.id !== itemToDelete.id));
-        onClose();
-      } else {
-        toast.error(`Failed to delete class "${itemToDelete.name}".`);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('Error deleting class.');
-    } finally {
-      setIsDeleting(false);
+const confirmDeleteClass = useCallback(async () => {
+  if (!itemToDelete || isDeleting) return;
+  setIsDeleting(true);
+  try {
+    const ok = await deleteClass(itemToDelete.id);
+    if (!ok) {
+      toast.error(`Failed to delete class "${itemToDelete.name}".`);
+      return;
     }
-  };
 
-  const handleAddNewClass = () => {
-    router.push('/admin/classmanage/create');
-  };
+    setClasses(prev => prev.filter(c => c.id !== itemToDelete.id));
+    toast.success(`Class "${itemToDelete.name}" deleted successfully!`);
+
+ 
+    setIsDeleting(false);
+    
+    queueMicrotask(() => {
+      onClose();
+      setItemToDelete(null);
+    });
+  } catch (err: any) {
+    console.error('Delete class error:', err);
+    toast.error(err?.message || 'Error deleting class.');
+    setIsDeleting(false);
+  }
+}, [itemToDelete, isDeleting, onClose]);
+
 
   return (
     <div className="p-6 space-y-6">
@@ -157,15 +169,17 @@ export default function ClassManagement() {
         </div>
       )}
 
-      <DeleteConfirmationModal
-        isOpen={isOpen}
-        onClose={onClose}
-        title="Confirm Deletion"
-        targetName={`class "${itemToDelete?.name}"`}
-        description="This will permanently remove the class and all its related data."
-        onConfirmDelete={confirmDeleteClass}
-        isDeleting={isDeleting}
-      />
+    <DeleteConfirmationModal
+  isOpen={isOpen}
+  onClose={onClose}  // giữ nguyên từ useDisclosure()
+  title="Confirm Deletion"
+  targetName={`class "${itemToDelete?.name ?? ''}"`}
+  description="This will permanently remove the class and all its related data."
+  onConfirmDelete={confirmDeleteClass}
+  isDeleting={isDeleting}
+  lockWhileDeleting
+/>
+
     </div>
   );
 }

@@ -19,9 +19,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ classInfo }) => {
       <div className="relative h-32 bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 overflow-hidden">
         <img
           src={
-            // topic.coverImage
-            //   ? getCmsAssetUrl(topic.coverImage)
-            //   : CONTENT.DEFAULT_TOPIC_IMAGE
+          
             CONTENT.CLASS_COVER_IMAGE
           }
           alt={classInfo.name}
