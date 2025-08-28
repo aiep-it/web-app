@@ -11,7 +11,7 @@ import {
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 
-import React from 'react';
+import React, { useRef } from 'react';
 // import { ImageUploader } from './components/ImageUploader';
 import {
   PersonalLearning,
@@ -22,16 +22,20 @@ import toast from 'react-hot-toast';
 import { uploadFile } from '@/services/cms';
 import { createPersonalLearning } from '@/services/personalLearning';
 import { ImageUploader } from './ImageUploader';
-import { PersonalLearningPreview } from './PersonalLearningPreview';
+import { PersonalLearningPreview, PersonalLearningPreviewHandle } from './PersonalLearningPreview';
 interface AIGeneratePageProps {
   topic?: TopicData;
   onSuccess: () => void;
 }
 
-const AIGeneratePage: React.FC<AIGeneratePageProps> = ({ topic, onSuccess }) => {
+const AIGeneratePage: React.FC<AIGeneratePageProps> = ({
+  topic,
+  onSuccess,
+}) => {
   const [isLoading, setIsLoading] = React.useState(false);
 
   const [preview, setPreview] = React.useState<PersonalLearning | null>(null);
+  const previewRef = useRef<PersonalLearningPreviewHandle>(null);
   const [imageFile, setImageFile] = React.useState<File | null>(null);
   const onGetAIContent = async (file: File | null) => {
     setIsLoading(true);
@@ -58,33 +62,43 @@ const AIGeneratePage: React.FC<AIGeneratePageProps> = ({ topic, onSuccess }) => 
     return null;
   };
   const onAddToWorkspace = async () => {
-    if (!preview || !imageFile) {
+    if (!preview) {
       toast.error('No preview available to add to workspace.');
       return;
     }
+  
     setIsLoading(true);
-    const imageId = await uploadImageCms(imageFile);
-    if (!imageId) {
-      toast.error('Failed to upload image. Please try again.');
-      setIsLoading(false);
-      return;
+  
+    // Upload main image
+    let imageId: string | null = null;
+    if (imageFile) {
+      imageId = await uploadImageCms(imageFile);
+      if (!imageId) {
+        toast.error('Failed to upload main image. Please try again.');
+        setIsLoading(false);
+        return;
+      }
     }
-    preview.vocabs = preview?.vocabs?.map((vocab) => {
-      return {
-        ...vocab,
-        topicId: topic?.id || '',
-      };
-    });
-
+  
+    const vocabsFromPreview = previewRef.current?.getData() || [];
+  
+    const updatedVocabs = vocabsFromPreview.map((vocab) => ({
+      ...vocab,
+      topicId: topic?.id || '',
+    }));
+  
     const payload: PersonalLearningCreatePayload = {
       ...preview,
+      vocabs: updatedVocabs,
       topicId: topic?.id || '',
-      image: imageId,
+      image: imageId || '', // fallback
     };
+  
     const res = await createPersonalLearning(payload);
     if (res) {
       toast.success('Added to workspace successfully!');
       setPreview(null);
+      setImageFile(null);
       setIsLoading(false);
       onSuccess();
     } else {
@@ -99,7 +113,6 @@ const AIGeneratePage: React.FC<AIGeneratePageProps> = ({ topic, onSuccess }) => 
         <CardHeader className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Image Upload Learning Plan</h1>
 
-         
           {preview && (
             <Button
               color="primary"
@@ -119,7 +132,7 @@ const AIGeneratePage: React.FC<AIGeneratePageProps> = ({ topic, onSuccess }) => 
           {!preview ? (
             <ImageUploader onUpload={onGetAIContent} isLoading={isLoading} />
           ) : (
-            <PersonalLearningPreview personalLearning={preview} />
+            <PersonalLearningPreview personalLearning={preview} ref={previewRef} />
           )}
         </CardBody>
         {preview && (

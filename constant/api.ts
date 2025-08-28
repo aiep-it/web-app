@@ -93,6 +93,7 @@ export const ENDPOINTS = {
   },
   PERSONAL_LEARNING: {
     CREATE: '/personal-learning/create',
+    UPDATE: (id: string) => `/personal-learning/${id}`,
     GET_BY_TOPIC: (topicId: string) => `/personal-learning/topic/${topicId}`,
   },
   USER_EXCERCISER_RESULT: {

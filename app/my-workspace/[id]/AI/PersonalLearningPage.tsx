@@ -48,6 +48,9 @@ const PersonalLearningPage: React.FC<PersonalLearningPageProps> = ({
       toast.error('Failed to fetch personal learnings. Please try again.');
     }
   };
+  const onRefresh = async () => {
+    await fetchPersonalLearnings();
+  }
   useEffect(() => {
     if (personalLearnings.length === 0 && topic?.id) {
       fetchPersonalLearnings();
@@ -103,6 +106,7 @@ const PersonalLearningPage: React.FC<PersonalLearningPageProps> = ({
                   <ListPresonalLearningPreview
                     key={learning.id}
                     personalLearning={learning}
+                    onRefresh={onRefresh}
                   />
                 ))
               ) : (

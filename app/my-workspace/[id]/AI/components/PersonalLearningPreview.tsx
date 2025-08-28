@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import {
   Card,
   CardBody,
@@ -24,19 +24,30 @@ import { genImageFromText } from '@/services/vocab';
 import { getCmsAssetUrl } from '@/utils';
 import CImageUpload from '@/components/CImageUpload';
 import { uploadFile } from '@/services/cms';
+import { VocabData } from '@/services/types/vocab';
 
 interface PersonalLearningPreviewProps {
   personalLearning: PersonalLearning;
+  checkUpdate?: () => void;
 }
 
-export const PersonalLearningPreview: React.FC<
+export interface PersonalLearningPreviewHandle {
+  getData: () => VocabData[];
+}
+
+export const PersonalLearningPreview = forwardRef<
+  PersonalLearningPreviewHandle,
   PersonalLearningPreviewProps
-> = ({ personalLearning }) => {
+>(({ personalLearning, checkUpdate }, ref) => {
   const [vocabs, setVocabs] = useState(personalLearning.vocabs || []);
   const [loadingMap, setLoadingMap] = useState<{ [key: string]: boolean }>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [selectedVocabUploadImage, setSelectedVocabUploadImage] =
     useState<any>(null);
+
+  useImperativeHandle(ref, () => ({
+    getData: () => vocabs,
+  }));
 
   const handleAIGenImg = async (word: string, text: string) => {
     setLoadingMap((prev) => ({ ...prev, [word]: true }));
@@ -50,6 +61,9 @@ export const PersonalLearningPreview: React.FC<
               : v,
           ),
         );
+        if (checkUpdate) {
+          checkUpdate();
+        }
       }
     } finally {
       setLoadingMap((prev) => ({ ...prev, [word]: false }));
@@ -194,4 +208,4 @@ export const PersonalLearningPreview: React.FC<
       </Modal>
     </div>
   );
-};
+});

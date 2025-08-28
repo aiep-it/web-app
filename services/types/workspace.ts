@@ -23,6 +23,7 @@ export interface PersonalLearning {
   title: string,
   description?: string,
   image?: string,
+  topicId?: string,
   vocabs?: VocabData[];
 }
 

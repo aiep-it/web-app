@@ -1,6 +1,10 @@
-import { PersonalLearning } from '@/services/types/workspace';
+import {
+  PersonalLearning,
+  PersonalLearningCreatePayload,
+} from '@/services/types/workspace';
 import { getCmsAssetUrl } from '@/utils';
 import {
+  addToast,
   Button,
   Card,
   CardBody,
@@ -13,19 +17,56 @@ import {
   ModalHeader,
   useDisclosure,
 } from '@heroui/react';
-import { get } from 'http';
-import React from 'react';
-import { PersonalLearningPreview } from './PersonalLearningPreview';
+import React, { useRef } from 'react';
+import {
+  PersonalLearningPreview,
+  PersonalLearningPreviewHandle,
+} from './PersonalLearningPreview';
+import { updatePersonalLearning } from '@/services/personalLearning';
 
 interface ListPresonalLearningPreviewProps {
-  // Define any props if needed
   personalLearning: PersonalLearning;
+  onRefresh?: () => void;
 }
 
 const ListPresonalLearningPreview: React.FC<
   ListPresonalLearningPreviewProps
-> = ({ personalLearning }) => {
+> = ({ personalLearning, onRefresh }) => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const previewRef = useRef<PersonalLearningPreviewHandle>(null);
+
+  const [showUpdate, setShowUpdate] = React.useState(false);
+
+  const onUpdate = async () => {
+    if (
+      previewRef.current &&
+      personalLearning &&
+      personalLearning.id &&
+      personalLearning.topicId
+    ) {
+      const vocabs = previewRef.current.getData();
+
+      const payload: PersonalLearningCreatePayload = {
+        ...personalLearning,
+        vocabs: vocabs,
+        topicId: personalLearning.topicId || '', // Provide a default value if topicId is undefined
+      };
+
+      const res = await updatePersonalLearning(payload, personalLearning.id);
+      if (res) {
+        setShowUpdate(false);
+        onOpenChange();
+        addToast({
+          title: 'Personal Learning updated successfully',
+          color: 'success',
+        });
+        onRefresh && onRefresh();
+      }
+      return vocabs;
+    }
+    return [];
+  };
+
   return (
     <>
       <Card
@@ -33,7 +74,7 @@ const ListPresonalLearningPreview: React.FC<
         onPress={onOpen}
         className="border-none bg-content1/50 hover:bg-content1 w-full "
       >
-        <div className={'flex'}>
+        <div className="flex">
           <CardBody className="p-0">
             <div className="w-full h-full flex items-center justify-center">
               <Image
@@ -54,7 +95,6 @@ const ListPresonalLearningPreview: React.FC<
                 {personalLearning.title}
               </h3>
               <p className="text-sm text-gray-600">
-                {' '}
                 {personalLearning.description}
               </p>
               <p className="text-sm mt-2">
@@ -65,12 +105,13 @@ const ListPresonalLearningPreview: React.FC<
           </CardFooter>
         </div>
       </Card>
+
       <Modal
         isDismissable={false}
         isKeyboardDismissDisabled={true}
         isOpen={isOpen}
-        size='5xl'
-        scrollBehavior='inside'
+        size="5xl"
+        scrollBehavior="inside"
         onOpenChange={onOpenChange}
       >
         <ModalContent>
@@ -79,12 +120,25 @@ const ListPresonalLearningPreview: React.FC<
               <ModalHeader className="flex flex-col gap-1">Detail</ModalHeader>
               <ModalBody>
                 <PersonalLearningPreview
-                  personalLearning={personalLearning} />
+                  ref={previewRef}
+                  personalLearning={personalLearning}
+                  checkUpdate={() => setShowUpdate(true)}
+                />
               </ModalBody>
-              <ModalFooter>
+              <ModalFooter className="gap-2">
                 <Button color="danger" variant="light" onPress={onClose}>
-                  Ok
+                  Close
                 </Button>
+                {showUpdate && (
+                  <Button
+                    color="primary"
+                    onPress={() => {
+                      onUpdate();
+                    }}
+                  >
+                    Update
+                  </Button>
+                )}
               </ModalFooter>
             </>
           )}

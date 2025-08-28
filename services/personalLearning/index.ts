@@ -23,6 +23,25 @@ export const createPersonalLearning = async (
     return null;
   }
 };
+export const updatePersonalLearning = async (payload: PersonalLearningCreatePayload, id: string) => {
+  try {
+    return await axiosInstance
+      .put(ENDPOINTS.PERSONAL_LEARNING.UPDATE(id), payload)
+      .then((response) => {
+        if (response.status === 200) {
+          return response.data;
+        }
+        return null;
+      })
+      .catch((e) => {
+        console.error('Error creating personal learning:', e);
+        return null;
+      });
+  } catch (error) {
+    console.error('Error creating personal learning:', error);
+    return null;
+  }
+}
 
 export const getPersonalLearningByTopicId = async (topicId: string) => {
   try {
