@@ -8,7 +8,7 @@ import {
   USER_ROLE,
 } from './constant/authorProtect';
 
-const isPublicRoute = createRouteMatcher(['/', '/sign-in(.*)', '/sign-up(.*)']);
+const isPublicRoute = createRouteMatcher(['/', '/sign-in(.*)', '/sign-up(.*)', '/api/students/activate(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
   const currentPath = req.nextUrl.pathname;
