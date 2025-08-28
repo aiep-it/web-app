@@ -455,7 +455,7 @@ export function VocabLearningModal({
             </CustomButton>
           )}
           {/* Type Answer Button */}
-          {topicVocabs.length > 0 && !isWorkspace ? (
+          {topicVocabs.length > 0  ? (
             <CustomButton
               preset="primary"
               icon="material-symbols:edit"

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Button, Spinner } from '@heroui/react';
+import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner, useDisclosure } from '@heroui/react';
 import { addToast } from '@heroui/toast';
 import { Icon } from '@iconify/react';
 import { useAuth } from '@clerk/nextjs';
@@ -13,8 +13,13 @@ import { TypeAnswerDisplay } from '@/components/TypeAnswer/TypeAnswerDisplay';
 import { TypeAnswerEditor } from '@/components/TypeAnswer/TypeAnswerEditor';
 import { TypeAnswerList } from '@/components/TypeAnswer/TypeAnswerList';
 import { mergeExercisesWithDirectusData } from '@/utils/exerciseHelper';
-import { ExerciseData } from '@/services/types/exercise';
+import { ExerciseData, VocabColumn } from '@/services/types/exercise';
 import { CustomButton } from '@/shared/components';
+import AISuggestForm, { AISuggestFormRef } from '../quiz/AISuggestForm';
+import { AI_suggestQuizPayload } from '@/services/types/aiSuggest';
+import { suggestQuizz, suggestQuizzMedia } from '@/services/exercise';
+import toast from 'react-hot-toast';
+import { getCmsAssetUrl } from '@/utils';
 
 export default function TypeAnswerExercisePage() {
   const params = useParams();
@@ -51,6 +56,8 @@ export default function TypeAnswerExercisePage() {
   const [isClient, setIsClient] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
+  const [aiSuggestLoading, setAISuggestLoading] = useState(false);
+  const [aiSuggestData, setAISuggestData] = useState<ExerciseData | null>(null);
   
   // Client-side hydration check
   useEffect(() => {
@@ -78,11 +85,50 @@ export default function TypeAnswerExercisePage() {
   const [showPreviewResult, setShowPreviewResult] = useState(false);
   const [mergedExercises, setMergedExercises] = useState<ExerciseData[]>([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const formRef = useRef<AISuggestFormRef>(null);
 
   // Filter exercises for this topic that are image or audio type
   const typeAnswerExercises = mergedExercises.filter(
     (exercise) => exercise.type === 'image' || exercise.type === 'audio',
   );
+
+  const handleAction = async () => {
+    setAISuggestLoading(true);
+    const data = formRef.current?.getData();
+
+    console.log('AI Suggest Form Data:', data);
+    if (!data) {
+      alert('Please fill in the content');
+      return;
+    }
+
+    const payload = {
+      topicId: topicId,
+      difficulty: data.difficulty,
+      // content: data.content,
+      type: data.typeAnswer,
+      includeFile: data.includeFile,
+    } as AI_suggestQuizPayload;
+    const rest = await suggestQuizzMedia(payload);
+
+    if (rest) {
+      rest.type = (payload.type as VocabColumn) ; // Ensure type is set correctly
+      if (rest.imageUrl) {
+        rest.imageUrl = getCmsAssetUrl(rest.imageUrl);
+      }
+      setAISuggestData(rest);
+      setSelectedExercise(rest);
+      setCurrentView('edit');
+    } else {
+      toast.error('Failed to suggest quiz. Please try again.');
+    }
+
+    setAISuggestLoading(false);
+    // Do something with `data`
+    // e.g., call API, close modal, etc.
+    onClose();
+  };
 
   useEffect(() => {
     if (!topicId) {
@@ -238,7 +284,8 @@ export default function TypeAnswerExercisePage() {
         // Pass the appropriate file based on exercise type
         const fileToUpload =
           exerciseData.type === 'image' ? imageFile : audioFile;
-        await createDirectusExercise(directusPayload, fileToUpload);
+        console.log('Creating Directus exercise with payload:', directusPayload, 'and file:', fileToUpload);
+        await createDirectusExercise(directusPayload, fileToUpload, aiSuggestData?.fileId);
       }
 
       addToast({
@@ -262,25 +309,25 @@ export default function TypeAnswerExercisePage() {
       console.error('Error creating exercise:', error);
 
       // Handle specific 403 errors
-      if (error && typeof error === 'object') {
-        const errorDetails = {
-          message: (error as any).message,
-          status: (error as any).response?.status,
-          statusText: (error as any).response?.statusText,
-          data: (error as any).response?.data,
-        };
-        console.error('Error details:', errorDetails);
+      // if (error && typeof error === 'object') {
+      //   const errorDetails = {
+      //     message: (error as any).message,
+      //     status: (error as any).response?.status,
+      //     statusText: (error as any).response?.statusText,
+      //     data: (error as any).response?.data,
+      //   };
+      //   console.error('Error details:', errorDetails);
 
-        if ((error as any).response?.status === 403) {
-          setAuthError('Authentication failed. Please log in again.');
-          addToast({
-            title: 'Authentication Error',
-            description: 'Your session has expired. Please log in again.',
-            color: 'danger',
-          });
-          return;
-        }
-      }
+      //   if ((error as any).response?.status === 403) {
+      //     setAuthError('Authentication failed. Please log in again.');
+      //     addToast({
+      //       title: 'Authentication Error',
+      //       description: 'Your session has expired. Please log in again.',
+      //       color: 'danger',
+      //     });
+      //     return;
+      //   }
+      // }
 
       addToast({
         title: 'Error',
@@ -296,6 +343,22 @@ export default function TypeAnswerExercisePage() {
     imageFile?: File,
     audioFile?: File,
   ) => {
+    if (aiSuggestData) {
+      try {
+        const newData = {
+          ...aiSuggestData,
+          topicId: topicId,
+        }
+        // const {imageFile, audioFile, ...payload } = newData;
+        await handleCreateExercise(newData);
+      } catch (error) {
+        
+      } finally {
+        setAISuggestData(null);
+      }
+
+      return;
+    }
     if (!selectedExercise || !topicId || !currentUser) {
       console.error('Missing required data for update:', {
         selectedExercise: !!selectedExercise,
@@ -400,6 +463,7 @@ export default function TypeAnswerExercisePage() {
   }, [selectedExercise, topicId, currentUser, isLoaded, isSignedIn, updateExercise, updateDirectusExercise, getAllExercises]);
 
   const handleExerciseSelect = (exercise: ExerciseData) => {
+    console.log('Selected exercise:', exercise);
     setSelectedExercise(exercise);
     setCurrentView('preview');
     setPreviewAnswer('');
@@ -542,13 +606,14 @@ export default function TypeAnswerExercisePage() {
                   Create Exercise
                 </CustomButton>
 
-                <CustomButton
-                  preset="primary"
-                  icon="mdi:plus"
-                  onPress={() => setCurrentView('create')}
+                <Button
+                  color="secondary"
+                  startContent={<Icon icon="mdi:robot" className="text-lg" />}
+                  variant='bordered'
+                  onPress={() => onOpen()}
                 >
                   AI Suggest
-                </CustomButton>
+                </Button>
               </div>
             )}
           </div>
@@ -604,6 +669,7 @@ export default function TypeAnswerExercisePage() {
 
             {currentView === 'edit' && selectedExercise && (
               <TypeAnswerEditor
+                skipValidate={!!aiSuggestData}
                 exercise={selectedExercise}
                 onSave={handleUpdateExercise}
                 onCancel={handleBackToList}
@@ -674,6 +740,42 @@ export default function TypeAnswerExercisePage() {
           </div>
         </div>
       </div>
+      {/* AI suggest Modal */}
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                AI Suggest 
+              </ModalHeader>
+              <ModalBody>
+                {aiSuggestLoading ? (
+                  <Spinner className="mx-auto" />
+                ) : (
+                  <AISuggestForm typeAnswer={true} ref={formRef} />
+                )}
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  color="danger"
+                  variant="light"
+                  onPress={onClose}
+                  isLoading={aiSuggestLoading}
+                >
+                  Close
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={handleAction}
+                  isLoading={aiSuggestLoading}
+                >
+                  Suggest
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

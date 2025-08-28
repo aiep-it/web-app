@@ -253,9 +253,7 @@ const VocabularyListPage: React.FC<VocabularyListPageProps> = ({ topic }) => {
   useEffect(() => {
     if (
       isLoaded &&
-      isSignedIn &&
-      !isRoleLoading &&
-      (userRole === 'admin' || userRole === 'staff')
+      isSignedIn
     ) {
       fetchListVocabs();
     } else {

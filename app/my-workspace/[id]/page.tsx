@@ -13,6 +13,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 import PersonalLearningPage from './AI/PersonalLearningPage';
+import TypeAnswerExercisePage from '@/app/admin/exercises/[id]/type-answer/page';
 
 export default function MyWorkspaceDetailPage() {
   const params = useParams();
@@ -103,6 +104,9 @@ export default function MyWorkspaceDetailPage() {
               </Tab>
               <Tab key={"excercise"} title="Excercise">
                 <QuizExercisePage />
+              </Tab>
+              <Tab key={"type"} title="Type Excercise">
+                <TypeAnswerExercisePage />
               </Tab>
               <Tab key={"AI"} title="AI">
                 <PersonalLearningPage topic={topic}/>

@@ -356,8 +356,7 @@ export default function QuizExercisePage({ myTopicId }: QuizExercisePageProps) {
 
     const payload = {
       topicId: topicId,
-      difficulty: data.difficulty,
-      content: data.content,
+      difficulty: data.difficulty
     } as AI_suggestQuizPayload;
     const rest = await suggestQuizz(payload);
 

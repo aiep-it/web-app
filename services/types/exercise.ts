@@ -39,5 +39,6 @@ export interface ExerciseData {
   directusId?: string; // Directus CMS ID for exercises stored in CMS
   imageUrl?: string; // Computed full URL for image assets
   audioUrl?: string; // Computed full URL for audio assets
+  fileId?: string; // ID of the uploaded file in Directus
 }
 

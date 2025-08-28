@@ -10,7 +10,7 @@ import {
 } from '@/services/cms/exercise';
 
 export interface UseDirectusExerciseResult {
-  createExercise: (payload: ExerciseCreatePayload, file?: File) => Promise<DirectusExercise | null>;
+  createExercise: (payload: ExerciseCreatePayload, file?: File, fileId?: string) => Promise<DirectusExercise | null>;
   updateExercise: (payload: ExerciseUpdatePayload, file?: File) => Promise<DirectusExercise | null>;
   getExercises: () => Promise<DirectusExercise[]>;
   isCreating: boolean;
@@ -25,15 +25,15 @@ export const useDirectusExercise = (): UseDirectusExerciseResult => {
 
   const createExercise = useCallback(async (
     payload: ExerciseCreatePayload,
-    file?: File
+    file?: File,
+    fileId?: string // Optional existing file ID
   ): Promise<DirectusExercise | null> => {
     setIsCreating(true);
     try {
       let finalPayload = { ...payload };
-
       if (file) {
         // Determine folder based on file type
-        const folder = file.type.startsWith('image/') ? 'images' : 'audio';
+        const folder = file.type?.startsWith('image/') ? 'images' : 'audio';
         const fileUuid = await uploadFileToDirectus(file, folder);
         
         if (fileUuid) {
@@ -43,6 +43,14 @@ export const useDirectusExercise = (): UseDirectusExerciseResult => {
           } else if (payload.type === 'audio') {
             finalPayload.audio = fileUuid;
           }
+        }
+      }
+      if (fileId) {
+        // If fileId is provided, set the appropriate field directly
+        if (payload.type === 'image') {
+          finalPayload.exerciseImage = fileId;
+        } else if (payload.type === 'audio') {
+          finalPayload.audio = fileId;
         }
       }
 

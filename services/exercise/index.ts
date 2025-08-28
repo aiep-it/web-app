@@ -113,3 +113,23 @@ export async function suggestQuizz(payload: AI_suggestQuizPayload): Promise<Exer
         return null;
     }
 }
+
+export async function suggestQuizzMedia(payload: AI_suggestQuizPayload): Promise<ExerciseData | null> {
+    try {
+        return await axiosInstance
+            .post(ENDPOINTS.AI.AI_SUGGEST_QUIZ_MEDIA, payload)
+            .then((response) => {
+                if (response.status === 200) {
+                    return response.data?.data as ExerciseData | null;
+                }
+                return null;
+            })
+            .catch((e) => {
+                console.error("Error suggesting quizzes:", e);
+                return null;
+            });
+    } catch (error) {
+        console.error("Error suggesting quizzes:", error);
+        return null;
+    }
+}

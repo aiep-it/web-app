@@ -13,9 +13,10 @@ interface TypeAnswerEditorProps {
   onSave: (exerciseData: Partial<ExerciseData>, imageFile?: File, audioFile?: File) => void;
   onCancel: () => void;
   isLoading?: boolean;
+  skipValidate?: boolean;
 }
 
-export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false }: TypeAnswerEditorProps) {
+export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false, skipValidate = false }: TypeAnswerEditorProps) {
   const [formData, setFormData] = useState({
     content: '',
     correctAnswer: '',
@@ -41,6 +42,7 @@ export function TypeAnswerEditor({ exercise, onSave, onCancel, isLoading = false
   }, [exercise]);
 
   const validateForm = () => {
+    if (skipValidate) return true;
     const newErrors: Record<string, string> = {};
 
     if (!formData.content.trim()) {
