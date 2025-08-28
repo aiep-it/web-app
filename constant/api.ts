@@ -104,8 +104,11 @@ export const ENDPOINTS = {
     CLASS: (classId: string) => `/reports/class/${classId}`,
     CLASS_TOPIC: (classId: string, topicId: string) =>
       `/reports//class/${classId}/topic/${topicId}`,
-    STD: (stdId: string) => `/report/${stdId}`,
-    SEND_FEEDBACK: 'teachers/feedback'
+    STD: (stdId: string) => `/reports/${stdId}`,
+    SEND_FEEDBACK: 'teachers/feedback',
+    USER: (stdId: string) => `/reports/std/${stdId}`,
+    
+  
   },
   NOTIFICATION: {
     GET_MY: '/notifications',

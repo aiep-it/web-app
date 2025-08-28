@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Key, Selection } from '@react-types/shared';
 import { motion } from 'framer-motion';
 import {
@@ -41,6 +41,7 @@ import { USER_ROLE } from '@/constant/authorProtect';
 import ClassReport from './component/ClassReport';
 import { Roadmap } from '@/services/types/roadmap';
 import RoadMapDetailPage from '@/app/admin/roadmaps/[id]/RoadMapDetailPage';
+import MyReport from '@/app/report/me/MyReport';
 
 interface ClassRoomPageProps {
   classId: string;
@@ -68,6 +69,19 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
 
   const [roadMapSelected, setRoadMapSelected] = React.useState<Roadmap | null>(null);
 
+  const {
+    isOpen: isOpenStudentReport,
+    onOpenChange: onOpenChangeStudentReport,
+    onOpen: onOpenStudentReportInternal,
+  } = useDisclosure();
+  const [selectedStudentId, setSelectedStudentId] = React.useState<string | null>(null);
+
+  // open Report modal from child
+  const handleOpenStudentReport = useCallback((studentId: string) => {
+    setSelectedStudentId(studentId);
+    onOpenStudentReportInternal();
+  }, [onOpenStudentReportInternal]);
+
   // Lấy role từ Clerk
   useEffect(() => {
     interface Metadata { role?: string }
@@ -79,43 +93,43 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
   }, [sessionClaims]);
 
   // Fetch class info
-  const fetchMyClass = async () => {
+  const fetchMyClass = useCallback(async () => {
     const res = await getMyClass(classId);
     if (res) setClassInfo(res);
     else console.error('Failed to fetch class data');
-  };
+  }, [classId]);
 
   useEffect(() => {
     if (!classInfo && classId) {
       fetchMyClass();
     }
-  }, [classId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [classId, classInfo, fetchMyClass]);
 
   // Fetch danh sách roadmap mở rộng, lọc bỏ deleted
-  const fetchExtendsRoadMap = async () => {
+  const fetchExtendsRoadMap = useCallback(async () => {
     const res = await getExtendRoadMaps(classId);
     const cleaned = (res || []).filter((r: any) =>
       !(r?.is_delected ?? r?.is_deleted ?? r?.isDeleted ?? false) &&
       (r?.status ? String(r.status).toUpperCase() !== 'DELETED' : true)
     );
     setExtendsRoadmaps(cleaned);
-  };
+  }, [classId]);
 
   // Khi mở modal thì fetch danh sách
   useEffect(() => {
     if (isOpen) {
       fetchExtendsRoadMap();
     }
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOpen, fetchExtendsRoadMap]);
 
   // Đóng modal + reset chọn
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setSelectedKeys(new Set<Key>());
     onOpenChange();
-  };
+  }, [onOpenChange]);
 
   // Pick roadmap: chỉ gửi ID hợp lệ
-  const pickRoadmap = async () => {
+  const pickRoadmap = useCallback(async () => {
     const eligibleIds = extendsRoadmaps
       .filter((r: any) => !(r?.is_delected ?? r?.is_deleted ?? r?.isDeleted ?? false))
       .map((r) => r.id);
@@ -147,7 +161,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
     } else {
       addToast({ title: 'Thêm roadmap thất bại!', color: 'danger' });
     }
-  };
+  }, [classId, extendsRoadmaps, selectedKeys, fetchMyClass, handleClose]);
 
   const renderCell = React.useCallback(
     (roadmap: Roadmap, columnKey: React.Key): React.ReactNode => {
@@ -173,7 +187,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
           return cellValue !== undefined ? <>{cellValue}</> : '-';
       }
     },
-    [] // roadmap cell pure
+    [onOpenChangeViewRoadmap]
   );
 
   const pickDisabled =
@@ -218,9 +232,9 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
 
             {classInfo?.roadmaps && classInfo.roadmaps.length > 0 ? (
               <Accordion variant="bordered" className="space-y-2">
-                {classInfo.roadmaps.map((roadmap, index) => (
+                {classInfo.roadmaps.map((roadmap) => (
                   <AccordionItem
-                    key={index}
+                    key={roadmap.id}
                     startContent={
                       <div className="flex flex-row space-x-2">
                         <p>{roadmap.name}</p>
@@ -254,22 +268,24 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
               <div className="flex items-center gap-2">
                 <Icon icon="lucide:users" />
                 <span>Members</span>
-                {classInfo?.students && classInfo.students.length > 0 && (
+                {!!(classInfo?.students?.length) && (
                   <Chip size="sm" variant="flat" color="success">
-                    {classInfo.students.length}
+                    {classInfo!.students!.length}
                   </Chip>
                 )}
               </div>
             }
           >
             <div className="py-4 h-full">
-              {classInfo?.teachers && classInfo.teachers.length > 0 ? (
+              {(classInfo?.teachers?.length ?? 0) > 0 ||
+              (classInfo?.students?.length ?? 0) > 0 ? (
                 <ListMembers
-                  teachers={classInfo.teachers}
-                  students={classInfo.students || []}
+                  teachers={classInfo?.teachers ?? []}
+                  students={classInfo?.students ?? []}
                   classId={classId}
                   currentRole={currentRole}
                   clazzName={classInfo?.name}
+                  onOpenStudentReport={handleOpenStudentReport}
                 />
               ) : (
                 <EmptySection
@@ -341,29 +357,30 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
 
       {/* Modal View Roadmap */}
       <Modal
-        isOpen={viewRoadMap}
-        onOpenChange={onOpenChangeViewRoadmap}
+        isOpen={isOpenStudentReport}
+        onOpenChange={onOpenChangeStudentReport}
         size="5xl"
-        isDismissable={false}
-        isKeyboardDismissDisabled={true}
+        isDismissable
         scrollBehavior="inside"
       >
         <ModalContent>
           {() => (
             <>
-              <ModalHeader className="flex flex-col gap-1">RoadMap View</ModalHeader>
-              <ModalBody>
-                {roadMapSelected ? (
-                  <RoadMapDetailPage id={roadMapSelected.id} isViewOnly />
+              <ModalHeader className="flex flex-col gap-1">
+                {selectedStudentId ? 'Student Report' : 'No Student Selected'}
+              </ModalHeader>
+              <ModalBody className="p-0">
+                {selectedStudentId ? (
+                  <MyReport stdId={selectedStudentId} />
                 ) : (
                   <EmptySection
-                    title="No Roadmap Selected"
-                    message="Please select a roadmap to view details."
+                    title="No Student Selected"
+                    message="Please select a student to view report."
                   />
                 )}
               </ModalBody>
               <ModalFooter>
-                <Button color="secondary" variant="bordered" onPress={onOpenChangeViewRoadmap}>
+                <Button variant="bordered" onPress={onOpenChangeStudentReport}>
                   Close
                 </Button>
               </ModalFooter>

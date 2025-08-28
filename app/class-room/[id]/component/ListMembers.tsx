@@ -1,10 +1,10 @@
 import EmptySection from '@/components/EmptySection';
 import { USER_ROLE } from '@/constant/authorProtect';
 import { sendFeedbackToClass } from '@/services/class';
-import { getFeedback, teacherGetFeedback } from '@/services/parents';
+import { teacherGetFeedback } from '@/services/parents';
 import { ClassTeacher } from '@/services/types/class';
 import { Student } from '@/services/types/student';
-import { FeedbackData, TeacherFeedback } from '@/services/types/user';
+import { TeacherFeedback } from '@/services/types/user';
 import {
   Accordion,
   AccordionItem,
@@ -15,18 +15,19 @@ import {
   CardBody,
   CardHeader,
   Divider,
-  Input,
   Modal,
   ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
   Textarea,
+  Tooltip,
   useDisclosure,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import React, { useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 interface ListMembersProps {
   teachers: ClassTeacher[];
@@ -34,7 +35,10 @@ interface ListMembersProps {
   classId?: string;
   currentRole?: USER_ROLE | null;
   clazzName?: string;
+
+  onOpenStudentReport?: (studentId: string) => void;
 }
+
 export const ListboxWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => (
@@ -42,20 +46,25 @@ export const ListboxWrapper: React.FC<{ children: React.ReactNode }> = ({
     {children}
   </div>
 );
+
 const ListMembers: React.FC<ListMembersProps> = ({
   teachers,
   students,
   classId,
   currentRole,
   clazzName,
+  onOpenStudentReport, 
 }) => {
+   const openReport = (studentId: string) => {
+    onOpenStudentReport?.(studentId);
+  };
+  const router = useRouter();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(
     null,
   );
   const [isSending, setIsSending] = React.useState<boolean>(false);
-
   const [message, setMessage] = React.useState<string>('');
 
   const handleClose = () => {
@@ -71,24 +80,19 @@ const ListMembers: React.FC<ListMembersProps> = ({
   const fetchFeedbacks = async (studentId: string) => {
     if (!classId) return;
     const res = await teacherGetFeedback(studentId, classId);
-
     setListFeedBackSelected(res || []);
   };
 
   useEffect(() => {
-    if (selectedStudent && selectedStudent.id) {
+    if (selectedStudent?.id) {
       fetchFeedbacks(selectedStudent.id);
     }
   }, [selectedStudent]);
 
   const sendFeedBack = async () => {
-    if (!selectedStudent || !message || !classId) {
-      return;
-    }
+    if (!selectedStudent || !message || !classId) return;
     setIsSending(true);
-    // Here you would typically send the feedback to your backend
     const res = await sendFeedbackToClass(classId, selectedStudent.id, message);
-    // Reset the message after sending
     if (res) {
       toast.success('Feedback sent successfully!');
       handleClose();
@@ -98,9 +102,16 @@ const ListMembers: React.FC<ListMembersProps> = ({
     setIsSending(false);
   };
 
+  // ===== NEW: Điều hướng sang trang Report của học sinh =====
+  const goToStudentReport = (studentId: string) => {
+    // tái sử dụng trang /report/me với query stdId
+    router.push(`/report/me?stdId=${studentId}`);
+  };
+
   return (
     <div>
-      <Card>
+      {/* Teachers card... giữ nguyên */}
+ <Card>
         <CardHeader className="flex gap-3">
           <div className="flex flex-col">
             <p className="text-md">Teachers</p>
@@ -127,7 +138,8 @@ const ListMembers: React.FC<ListMembersProps> = ({
           ))}
         </CardBody>
       </Card>
-      <Card>
+      <Card></Card>
+      <Card className="mt-4">
         <CardHeader className="flex gap-3">
           <div className="flex flex-col">
             <p className="text-md">Students</p>
@@ -142,7 +154,20 @@ const ListMembers: React.FC<ListMembersProps> = ({
             />
           ) : (
             students.map((student) => (
-              <div className="flex gap-2 items-center h-full justify-between">
+              <div
+                key={student.id}
+                className="flex gap-2 items-center h-full justify-between rounded-xl px-2 py-1 cursor-pointer hover:bg-default-100 transition-colors"
+                onClick={() => openReport(student.id)}               // NEW
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openReport(student.id);                           // NEW
+                  }
+                }}
+                aria-label={`Open report of ${student.fullName || student.username}`}
+              >
                 <div className="flex gap-2 items-center h-full">
                   <Avatar
                     alt={student.fullName || student.username}
@@ -152,103 +177,62 @@ const ListMembers: React.FC<ListMembersProps> = ({
                     name={student.fullName || student.username}
                   />
                   <div className="flex flex-col">
-                    <span className="text-small">
-                      {student.fullName || '-'}
-                    </span>
+                    <span className="text-small">{student.fullName || '-'}</span>
                     <span className="text-tiny text-default-400">
                       {student.username}
                     </span>
                   </div>
                 </div>
-                {currentRole === 'TEACHER' && (
-                  <Badge
-                    isInvisible={(student?.feedbackCount ?? 0) === 0}
-                    content={student.feedbackCount || ''}
-                    color="danger"
-                  >
+
+                <div className="flex items-center gap-2">
+                  {/* Nút Report riêng (không kích hoạt click của row) */}
+                  <Tooltip content="View report">
                     <Button
+                      isIconOnly
+                      size="sm"
                       variant="flat"
-                      color="primary"
-                      onPress={() => {
-                        setSelectedStudent(student);
-                        onOpen();
+                      onPress={(e) => {
+                        (e as any).preventDefault?.();
+                        (e as any).stopPropagation?.();
+                        openReport(student.id);                       // NEW
                       }}
                     >
-                      <Icon icon="lucide:message-square" />
+                      <Icon icon="lucide:bar-chart-3" />
                     </Button>
-                  </Badge>
-                )}
+                  </Tooltip>
+
+                  {currentRole === 'TEACHER' && (
+                    <Badge
+                      isInvisible={(student?.feedbackCount ?? 0) === 0}
+                      content={student.feedbackCount || ''}
+                      color="danger"
+                    >
+                      <Tooltip content="Send feedback">
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          color="primary"
+                          onPress={(e) => {
+                            (e as any).preventDefault?.();
+                            (e as any).stopPropagation?.();
+                            setSelectedStudent(student);
+                            onOpen();
+                          }}
+                        >
+                          <Icon icon="lucide:message-square" />
+                        </Button>
+                      </Tooltip>
+                    </Badge>
+                  )}
+                </div>
               </div>
             ))
           )}
         </CardBody>
       </Card>
-      <Modal isOpen={isOpen} placement="top-center" onOpenChange={onOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                FeedBack For{' '}
-                {selectedStudent?.fullName || 'No Student Selected'}
-              </ModalHeader>
-              <ModalBody className="space-y-3">
-                {listFeedBackSeletect.length > 0 ? (
-                  <Accordion variant="bordered" className="space-y-2">
-                    {listFeedBackSeletect.map((feedback) => (
-                      <AccordionItem
-                        key={feedback.id}
-                        startContent={
-                          <Avatar
-                            isBordered
-                            color="primary"
-                            radius="md"
-                            name={feedback.teacher.fullName || 'Teacher'}
-                          />
-                        }
-                        title={feedback?.teacher?.fullName || '-'}
-                        subtitle={feedback.createdAt || '-'}
-                      >
-                        <div className="whitespace-pre-wrap">
-                          {feedback.content}{' '}
-                        </div>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                ) : (
-                  <EmptySection
-                    title="No Feedbacks"
-                    message="This student does not have any feedbacks yet."
-                  />
-                )}
-                <div className="flex items-center px-2">
-                  <p>
-                    to: <span>{selectedStudent?.parentEmail}</span>
-                  </p>
-                </div>
-                <Textarea
-                  label="Message"
-                  placeholder="Type your message here..."
-                  value={message}
-                  onValueChange={setMessage}
-                  minRows={3}
-                />
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="flat" onPress={onClose}>
-                  Close
-                </Button>
-                <Button
-                  color="primary"
-                  onPress={sendFeedBack}
-                  isLoading={isSending}
-                >
-                  Send
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+
+      
     </div>
   );
 };
