@@ -1,11 +1,15 @@
 'use client';
 import React from 'react';
-import { Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Select, SelectItem } from '@heroui/react';
+import {
+  Input, Modal, ModalContent, ModalHeader, ModalBody,
+  ModalFooter, Button, Select, SelectItem
+} from '@heroui/react';
 import { Icon } from '@iconify/react';
 import axiosInstance from '@/lib/axios';
 import { ENDPOINTS } from '@/constant/api';
 import { updateRole } from '@/services/user';
 import RoleUserTable from '../components/RoleUserTable';
+
 
 type UserWithClerk = {
   id: string;
@@ -50,7 +54,11 @@ export default class UserWithClerkTables extends React.Component<{}, State> {
   }
 
   openUpdate = (user: UserWithClerk) => {
-    this.setState({ selectedUser: user, newRole: new Set([user.role]), isOpen: true });
+    this.setState({
+      selectedUser: user,
+      newRole: new Set([user.role]),
+      isOpen: true,
+    });
   };
 
   handleUpdateRole = async () => {
@@ -65,17 +73,28 @@ export default class UserWithClerkTables extends React.Component<{}, State> {
   render() {
     const { users, search, fetching, selectedUser, newRole, isOpen } = this.state;
     const q = search.trim().toLowerCase();
+
+    // lọc bỏ student
     let list = users.filter(u => (u.role || '').toLowerCase() !== 'student');
     if (q) {
-      list = list.filter(u => `${u.firstName ?? ''} ${u.lastName ?? ''} ${u.email ?? ''}`.toLowerCase().includes(q));
+      list = list.filter(u =>
+        `${u.firstName ?? ''} ${u.lastName ?? ''} ${u.email ?? ''}`.toLowerCase().includes(q)
+      );
     }
+
+    // tách role
     const admins = list.filter(u => u.role?.toLowerCase() === 'admin');
     const teachers = list.filter(u => u.role?.toLowerCase() === 'teacher');
     const anonymus = list.filter(u => u.role?.toLowerCase() === 'anonymus');
+    const staffs = list.filter(u => u.role?.toLowerCase() === 'staff');
+
+    const selectedRole = Array.from(newRole)[0];
+    const disableSave = !selectedUser || selectedRole === selectedUser.role;
 
     return (
       <div className="mt-6 space-y-4">
-        <div className="flex justify-between gap-3">
+        {/* search */}
+        <div className="flex items-center justify-between gap-3">
           <Input
             placeholder="Tìm kiếm..."
             value={search}
@@ -83,24 +102,51 @@ export default class UserWithClerkTables extends React.Component<{}, State> {
             startContent={<Icon icon="lucide:search" />}
             className="w-full md:w-96"
           />
-          <div className="text-sm text-default-500">Tổng: <b>{list.length}</b></div>
+          <div className="text-sm text-default-500">
+            Tổng: <b>{list.length}</b>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <RoleUserTable title={`Admin (${admins.length})`} users={admins} loading={fetching} onEdit={()=>{console.log("canupdaterole tếch")}} />
-          <RoleUserTable title={`Teacher (${teachers.length})`} users={teachers} loading={fetching} onEdit={this.openUpdate} />
-          <RoleUserTable title={`ANONYMUS (${anonymus.length})`} users={anonymus} loading={fetching} onEdit={this.openUpdate} />
+        {/* 4 bảng */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <RoleUserTable
+            title={`Admin (${admins.length})`}
+            users={admins}
+            loading={fetching}
+            onEdit={this.openUpdate}
+          />
+          <RoleUserTable
+            title={`Teacher (${teachers.length})`}
+            users={teachers}
+            loading={fetching}
+            onEdit={this.openUpdate}
+          />
+          <RoleUserTable
+            title={`ANONYMUS (${anonymus.length})`}
+            users={anonymus}
+            loading={fetching}
+            onEdit={this.openUpdate}
+          />
+          <RoleUserTable
+            title={`Staff (${staffs.length})`}
+            users={staffs}
+            loading={fetching}
+            onEdit={this.openUpdate}
+          />
         </div>
 
-        {/* Modal update role */}
+        {/* Modal cập nhật role */}
         <Modal isOpen={isOpen} onOpenChange={(o) => this.setState({ isOpen: o })}>
           <ModalContent>
             <>
               <ModalHeader>Cập nhật vai trò</ModalHeader>
               <ModalBody>
                 <div>Email: <b>{selectedUser?.email}</b></div>
-                <Select selectedKeys={newRole} onSelectionChange={(keys) => this.setState({ newRole: new Set(keys as Set<string>) })}>
-                
+                <Select
+                  selectedKeys={newRole}
+                  onSelectionChange={(keys) => this.setState({ newRole: new Set(keys as Set<string>) })}
+                >
+                  
                   <SelectItem key="teacher">Teacher</SelectItem>
                   
                   <SelectItem key="staff">Staff</SelectItem>
@@ -110,7 +156,9 @@ export default class UserWithClerkTables extends React.Component<{}, State> {
               </ModalBody>
               <ModalFooter>
                 <Button variant="light" onPress={() => this.setState({ isOpen: false })}>Hủy</Button>
-                <Button color="primary" onClick={this.handleUpdateRole}>Lưu</Button>
+                <Button color="primary" onClick={this.handleUpdateRole} isDisabled={disableSave}>
+                  Lưu
+                </Button>
               </ModalFooter>
             </>
           </ModalContent>

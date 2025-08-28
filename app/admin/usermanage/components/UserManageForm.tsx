@@ -164,7 +164,7 @@ const StudentManagementForm: React.FC<Props> = ({ refetchStudents }) => {
                 </Button>
               </form>
             </Tab>
-            <Tab key="import" title="Import từ Excel">
+            {/* <Tab key="import" title="Import từ Excel">
               <div className="p-4 space-y-4">
                 <h3 className="text-lg font-semibold">Tải lên danh sách học sinh từ Excel</h3>
                 <p className="text-sm text-gray-600">
@@ -221,7 +221,7 @@ const StudentManagementForm: React.FC<Props> = ({ refetchStudents }) => {
                   </div>
                 )}
               </div>
-            </Tab>
+            </Tab> */}
           </Tabs>
 
           {successMessage && (
