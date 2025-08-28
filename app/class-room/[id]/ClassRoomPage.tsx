@@ -101,9 +101,9 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
     if (!classInfo && classId) {
       fetchMyClass();
     }
-  }, [classId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [classId]); 
 
-  // Fetch danh sách roadmap mở rộng, lọc bỏ deleted
+
   const fetchExtendsRoadMap = async () => {
     const res = await getExtendRoadMaps(classId);
     const cleaned = (res || []).filter((r: any) =>
