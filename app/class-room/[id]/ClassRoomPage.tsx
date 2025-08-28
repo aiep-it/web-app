@@ -287,6 +287,8 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
                   clazzName={classInfo?.name}
                   onOpenStudentReport={handleOpenStudentReport}
                 />
+
+                
               ) : (
                 <EmptySection
                   title="No Members"

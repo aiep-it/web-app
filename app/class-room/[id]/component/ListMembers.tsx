@@ -6,8 +6,6 @@ import { ClassTeacher } from '@/services/types/class';
 import { Student } from '@/services/types/student';
 import { TeacherFeedback } from '@/services/types/user';
 import {
-  Accordion,
-  AccordionItem,
   Avatar,
   Badge,
   Button,
@@ -35,13 +33,10 @@ interface ListMembersProps {
   classId?: string;
   currentRole?: USER_ROLE | null;
   clazzName?: string;
-
   onOpenStudentReport?: (studentId: string) => void;
 }
 
-export const ListboxWrapper: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => (
+export const ListboxWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="w-full border-small px-1 py-2 rounded-small border-default-200 dark:border-default-100 h-full">
     {children}
   </div>
@@ -53,29 +48,29 @@ const ListMembers: React.FC<ListMembersProps> = ({
   classId,
   currentRole,
   clazzName,
-  onOpenStudentReport, 
+  onOpenStudentReport,
 }) => {
-   const openReport = (studentId: string) => {
-    onOpenStudentReport?.(studentId);
-  };
   const router = useRouter();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(
-    null,
-  );
+  const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
   const [isSending, setIsSending] = React.useState<boolean>(false);
   const [message, setMessage] = React.useState<string>('');
+  const [listFeedBackSeletect, setListFeedBackSelected] = React.useState<TeacherFeedback[]>([]);
+
+  const isTeacher = currentRole === USER_ROLE.TEACHER;
+  const canOpenReport = isTeacher; // chỉ teacher được mở report theo yêu cầu
+
+  const openReport = (studentId: string) => {
+    if (!canOpenReport) return;
+    onOpenStudentReport?.(studentId);
+  };
 
   const handleClose = () => {
     setSelectedStudent(null);
     setMessage('');
     onOpenChange();
   };
-
-  const [listFeedBackSeletect, setListFeedBackSelected] = React.useState<
-    TeacherFeedback[]
-  >([]);
 
   const fetchFeedbacks = async (studentId: string) => {
     if (!classId) return;
@@ -102,16 +97,15 @@ const ListMembers: React.FC<ListMembersProps> = ({
     setIsSending(false);
   };
 
-  // ===== NEW: Điều hướng sang trang Report của học sinh =====
-  const goToStudentReport = (studentId: string) => {
-    // tái sử dụng trang /report/me với query stdId
-    router.push(`/report/me?stdId=${studentId}`);
+  // helper chặn nổi bọt khi bấm button trong row
+  const stopRow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
   };
 
   return (
     <div>
-      {/* Teachers card... giữ nguyên */}
- <Card>
+      <Card>
         <CardHeader className="flex gap-3">
           <div className="flex flex-col">
             <p className="text-md">Teachers</p>
@@ -120,7 +114,7 @@ const ListMembers: React.FC<ListMembersProps> = ({
         <Divider />
         <CardBody className="space-y-3">
           {teachers.map((teacher) => (
-            <div className="flex gap-2 items-center h-full">
+            <div key={teacher.id || teacher.email} className="flex gap-2 items-center h-full">
               <Avatar
                 alt={teacher.fullName || teacher.email}
                 className="shrink-0"
@@ -138,7 +132,7 @@ const ListMembers: React.FC<ListMembersProps> = ({
           ))}
         </CardBody>
       </Card>
-      <Card></Card>
+
       <Card className="mt-4">
         <CardHeader className="flex gap-3">
           <div className="flex flex-col">
@@ -156,17 +150,21 @@ const ListMembers: React.FC<ListMembersProps> = ({
             students.map((student) => (
               <div
                 key={student.id}
-                className="flex gap-2 items-center h-full justify-between rounded-xl px-2 py-1 cursor-pointer hover:bg-default-100 transition-colors"
-                onClick={() => openReport(student.id)}               // NEW
-                role="button"
-                tabIndex={0}
+                className={[
+                  'flex gap-2 items-center h-full justify-between rounded-xl px-2 py-1 transition-colors',
+                  canOpenReport ? 'cursor-pointer hover:bg-default-100' : 'cursor-default',
+                ].join(' ')}
+                onClick={canOpenReport ? () => openReport(student.id) : undefined}
+                role={canOpenReport ? 'button' : undefined}
+                tabIndex={canOpenReport ? 0 : -1}
                 onKeyDown={(e) => {
+                  if (!canOpenReport) return;
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    openReport(student.id);                           // NEW
+                    openReport(student.id);
                   }
                 }}
-                aria-label={`Open report of ${student.fullName || student.username}`}
+                aria-label={`Row of ${student.fullName || student.username}${canOpenReport ? ', open report' : ''}`}
               >
                 <div className="flex gap-2 items-center h-full">
                   <Avatar
@@ -184,46 +182,48 @@ const ListMembers: React.FC<ListMembersProps> = ({
                   </div>
                 </div>
 
+                {/* Action zone */}
                 <div className="flex items-center gap-2">
-                  {/* Nút Report riêng (không kích hoạt click của row) */}
-                  <Tooltip content="View report">
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      variant="flat"
-                      onPress={(e) => {
-                        (e as any).preventDefault?.();
-                        (e as any).stopPropagation?.();
-                        openReport(student.id);                       // NEW
-                      }}
-                    >
-                      <Icon icon="lucide:bar-chart-3" />
-                    </Button>
-                  </Tooltip>
-
-                  {currentRole === 'TEACHER' && (
-                    <Badge
-                      isInvisible={(student?.feedbackCount ?? 0) === 0}
-                      content={student.feedbackCount || ''}
-                      color="danger"
-                    >
-                      <Tooltip content="Send feedback">
+                  {isTeacher && (
+                    <>
+                      {/* View report */}
+                      <Tooltip content="View report">
                         <Button
                           isIconOnly
                           size="sm"
                           variant="flat"
-                          color="primary"
-                          onPress={(e) => {
-                            (e as any).preventDefault?.();
-                            (e as any).stopPropagation?.();
-                            setSelectedStudent(student);
-                            onOpen();
+                          onClick={(e) => {
+                            stopRow(e);
+                            openReport(student.id);
                           }}
                         >
-                          <Icon icon="lucide:message-square" />
+                          <Icon icon="lucide:bar-chart-3" />
                         </Button>
                       </Tooltip>
-                    </Badge>
+
+                      {/* Send / See feedback */}
+                      <Badge
+                        isInvisible={(student?.feedbackCount ?? 0) === 0}
+                        content={student.feedbackCount || ''}
+                        color="danger"
+                      >
+                        <Tooltip content="Send / See feedback">
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="flat"
+                            color="primary"
+                            onClick={(e) => {
+                              stopRow(e); // FIX: chặn row click nuốt event
+                              setSelectedStudent(student);
+                              onOpen();
+                            }}
+                          >
+                            <Icon icon="lucide:message-square" />
+                          </Button>
+                        </Tooltip>
+                      </Badge>
+                    </>
                   )}
                 </div>
               </div>
@@ -232,7 +232,60 @@ const ListMembers: React.FC<ListMembersProps> = ({
         </CardBody>
       </Card>
 
-      
+      {/* Modal Feedback (giữ nguyên logic, chỉ hiển thị khi teacher mở) */}
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} onClose={handleClose}>
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            Feedback for {selectedStudent?.fullName || selectedStudent?.username}
+          </ModalHeader>
+          <ModalBody className="space-y-3">
+            {/* List feedbacks đã có */}
+          {/* List feedbacks đã có */}
+{listFeedBackSeletect?.length ? (
+  <div className="space-y-2">
+    {listFeedBackSeletect.map((fb) => (
+      <div
+        key={fb.id}
+        className="text-sm p-2 rounded-lg border border-default-200 dark:border-default-100"
+      >
+        <div className="font-medium">
+          {(fb.teacher && fb.teacher.fullName) ? fb.teacher.fullName : 'Teacher'}:
+        </div>
+        <div className="opacity-80">{fb.content}</div>
+        <div className="text-xs opacity-60 mt-1">
+          {fb.createdAt ? new Date(fb.createdAt).toLocaleString() : ''}
+        </div>
+      </div>
+    ))}
+  </div>
+) : (
+  <div className="text-small opacity-60">No feedback yet.</div>
+)}
+
+
+            {/* Ô nhập thêm feedback mới cho teacher */}
+            {isTeacher && (
+              <Textarea
+                label="Add feedback"
+                placeholder="Type your feedback..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                minRows={3}
+              />
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onClick={handleClose}>
+              Close
+            </Button>
+            {isTeacher && (
+              <Button color="primary" isLoading={isSending} onClick={sendFeedBack} isDisabled={!message.trim()}>
+                Send feedback
+              </Button>
+            )}
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };
