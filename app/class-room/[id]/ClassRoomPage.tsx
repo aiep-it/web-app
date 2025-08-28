@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useEffect } from 'react';
 import { Key, Selection } from '@react-types/shared';
 import { motion } from 'framer-motion';
@@ -8,7 +9,6 @@ import {
   addToast,
   Button,
   Chip,
-  getKeyValue,
   Modal,
   ModalBody,
   ModalContent,
@@ -41,124 +41,117 @@ import { USER_ROLE } from '@/constant/authorProtect';
 import ClassReport from './component/ClassReport';
 import { Roadmap } from '@/services/types/roadmap';
 import RoadMapDetailPage from '@/app/admin/roadmaps/[id]/RoadMapDetailPage';
-import toast from 'react-hot-toast';
 
 interface ClassRoomPageProps {
-  classId: string; // Optional prop if you want to pass classId
+  classId: string;
 }
 
 const columns = [
-  {
-    key: 'name',
-    label: 'NAME',
-  },
-  {
-    key: 'description',
-    label: 'DESCRIPTION',
-  },
-  {
-    key: 'actions',
-    label: 'ACTIONS',
-  },
+  { key: 'name', label: 'NAME' },
+  { key: 'description', label: 'DESCRIPTION' },
+  { key: 'actions', label: 'ACTIONS' },
 ];
+
 const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
   const [classInfo, setClassInfo] = React.useState<ClassResponse | null>(null);
   const [currentRole, setCurrentRole] = React.useState<USER_ROLE | null>(null);
   const { sessionClaims } = useAuth();
-  const [extendsRoadmaps, setExtendsRoadmaps] = React.useState<Roadmap[]>([]);
-  const [selectedKeys, setSelectedKeys] = React.useState<Selection>(
-    new Set<Key>(),
-  );
 
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [extendsRoadmaps, setExtendsRoadmaps] = React.useState<Roadmap[]>([]);
+  const [selectedKeys, setSelectedKeys] = React.useState<Selection>(new Set<Key>());
+
+  const { isOpen, onOpenChange } = useDisclosure();
   const {
     isOpen: viewRoadMap,
-    onOpen: onOpenViewRoadMap,
     onOpenChange: onOpenChangeViewRoadmap,
   } = useDisclosure();
 
-  const [roadMapSelected, setRoadMapSelected] = React.useState<Roadmap | null>(
-    null,
-  );
+  const [roadMapSelected, setRoadMapSelected] = React.useState<Roadmap | null>(null);
+
+  // Lấy role từ Clerk
   useEffect(() => {
-    interface Metadata {
-      role?: string;
-    }
-
+    interface Metadata { role?: string }
     const metadata = sessionClaims?.metadata as Metadata;
-
     if (metadata?.role) {
       const role = metadata.role.toUpperCase() as USER_ROLE;
-
       setCurrentRole(role);
     }
   }, [sessionClaims]);
+
+  // Fetch class info
   const fetchMyClass = async () => {
     const res = await getMyClass(classId);
-
-    if (res) {
-      // Handle the fetched class data
-      setClassInfo(res);
-    } else {
-      // Handle error case
-      console.error('Failed to fetch class data');
-    }
+    if (res) setClassInfo(res);
+    else console.error('Failed to fetch class data');
   };
 
   useEffect(() => {
     if (!classInfo && classId) {
       fetchMyClass();
     }
-  }, [classId]);
+  }, [classId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Fetch danh sách roadmap mở rộng, lọc bỏ deleted
   const fetchExtendsRoadMap = async () => {
     const res = await getExtendRoadMaps(classId);
-
-    setExtendsRoadmaps(res || []);
+    const cleaned = (res || []).filter((r: any) =>
+      !(r?.is_delected ?? r?.is_deleted ?? r?.isDeleted ?? false) &&
+      (r?.status ? String(r.status).toUpperCase() !== 'DELETED' : true)
+    );
+    setExtendsRoadmaps(cleaned);
   };
+
+  // Khi mở modal thì fetch danh sách
   useEffect(() => {
     if (isOpen) {
-      // Fetch class data when modal opens
       fetchExtendsRoadMap();
     }
-  }, [isOpen]);
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Đóng modal + reset chọn
   const handleClose = () => {
-    setSelectedKeys(new Set<Key>()); // Reset selected keys when closing
+    setSelectedKeys(new Set<Key>());
     onOpenChange();
-  }
+  };
 
+  // Pick roadmap: chỉ gửi ID hợp lệ
   const pickRoadmap = async () => {
+    const eligibleIds = extendsRoadmaps
+      .filter((r: any) => !(r?.is_delected ?? r?.is_deleted ?? r?.isDeleted ?? false))
+      .map((r) => r.id);
+
     let payloadInsert: string[] = [];
-    if (selectedKeys === 'all') {
-      payloadInsert = extendsRoadmaps?.map((roadmap) => roadmap.id) || [];
-    } else if (selectedKeys.size > 0) {
-      payloadInsert = Array.from(selectedKeys).map((key) => key.toString());
+    const isAll = selectedKeys === 'all';
+
+    if (isAll) {
+      payloadInsert = eligibleIds;
+    } else {
+      const setSel = selectedKeys as Set<Key>;
+      if (setSel && setSel.size > 0) {
+        payloadInsert = Array.from(setSel)
+          .map((k) => k.toString())
+          .filter((id) => eligibleIds.includes(id));
+      }
+    }
+
+    if (!payloadInsert.length) {
+      addToast({ title: 'Không có roadmap hợp lệ để thêm.', color: 'warning' });
+      return;
     }
 
     const res = await pickRoadmapIntoClass(classId, payloadInsert);
-
     if (res) {
-      addToast({
-        title: 'Roadmap picked successfully!',
-        
-        color: 'success',
-      });
+      addToast({ title: 'Thêm roadmap thành công!', color: 'success' });
       handleClose();
-      fetchMyClass(); // Refresh class data
+      fetchMyClass();
     } else {
-      // Handle error case
-      addToast({
-        title: 'Roadmap picked fail!',
-        color: 'danger',
-      });
+      addToast({ title: 'Thêm roadmap thất bại!', color: 'danger' });
     }
   };
 
   const renderCell = React.useCallback(
     (roadmap: Roadmap, columnKey: React.Key): React.ReactNode => {
       const cellValue = roadmap[columnKey as keyof Roadmap];
-
       switch (columnKey) {
         case 'actions':
           return (
@@ -174,17 +167,19 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
                   <Icon icon="lucide:eye" width={20} />
                 </span>
               </Tooltip>
-              <Tooltip content="See Feedback">
-                <span className="text-lg text-default-400 cursor-pointer active:opacity-50"></span>
-              </Tooltip>
             </div>
           );
         default:
           return cellValue !== undefined ? <>{cellValue}</> : '-';
       }
     },
-    [],
+    [] // roadmap cell pure
   );
+
+  const pickDisabled =
+    selectedKeys !== 'all' &&
+    (!selectedKeys || (selectedKeys as Set<Key>).size === 0);
+
   return (
     <div className="flex-grow container mx-auto px-4 max-w-7xl">
       <motion.div
@@ -194,6 +189,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
         className="space-y-8"
       >
         <ClassRoomHeader classInfo={classInfo} />
+
         <Tabs
           aria-label="Class Options"
           color="primary"
@@ -209,9 +205,9 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
               </div>
             }
           >
-            {currentRole && currentRole === USER_ROLE.TEACHER && (
+            {currentRole === USER_ROLE.TEACHER && (
               <div className="flex justify-end mb-4">
-                <Tooltip content={'Pick from bank'} color="primary">
+                <Tooltip content="Pick from bank" color="primary">
                   <Button color="primary" onPress={onOpenChange}>
                     <Icon icon="lucide:plus" className="mr-2" />
                     Pick Roadmap
@@ -219,6 +215,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
                 </Tooltip>
               </div>
             )}
+
             {classInfo?.roadmaps && classInfo.roadmaps.length > 0 ? (
               <Accordion variant="bordered" className="space-y-2">
                 {classInfo.roadmaps.map((roadmap, index) => (
@@ -228,11 +225,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
                       <div className="flex flex-row space-x-2">
                         <p>{roadmap.name}</p>
                         {roadmap.category && (
-                          <Chip
-                            color="primary"
-                            variant="flat"
-                            className="text-xs"
-                          >
+                          <Chip color="primary" variant="flat" className="text-xs">
                             {roadmap.category}
                           </Chip>
                         )}
@@ -254,6 +247,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
               />
             )}
           </Tab>
+
           <Tab
             key="members"
             title={
@@ -262,7 +256,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
                 <span>Members</span>
                 {classInfo?.students && classInfo.students.length > 0 && (
                   <Chip size="sm" variant="flat" color="success">
-                    {classInfo?.students && classInfo.students.length}
+                    {classInfo.students.length}
                   </Chip>
                 )}
               </div>
@@ -275,7 +269,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
                   students={classInfo.students || []}
                   classId={classId}
                   currentRole={currentRole}
-                  clazzName={classInfo.name}
+                  clazzName={classInfo?.name}
                 />
               ) : (
                 <EmptySection
@@ -285,29 +279,14 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
               )}
             </div>
           </Tab>
-          {/* <Tab
-            key="Media"
-            title={
-              <div className="flex items-center gap-2">
-                <Icon icon="lucide:tv-minimal" />
-                <span>Media</span>
-              
-              </div>
-            }
-          >
-            <EmptySection
-              title="No Media"
-              message="This class does not have any media yet."
-            />
-          </Tab> */}
-          {currentRole && currentRole === USER_ROLE.TEACHER && (
+
+          {currentRole === USER_ROLE.TEACHER && (
             <Tab
               key="class-report"
               title={
                 <div className="flex items-center gap-2">
                   <Icon icon="lucide:clipboard-minus" />
                   <span>Class Report</span>
-                  {/* {events.length > 0 && <Chip size="sm" variant="flat">{events.length}</Chip>} */}
                 </div>
               }
             >
@@ -316,13 +295,13 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
           )}
         </Tabs>
       </motion.div>
+
+      {/* Modal Pick Roadmap */}
       <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="3xl">
         <ModalContent>
-          {(onClose) => (
+          {() => (
             <>
-              <ModalHeader className="flex flex-col gap-1">
-                Modal Title
-              </ModalHeader>
+              <ModalHeader className="flex flex-col gap-1">Pick Roadmap</ModalHeader>
               <ModalBody>
                 <Table
                   aria-label="Controlled table example with dynamic content"
@@ -335,7 +314,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
                       <TableColumn key={column.key}>{column.label}</TableColumn>
                     )}
                   </TableHeader>
-                  
+
                   <TableBody items={extendsRoadmaps}>
                     {(item) => (
                       <TableRow key={item.id}>
@@ -348,10 +327,10 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
                 </Table>
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
+                <Button color="danger" variant="light" onPress={handleClose}>
                   Close
                 </Button>
-                <Button color="primary" onPress={pickRoadmap}>
+                <Button color="primary" onPress={pickRoadmap} isDisabled={pickDisabled}>
                   Pick
                 </Button>
               </ModalFooter>
@@ -359,26 +338,23 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
           )}
         </ModalContent>
       </Modal>
+
+      {/* Modal View Roadmap */}
       <Modal
         isOpen={viewRoadMap}
         onOpenChange={onOpenChangeViewRoadmap}
         size="5xl"
         isDismissable={false}
         isKeyboardDismissDisabled={true}
-        scrollBehavior={'inside'}
+        scrollBehavior="inside"
       >
         <ModalContent>
-          {(onClose) => (
+          {() => (
             <>
-              <ModalHeader className="flex flex-col gap-1">
-                RoadMap View
-              </ModalHeader>
+              <ModalHeader className="flex flex-col gap-1">RoadMap View</ModalHeader>
               <ModalBody>
                 {roadMapSelected ? (
-                  <RoadMapDetailPage
-                    id={roadMapSelected.id}
-                    isViewOnly={true}
-                  />
+                  <RoadMapDetailPage id={roadMapSelected.id} isViewOnly />
                 ) : (
                   <EmptySection
                     title="No Roadmap Selected"
@@ -387,7 +363,7 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
                 )}
               </ModalBody>
               <ModalFooter>
-                <Button color="secondary" variant="bordered" onPress={onClose}>
+                <Button color="secondary" variant="bordered" onPress={onOpenChangeViewRoadmap}>
                   Close
                 </Button>
               </ModalFooter>
