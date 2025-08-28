@@ -41,6 +41,7 @@ import { USER_ROLE } from '@/constant/authorProtect';
 import ClassReport from './component/ClassReport';
 import { Roadmap } from '@/services/types/roadmap';
 import RoadMapDetailPage from '@/app/admin/roadmaps/[id]/RoadMapDetailPage';
+import MyReport from '@/app/report/me/MyReport';
 
 interface ClassRoomPageProps {
   classId: string;
@@ -67,7 +68,18 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
   } = useDisclosure();
 
   const [roadMapSelected, setRoadMapSelected] = React.useState<Roadmap | null>(null);
+  const {
+    isOpen: isOpenStudentReport,
+    onOpenChange: onOpenChangeStudentReport,
+    onOpen: onOpenStudentReportInternal,
+  } = useDisclosure();
+  const [selectedStudentId, setSelectedStudentId] = React.useState<string | null>(null);
 
+  // NEW: callback truyền xuống ListMembers
+  const handleOpenStudentReport = (studentId: string) => {
+    setSelectedStudentId(studentId);
+    onOpenStudentReportInternal(); // mở modal
+  };
   // Lấy role từ Clerk
   useEffect(() => {
     interface Metadata { role?: string }
@@ -248,37 +260,39 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
             )}
           </Tab>
 
-          <Tab
-            key="members"
-            title={
-              <div className="flex items-center gap-2">
-                <Icon icon="lucide:users" />
-                <span>Members</span>
-                {classInfo?.students && classInfo.students.length > 0 && (
-                  <Chip size="sm" variant="flat" color="success">
-                    {classInfo.students.length}
-                  </Chip>
-                )}
-              </div>
-            }
-          >
-            <div className="py-4 h-full">
-              {classInfo?.teachers && classInfo.teachers.length > 0 ? (
-                <ListMembers
-                  teachers={classInfo.teachers}
-                  students={classInfo.students || []}
-                  classId={classId}
-                  currentRole={currentRole}
-                  clazzName={classInfo?.name}
-                />
-              ) : (
-                <EmptySection
-                  title="No Members"
-                  message="This class does not have any members yet."
-                />
+      <Tab
+          key="members"
+          title={
+            <div className="flex items-center gap-2">
+              <Icon icon="lucide:users" />
+              <span>Members</span>
+              {classInfo?.students && classInfo.students.length > 0 && (
+                <Chip size="sm" variant="flat" color="success">
+                  {classInfo.students.length}
+                </Chip>
               )}
             </div>
-          </Tab>
+          }
+        >
+          <div className="py-4 h-full">
+            {classInfo?.teachers && classInfo.teachers.length > 0 ? (
+              <ListMembers
+                teachers={classInfo.teachers}
+                students={classInfo.students || []}
+                classId={classId}
+                currentRole={currentRole}
+                clazzName={classInfo?.name}
+                onOpenStudentReport={handleOpenStudentReport}      // NEW
+              />
+            ) : (
+              <EmptySection
+                title="No Members"
+                message="This class does not have any members yet."
+              />
+            )}
+          </div>
+        </Tab>
+
 
           {currentRole === USER_ROLE.TEACHER && (
             <Tab
@@ -340,30 +354,34 @@ const ClassRoomPage: React.FC<ClassRoomPageProps> = ({ classId }) => {
       </Modal>
 
       {/* Modal View Roadmap */}
-      <Modal
-        isOpen={viewRoadMap}
-        onOpenChange={onOpenChangeViewRoadmap}
+         <Modal
+        isOpen={isOpenStudentReport}
+        onOpenChange={onOpenChangeStudentReport}
         size="5xl"
-        isDismissable={false}
-        isKeyboardDismissDisabled={true}
+        isDismissable
         scrollBehavior="inside"
       >
         <ModalContent>
           {() => (
             <>
-              <ModalHeader className="flex flex-col gap-1">RoadMap View</ModalHeader>
-              <ModalBody>
-                {roadMapSelected ? (
-                  <RoadMapDetailPage id={roadMapSelected.id} isViewOnly />
+              <ModalHeader className="flex flex-col gap-1">
+                {selectedStudentId ? 'Student Report' : 'No Student Selected'}
+              </ModalHeader>
+              <ModalBody className="p-0">
+                {selectedStudentId ? (
+                
+                <MyReport stdId={selectedStudentId!} />
+
+
                 ) : (
                   <EmptySection
-                    title="No Roadmap Selected"
-                    message="Please select a roadmap to view details."
+                    title="No Student Selected"
+                    message="Please select a student to view report."
                   />
                 )}
               </ModalBody>
               <ModalFooter>
-                <Button color="secondary" variant="bordered" onPress={onOpenChangeViewRoadmap}>
+                <Button variant="bordered" onPress={onOpenChangeStudentReport}>
                   Close
                 </Button>
               </ModalFooter>

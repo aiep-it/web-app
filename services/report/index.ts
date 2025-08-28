@@ -81,3 +81,12 @@ export async function getClassTopicReport(classId: string, topicId: string): Pro
         return null;
     }
 }
+export async function getUserReport(userId: string): Promise<ReportData | null> {
+  try {
+    const res = await axiosInstance.get(ENDPOINTS.REPORT.USER(userId));
+    return res.status === 200 ? res.data : null;
+  } catch (e) {
+    console.error("Error fetching user report:", e);
+    return null;
+  }
+}
